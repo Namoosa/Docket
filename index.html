@@ -12,6 +12,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 
 <script>
   window.FIREBASE_CONFIG = {
@@ -31,7 +33,7 @@
 <style>
   :root{
     --ink:#20242C; --paper:#ECE7DA; --panel:#FBF9F3; --navy:#22344A; --navy-dark:#182234;
-    --brass:#8F6526; --brick:#9A3B33; --sage:#556B4F; --slate:#3D5871; --line:#D8D0BB; --muted:#7B7566;
+    --brass:#8F6526; --brick:#9A3B33; --sage:#556B4F; --slate:#3D5871; --line:#D8D0BB; --muted:#7B7566; --surface:#F6F1E4;
     --purple:#6B5B8C; --clay:#8A6E4B;
   }
   *{box-sizing:border-box;}
@@ -45,9 +47,9 @@
   .mono{font-family:'IBM Plex Mono',monospace;}
   a{color:var(--slate);}
   .hidden{display:none !important;}
-  .input{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:15px; color:var(--ink);}
+  .input{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-size:15px; color:var(--ink);}
   .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:8px;border:none;background:var(--navy);color:var(--panel);font-weight:600;font-size:14px;}
-  .btn-google{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#3c4043;font-weight:600;font-size:14px;}
+  .btn-google{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:#3c4043;font-weight:600;font-size:14px;}
   .btn-ghost{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--navy);font-weight:600;font-size:13px;}
   .icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;color:var(--navy);}
   .field-label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px;}
@@ -55,7 +57,7 @@
   #auth-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
   .auth-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px 24px; width:100%; max-width:380px;}
   .auth-tabs{display:flex; gap:6px; margin-bottom:18px;}
-  .auth-tab{flex:1; text-align:center; padding:9px 0; border-radius:7px; font-size:13px; font-weight:600; border:1px solid var(--line); background:#fff; color:var(--muted);}
+  .auth-tab{flex:1; text-align:center; padding:9px 0; border-radius:7px; font-size:13px; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--muted);}
   .auth-tab.active{background:var(--navy); color:var(--panel); border-color:var(--navy);}
   #auth-error{color:#B23A32; font-size:12.5px; margin-top:8px; min-height:16px;}
   .or-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px;}
@@ -72,7 +74,7 @@
   .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
   .cal-wd{text-align:center;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;}
-  .cal-day{aspect-ratio:1;border-radius:7px;border:1px solid transparent;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;position:relative;}
+  .cal-day{aspect-ratio:1;border-radius:7px;border:1px solid transparent;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;position:relative;}
   .cal-day.today{border:1.5px solid var(--brass);}
   .cal-day.selected{border:2px solid var(--navy); background:#DFE3E8;}
   .dot{width:5px;height:5px;border-radius:3px;}
@@ -99,10 +101,21 @@
   .link-check-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
   .link-check-row:last-child{border-bottom:none;}
   .radio-row{display:flex;gap:8px;flex-wrap:wrap;}
-  .radio-pill{flex:1;min-width:110px;text-align:center;padding:8px 6px;border-radius:7px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:600;color:var(--muted);}
+  .radio-pill{flex:1;min-width:110px;text-align:center;padding:8px 6px;border-radius:7px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:600;color:var(--muted);}
   .radio-pill.active{background:var(--navy);color:var(--panel);border-color:var(--navy);}
   .group-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--purple);border:1px solid var(--purple);border-radius:3px;padding:2px 6px;font-weight:600;}
   .checklist-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
+  /* Icon sizing — bigger, clearer, consistent everywhere */
+  .icon-btn i{font-size:16px;}
+  .tab-btn i{font-size:15px;margin-right:2px;}
+  .task-title-icon{font-size:17px;width:20px;display:inline-flex;justify-content:center;}
+  .case-type-icon{font-size:16px;width:19px;display:inline-flex;justify-content:center;}
+  .fab i{font-size:22px;}
+  .brand i{font-size:20px;}
+  .badge i{font-size:11px;}
+  .btn-ghost i, .btn-primary i{font-size:14px;}
+  .task-check i{font-size:13px;}
+  .doc-link-row i, .p-item i{font-size:13px;}
   #print-area{display:none;}
   @media print{
     body *{visibility:hidden;}
@@ -122,7 +135,7 @@
 <div id="auth-screen">
   <div class="auth-card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
-      <span class="serif" style="font-size:22px;color:var(--navy-dark);">⚖ Docket</span>
+      <span class="serif" style="font-size:22px;color:var(--navy-dark);"><i class=&quot;fa-solid fa-scale-balanced&quot;></i> Docket</span>
     </div>
     <button class="btn-google" id="google-signin-btn">
       <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3c-7.7 0-14.3 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.8 14.3-5l-6.6-5.6C29.6 35.9 27 37 24 37c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.5 40.4 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.6C41.5 36 45 30.6 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
@@ -144,11 +157,11 @@
 <div id="app-shell" class="hidden">
   <header>
     <div class="header-inner">
-      <div class="brand"><span style="color:var(--brass);">⚖</span> <span class="serif">Docket</span></div>
+      <div class="brand"><span style="color:var(--brass);"><i class=&quot;fa-solid fa-scale-balanced&quot;></i></span> <span class="serif">Docket</span></div>
       <div style="display:flex;gap:8px;align-items:center;">
         <div id="header-badges" style="display:flex;gap:6px;"></div>
-        <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket">🖨</button>
-        <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);">⚙</button>
+        <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><i class=&quot;fa-solid fa-print&quot;></i></button>
+        <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><i class=&quot;fa-solid fa-gear&quot;></i></button>
         <button class="icon-btn" id="signout-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;">Out</button>
       </div>
     </div>
@@ -159,16 +172,16 @@
 
   <main>
     <div class="tabs">
-      <button class="tab-btn active" id="tab-calendar">📅 Calendar</button>
-      <button class="tab-btn" id="tab-cases">📋 Cases</button>
-      <button class="tab-btn" id="tab-checklist">✅ Checklist</button>
+      <button class="tab-btn active" id="tab-calendar"><i class=&quot;fa-solid fa-calendar-days&quot;></i> Calendar</button>
+      <button class="tab-btn" id="tab-cases"><i class=&quot;fa-solid fa-folder-open&quot;></i> Cases</button>
+      <button class="tab-btn" id="tab-checklist"><i class=&quot;fa-solid fa-list-check&quot;></i> Checklist</button>
     </div>
     <div id="view-calendar"></div>
     <div id="view-cases" class="hidden"></div>
     <div id="view-checklist" class="hidden"></div>
   </main>
 
-  <button class="fab" id="fab-btn">+</button>
+  <button class="fab" id="fab-btn"><i class=&quot;fa-solid fa-plus&quot;></i></button>
 </div>
 
 <div id="modal-root"></div>
@@ -183,11 +196,11 @@ const db = firebase.firestore();
 /* ================= CONSTANTS ================= */
 const PROCEDURE_TYPES = ["Hearing","Motion Filing","Memorandum","Consultation"];
 const PROCEDURE_COLOR = {"Hearing":"#9A3B33","Motion Filing":"#A6762E","Memorandum":"#3D5871","Consultation":"#556B4F"};
-const PROCEDURE_ICON = {"Hearing":"⚖","Motion Filing":"✎","Memorandum":"📄","Consultation":"💬"};
+const PROCEDURE_ICON = {"Hearing":"<i class=&quot;fa-solid fa-scale-balanced&quot;></i>","Motion Filing":"<i class=&quot;fa-solid fa-file-signature&quot;></i>","Memorandum":"<i class=&quot;fa-solid fa-file-lines&quot;></i>","Consultation":"<i class=&quot;fa-solid fa-comments&quot;></i>"};
 
 const CASE_TYPES = ["Criminal","Civil","Commercial","Labor","Personal Status","Real Estate","Administrative"];
 const CASE_TYPE_COLOR = {"Criminal":"#9A3B33","Civil":"#3D5871","Commercial":"#A6762E","Labor":"#556B4F","Personal Status":"#6B5B8C","Real Estate":"#8A6E4B","Administrative":"#7B7566"};
-const CASE_TYPE_ICON = {"Criminal":"🚔","Civil":"⚖","Commercial":"🏢","Labor":"👷","Personal Status":"👪","Real Estate":"🏠","Administrative":"🏛"};
+const CASE_TYPE_ICON = {"Criminal":"<i class=&quot;fa-solid fa-handcuffs&quot;></i>","Civil":"<i class=&quot;fa-solid fa-scale-balanced&quot;></i>","Commercial":"<i class=&quot;fa-solid fa-building&quot;></i>","Labor":"<i class=&quot;fa-solid fa-helmet-safety&quot;></i>","Personal Status":"<i class=&quot;fa-solid fa-people-roof&quot;></i>","Real Estate":"<i class=&quot;fa-solid fa-house&quot;></i>","Administrative":"<i class=&quot;fa-solid fa-landmark&quot;></i>"};
 
 const PARTY_ROLES = ["Client","Opponent","Co-Defendant","Co-Plaintiff","Third Party","Other"];
 const STATUS_OPTIONS = ["Active","Pending","On Hold","Closed"];
@@ -197,7 +210,7 @@ function hashColor(str){ let h=0; for(let i=0;i<str.length;i++){ h = str.charCod
 function colorForProcedure(t){ return PROCEDURE_COLOR[t] || hashColor(t||"?"); }
 function colorForCaseType(t){ return CASE_TYPE_COLOR[t] || hashColor(t||"?"); }
 function iconForProcedure(t){ return PROCEDURE_ICON[t] || "•"; }
-function iconForCaseType(t){ return CASE_TYPE_ICON[t] || "📁"; }
+function iconForCaseType(t){ return CASE_TYPE_ICON[t] || "<i class=&quot;fa-solid fa-folder&quot;></i>"; }
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const WD = ["S","M","T","W","T","F","S"];
@@ -412,10 +425,10 @@ function printTodaysDocket(){
   const dueToday = state.tasks.filter(t=>!t.completed && t.date===tk).sort((a,b)=>(a.kind==="deadline")-(b.kind==="deadline"));
   const overdue = state.tasks.filter(t=>!t.completed && t.date<tk).sort((a,b)=>a.date.localeCompare(b.date));
   const openChecklist = state.checklist.filter(x=>!x.done);
-  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?"⏳ ":"📅 "}${esc(t.title)}</strong> — ${esc(t.type)}
+  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?"<i class=&quot;fa-solid fa-hourglass-half&quot;></i> ":"<i class=&quot;fa-solid fa-calendar-days&quot;></i> "}${esc(t.title)}</strong> — ${esc(t.type)}
     <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):"No case linked"}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}${t.date!==tk?` · ${fmtLong(t.date)}`:""}</div></div>`;
   document.getElementById("print-area").innerHTML = `
-    <h1>⚖ Docket — Today</h1>
+    <h1><i class=&quot;fa-solid fa-scale-balanced&quot;></i> Docket — Today</h1>
     <div class="p-sub">${fmtLong(tk)}</div>
     <div class="p-section">
       <div class="p-section-title">Today</div>
@@ -423,7 +436,7 @@ function printTodaysDocket(){
     </div>
     ${overdue.length>0?`<div class="p-section"><div class="p-section-title">Overdue</div>${overdue.map(itemHtml).join("")}</div>`:""}
     ${openChecklist.length>0?`<div class="p-section"><div class="p-section-title">Open checklist items</div>
-      ${openChecklist.map(it=>`<div class="p-item">☐ ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
+      ${openChecklist.map(it=>`<div class="p-item"><i class=&quot;fa-regular fa-square&quot;></i> ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
     </div>`:""}
   `;
   window.print();
@@ -434,14 +447,14 @@ window.printCaseHistory = (c)=>{
   const log = (c.noteLog||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
 
   const taskHtml = (t)=>`<div class="p-item">
-      <strong>${t.kind==="deadline"?(t.critical?"⚠ CRITICAL DEADLINE — ":"⏳ Deadline — "):"📅 "}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
+      <strong>${t.kind==="deadline"?(t.critical?"<i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> CRITICAL DEADLINE — ":"<i class=&quot;fa-solid fa-hourglass-half&quot;></i> Deadline — "):"<i class=&quot;fa-solid fa-calendar-days&quot;></i> "}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
       ${t.notes?`<div class="p-meta">${esc(t.notes)}</div>`:""}
       ${t.postponeReason?`<div class="p-meta">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
     </div>`;
 
   document.getElementById("print-area").innerHTML = `
     <h1>${esc(computeCaseTitle(c))}</h1>
-    <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}</div>
+    <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.authorityType==="court"&&c.chamber?(" · "+esc(c.chamber)):""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?(" · Prosecutor: "+esc(c.prosecutorInCharge)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}</div>
 
     ${(c.parties&&c.parties.length)?`<div class="p-section">
       <div class="p-section-title">Parties</div>
@@ -459,7 +472,7 @@ window.printCaseHistory = (c)=>{
     </div>
 
     ${checklistItems.length?`<div class="p-section"><div class="p-section-title">Checklist</div>
-      ${checklistItems.map(it=>`<div class="p-item">${it.done?"☑":"☐"} ${esc(it.text)}</div>`).join("")}
+      ${checklistItems.map(it=>`<div class="p-item">${it.done?"<i class=&quot;fa-solid fa-square-check&quot;></i>":"<i class=&quot;fa-regular fa-square&quot;></i>"} ${esc(it.text)}</div>`).join("")}
     </div>`:""}
 
     ${(c.documents&&c.documents.length)?`<div class="p-section"><div class="p-section-title">Documents</div>
@@ -503,9 +516,9 @@ function renderInstallBanner(){
   const wrap = document.getElementById("install-banner-wrap");
   if(state.onboardDismissed){ wrap.innerHTML=""; return; }
   wrap.innerHTML = `<div class="install-banner">
-    <span>📲</span>
+    <span><i class=&quot;fa-solid fa-mobile-screen-button&quot;></i></span>
     <div style="flex:1;"><strong>One-tap access:</strong> your browser should offer an "Install" or "Add to Home Screen" option (address bar icon, or the ⋮ / Share menu).</div>
-    <button onclick="dismissBanner()" style="background:none;border:none;color:var(--muted);">✕</button>
+    <button onclick="dismissBanner()" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-xmark&quot;></i></button>
   </div>`;
 }
 function dismissBanner(){ state.onboardDismissed = true; saveSettings(); render(); }
@@ -516,7 +529,7 @@ function renderReconnectBanner(){
   const isGoogleUser = state.user && state.user.providerData.some(p=>p.providerId==="google.com");
   if(isGoogleUser && !state.googleConnected){
     wrap.innerHTML = `<div class="install-banner" style="border-left-color:var(--brick);margin-top:10px;">
-      <span>📅</span>
+      <span><i class=&quot;fa-solid fa-calendar-days&quot;></i></span>
       <div style="flex:1;">Google Calendar sync needs to be reconnected (this happens periodically for security). Your dates are still safe — this only affects calendar syncing.</div>
       <button class="btn-ghost" onclick="reconnectGoogle()">Reconnect</button>
     </div>`;
@@ -554,7 +567,7 @@ function renderCalendar(upcoming){
 
   document.getElementById("view-calendar").innerHTML = `
     ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
-      <div class="section-label" style="color:var(--brick);margin-bottom:8px;">⚠ Critical deadlines</div>
+      <div class="section-label" style="color:var(--brick);margin-bottom:8px;"><i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> Critical deadlines</div>
       ${criticalItems.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
     </div>` : ""}
     <div class="cal-card">
@@ -562,8 +575,8 @@ function renderCalendar(upcoming){
         <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
         <div style="display:flex;gap:6px;">
           <button class="icon-btn" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;" onclick="gotoToday()">Today</button>
-          <button class="icon-btn" onclick="gotoMonth(-1)">‹</button>
-          <button class="icon-btn" onclick="gotoMonth(1)">›</button>
+          <button class="icon-btn" onclick="gotoMonth(-1)"><i class=&quot;fa-solid fa-chevron-left&quot;></i></button>
+          <button class="icon-btn" onclick="gotoMonth(1)"><i class=&quot;fa-solid fa-chevron-right&quot;></i></button>
         </div>
       </div>
       <div class="cal-grid" style="margin-bottom:4px;">${WD.map(w=>`<div class="cal-wd">${w}</div>`).join("")}</div>
@@ -588,7 +601,7 @@ function taskRowHtml(t, caseItem, showDate){
   const isCritical = !!t.critical;
   const overdue = t.delta<0 && !t.completed;
   const urgent = !overdue && showDate && t.delta<=state.alertDays && t.delta>=0;
-  const icon = isCritical ? "⚠" : (isDeadline ? "⏳" : iconForProcedure(t.type));
+  const icon = isCritical ? "<i class=&quot;fa-solid fa-triangle-exclamation&quot;></i>" : (isDeadline ? "<i class=&quot;fa-solid fa-hourglass-half&quot;></i>" : iconForProcedure(t.type));
   const color = isCritical ? "var(--brick)" : (isDeadline ? "var(--purple)" : colorForProcedure(t.type));
   const countdownLabel = t.delta===0 ? (isDeadline||isCritical?'Due today':'Today') : `${t.delta}d${(isDeadline||isCritical)?' left':''}`;
   let statusBadge = "";
@@ -599,18 +612,18 @@ function taskRowHtml(t, caseItem, showDate){
     else if(urgent) statusBadge = `<span class="badge" style="border-color:var(--brass);color:var(--brass);">${countdownLabel}</span>`;
   }
   return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${overdue?'#B23A32':color};${isCritical?'border-width:5px;':''}">
-    <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?'✓':''}</button>
+    <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?'<i class=&quot;fa-solid fa-check&quot;></i>':''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span style="color:${color};">${icon}</span>
+        <span class="task-title-icon" style="color:${color};">${icon}</span>
         <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
-        ${t.googleEventId?`<span title="Synced to Google Calendar" style="font-size:11px;">📆</span>`:""}
+        ${t.googleEventId?`<span title="Synced to Google Calendar" style="font-size:11px;"><i class=&quot;fa-solid fa-calendar-check&quot;></i></span>`:""}
         ${statusBadge}
       </div>
-      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · 📍 ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
+      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · <i class=&quot;fa-solid fa-location-dot&quot;></i> ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
       ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
     </div>
-    <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);">🗑</button>
+    <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-trash&quot;></i></button>
   </div>`;
 }
 window.selectDay = (k)=>{ state.selectedDay=k; render(); };
@@ -646,7 +659,7 @@ function renderCases(){
     const tasksHere = state.tasks.filter(t=>caseIdsHere.has(t.caseId) && !t.completed)
       .map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
     courtBlock = `<div style="margin-bottom:18px;">
-      <div class="section-label">📍 At ${esc(state.filterCourt)} — every open procedure & deadline</div>
+      <div class="section-label"><i class=&quot;fa-solid fa-location-dot&quot;></i> At ${esc(state.filterCourt)} — every open procedure & deadline</div>
       ${tasksHere.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">Nothing open at this court right now.</div>` :
         tasksHere.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
     </div>`;
@@ -654,12 +667,12 @@ function renderCases(){
 
   document.getElementById("view-cases").innerHTML = `
     <div class="search-wrap">
-      <span style="position:absolute;left:11px;top:11px;color:var(--muted);">🔍</span>
+      <span style="position:absolute;left:11px;top:11px;color:var(--muted);"><i class=&quot;fa-solid fa-magnifying-glass&quot;></i></span>
       <input class="input" id="search-input" placeholder="Search by name, title, court, or file number…" value="${esc(state.search)}" />
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;">
       <select class="input" id="filter-court" style="width:auto;font-size:12.5px;padding:7px 9px;">
-        <option value="All">All courts</option>
+        <option value="All">All courts / prosecution offices</option>
         ${courts.map(c=>`<option value="${esc(c)}" ${state.filterCourt===c?'selected':''}>${esc(c)}</option>`).join("")}
       </select>
       <select class="input" id="filter-type" style="width:auto;font-size:12.5px;padding:7px 9px;">
@@ -675,7 +688,7 @@ function renderCases(){
       <input type="checkbox" id="toggle-closed" ${state.hideClosed===false?'':'checked'} /> Hide closed cases (${closedCount} hidden)
     </label>` : ""}
     ${courtBlock}
-    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">⚖<br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
+    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);"><i class=&quot;fa-solid fa-scale-balanced&quot;></i><br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
       `<div>${filtered.map(c=>caseCardHtml(c)).join("")}</div>`}
   `;
   document.getElementById("search-input").oninput = e=>{ const pos=e.target.selectionStart; state.search=e.target.value; renderCases(); const el=document.getElementById("search-input"); el.focus(); el.setSelectionRange(pos,pos); };
@@ -692,17 +705,17 @@ function caseCardHtml(c){
   return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
       <div style="min-width:0;">
-        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?'⭐ ':''}${esc(computeCaseTitle(c))}</div>
-        ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;">📍 ${esc(c.court)}</div>`:""}
+        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?'<i class=&quot;fa-solid fa-star&quot;></i> ':''}${esc(computeCaseTitle(c))}</div>
+        ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;"><i class=&quot;fa-solid fa-location-dot&quot;></i> ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` · ${esc(c.chamber)}`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` · ${esc(c.prosecutorInCharge)}`:""}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${esc(c.courtNumber)}</div>`:""}
       </div>
       <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap;">
-      <span style="color:${color};">${iconForCaseType(c.caseType)}</span>
+      <span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span>
       <span style="font-size:12.5px;font-weight:500;">${esc(c.caseType)}</span>
-      ${c.documents&&c.documents.length ? `<span style="font-size:12px;color:var(--muted);">🔗 ${c.documents.length}</span>` : ""}
-      ${groupSize>0 ? `<span class="group-badge">🔗 linked (${groupSize})</span>` : ""}
+      ${c.documents&&c.documents.length ? `<span style="font-size:12px;color:var(--muted);"><i class=&quot;fa-solid fa-link&quot;></i> ${c.documents.length}</span>` : ""}
+      ${groupSize>0 ? `<span class="group-badge"><i class=&quot;fa-solid fa-link&quot;></i> linked (${groupSize})</span>` : ""}
     </div>
   </button>`;
 }
@@ -713,16 +726,16 @@ function renderChecklist(){
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
   const items = state.checklist.slice().sort((a,b)=> (a.done - b.done) || (b.createdAt||0)-(a.createdAt||0));
   document.getElementById("view-checklist").innerHTML = `
-    ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">✅<br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
+    ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);"><i class=&quot;fa-solid fa-list-check&quot;></i><br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
       items.map(it=>{
         const c = casesById[it.caseId];
         return `<div class="checklist-row">
-          <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'✓':''}</button>
-          <div style="flex:1;min-width:0;">
+          <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'<i class=&quot;fa-solid fa-check&quot;></i>':''}</button>
+          <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
             <div style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</div>
             ${c?`<div class="task-meta">${esc(computeCaseTitle(c))}</div>`:""}
           </div>
-          <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">🗑</button>
+          <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-trash&quot;></i></button>
         </div>`;
       }).join("")}
   `;
@@ -735,7 +748,7 @@ function openChecklistModal(existing){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Checklist Item</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Checklist Item</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
       <div class="field"><span class="field-label">Task</span><input class="input" id="chk-text" value="${esc(it.text)}" placeholder="e.g. Prepare witness list" /></div>
       <div class="field"><span class="field-label">Link to a case (optional)</span>
         <select class="input" id="chk-case">
@@ -751,7 +764,8 @@ window.openChecklistModal = openChecklistModal;
 window.submitChecklist = (id)=>{
   const text = document.getElementById("chk-text").value.trim();
   if(!text) return;
-  const data = { text, caseId: document.getElementById("chk-case").value || null, done:false };
+  const existing = id ? state.checklist.find(x=>x.id===id) : null;
+  const data = { text, caseId: document.getElementById("chk-case").value || null, done: existing ? existing.done : false };
   if(id) data.id = id;
   saveChecklistItem(data);
   closeModal();
@@ -768,12 +782,12 @@ function openTaskModal(existing){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Procedure / Date</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Procedure / Date</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
 
       <div class="field"><span class="field-label">This is a…</span>
         <div class="radio-row" id="kind-row">
-          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')">📅 Scheduled event</button>
-          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')">⏳ Deadline</button>
+          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')"><i class=&quot;fa-solid fa-calendar-days&quot;></i> Scheduled event</button>
+          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')"><i class=&quot;fa-solid fa-hourglass-half&quot;></i> Deadline</button>
         </div>
       </div>
 
@@ -787,9 +801,9 @@ function openTaskModal(existing){
       <div class="field"><span class="field-label" id="f-title-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
       <div class="field"><span class="field-label" id="f-date-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
       <div class="field"><span class="field-label">Procedure type</span><input class="input" id="f-type" list="proc-list" value="${esc(t.type)}" /><datalist id="proc-list">${allProcTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
-      <div id="critical-field" class="field ${window._tempKind==='deadline'?'':'hidden'}" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;">
+      <div id="critical-field" class="field ${window._tempKind==='deadline'?'':'hidden'}" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;">
         <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--brick);">
-          <input type="checkbox" id="f-critical" ${t.critical?'checked':''} /> ⚠ Critical (e.g. statute of limitations, appeal window)
+          <input type="checkbox" id="f-critical" ${t.critical?'checked':''} /> <i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> Critical (e.g. statute of limitations, appeal window)
         </label>
         <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">Stays pinned at the top of your Calendar until resolved, no matter how far away it is.</div>
       </div>
@@ -798,7 +812,7 @@ function openTaskModal(existing){
       ${!existing ? `
       <div class="field">
         <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);">
-          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> 🔁 Repeat this session
+          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> <i class=&quot;fa-solid fa-rotate&quot;></i> Repeat this session
         </label>
         <div id="repeat-fields" class="hidden" style="margin-top:10px;display:flex;gap:8px;">
           <select class="input" id="f-repeat-freq">
@@ -812,7 +826,7 @@ function openTaskModal(existing){
         <div id="repeat-hint" class="hidden" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Creates this many sessions total, spaced at the interval above, each individually editable afterward.</div>
       </div>` : `
       <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
-        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>🔁 Continue — schedule the next session</button>
+        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-rotate&quot;></i> Continue — schedule the next session</button>
       </div>`}
 
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add to docket'}</button>
@@ -863,7 +877,7 @@ function openContinueModal(t){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">🔁 Continue Session</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;"><i class=&quot;fa-solid fa-rotate&quot;></i> Continue Session</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Schedules the next session for "${esc(t.title)}" on a new date.</div>
       <div class="field"><span class="field-label">Reason for postponement (optional)</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
@@ -904,10 +918,11 @@ function openCaseModal(existingRaw){
   window._tempTitleSource = c.titleSource || "opponent";
   window._editingCaseId = existing ? existing.id : null;
   window._tempNoteLog = (c.noteLog || []).slice();
+  window._tempAuthorityType = c.authorityType || "court";
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
 
       <div class="field"><span class="field-label">Identify this case by</span>
         <div class="radio-row" id="title-source-row">
@@ -926,16 +941,24 @@ function openCaseModal(existingRaw){
         <div id="conflict-warning"></div>
       </div>
 
-      <div class="field"><span class="field-label">Court</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="e.g. Tripoli Court of First Instance" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div class="field"><span class="field-label">Handling authority</span>
+        <div class="radio-row" id="authority-row">
+          <button type="button" class="radio-pill ${(c.authorityType||'court')==='court'?'active':''}" data-v="court" onclick="setAuthorityType('court')">Court</button>
+          <button type="button" class="radio-pill ${c.authorityType==='prosecution'?'active':''}" data-v="prosecution" onclick="setAuthorityType('prosecution')">Public Prosecution (investigation)</button>
+        </div>
+      </div>
+      <div class="field"><span class="field-label" id="c-courtname-label">Court</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="e.g. Tripoli Court of First Instance" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div id="chamber-field" class="field ${(c.authorityType||'court')==='court'?'':'hidden'}"><span class="field-label">Chamber / Circuit</span><input class="input" id="c-chamber" value="${esc(c.chamber||'')}" placeholder="e.g. 3rd Circuit — الدائرة الثالثة" /></div>
+      <div id="prosecutor-field" class="field ${c.authorityType==='prosecution'?'':'hidden'}"><span class="field-label">Prosecutor in charge — وكيل النيابة المكلف</span><input class="input" id="c-prosecutor" value="${esc(c.prosecutorInCharge||'')}" placeholder="Name of the assigned deputy prosecutor" /></div>
       <div class="field"><span class="field-label">Case / file number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
       <div class="field"><span class="field-label">Case type</span><input class="input" id="c-type" list="case-type-list" value="${esc(c.caseType)}" /><datalist id="case-type-list">${allCaseTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
       <div class="field"><span class="field-label">Status</span>
         <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
       </div>
-      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ⭐ Priority case — stand out in the list</label></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> <i class=&quot;fa-solid fa-star&quot;></i> Priority case — stand out in the list</label></div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
 
-      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length)?'▾ Documents & linked cases':'▸ Documents & linked cases (optional)'}</button>
+      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length)?'<i class=&quot;fa-solid fa-chevron-down&quot;></i> Documents & linked cases':'<i class=&quot;fa-solid fa-chevron-right&quot;></i> Documents & linked cases (optional)'}</button>
       <div id="advanced-fields" class="${(window._tempDocs.length||window._tempLinked.length)?'':'hidden'}">
       <div class="field">
         <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
@@ -950,7 +973,7 @@ function openCaseModal(existingRaw){
       ${state.cases.filter(x=>x.id!==(existing?existing.id:null)).length>0 ? `
       <div class="field">
         <span class="field-label">Link to other cases (same client / dispute)</span>
-        <div id="link-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:#fff;"></div>
+        <div id="link-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface);"></div>
       </div>` : ""}
       </div>
 
@@ -961,20 +984,29 @@ function openCaseModal(existingRaw){
 }
 window.openCaseModal = openCaseModal;
 window.setTitleSource = (v)=>{ window._tempTitleSource=v; document.querySelectorAll("#title-source-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v)); };
+window.setAuthorityType = (v)=>{
+  window._tempAuthorityType = v;
+  document.querySelectorAll("#authority-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v));
+  document.getElementById("chamber-field").classList.toggle("hidden", v!=="court");
+  document.getElementById("prosecutor-field").classList.toggle("hidden", v!=="prosecution");
+  document.getElementById("c-courtname-label").textContent = v==="prosecution" ? "Public Prosecution Office" : "Court";
+  const input = document.getElementById("c-courtname");
+  input.placeholder = v==="prosecution" ? "e.g. Tripoli Public Prosecution" : "e.g. Tripoli Court of First Instance";
+};
 window.toggleCaseAdvanced = ()=>{
   const fields = document.getElementById("advanced-fields");
   const btn = document.getElementById("advanced-toggle-btn");
   const nowHidden = fields.classList.toggle("hidden");
-  btn.textContent = nowHidden ? "▸ Documents & linked cases (optional)" : "▾ Documents & linked cases";
+  btn.textContent = nowHidden ? "<i class=&quot;fa-solid fa-chevron-right&quot;></i> Documents & linked cases (optional)" : "<i class=&quot;fa-solid fa-chevron-down&quot;></i> Documents & linked cases";
 };
 
 function renderPartyList(){
   document.getElementById("party-list").innerHTML = window._tempParties.map((p,i)=>`
-    <div style="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:#fff;">
+    <div style="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:var(--surface);">
       <div class="party-row" style="margin-bottom:6px;">
         <select onchange="updatePartyField(${i},'role',this.value)">${PARTY_ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join("")}</select>
         <input class="input" value="${esc(p.name)}" placeholder="Full name" oninput="updatePartyField(${i},'name',this.value)" />
-        <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;">✕</button>
+        <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;"><i class=&quot;fa-solid fa-xmark&quot;></i></button>
       </div>
       <div style="display:flex;gap:6px;">
         <input class="input" style="font-size:12.5px;" value="${esc(p.phone||'')}" placeholder="Phone (optional)" oninput="updatePartyField(${i},'phone',this.value)" />
@@ -1004,13 +1036,13 @@ function checkConflicts(){
       });
     });
   });
-  el.innerHTML = warnings.length ? `<div style="margin-top:8px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:6px;padding:8px 10px;font-size:12px;color:var(--brick);line-height:1.5;">⚠ ${[...new Set(warnings)].join("<br/>")}</div>` : "";
+  el.innerHTML = warnings.length ? `<div style="margin-top:8px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:6px;padding:8px 10px;font-size:12px;color:var(--brick);line-height:1.5;"><i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> ${[...new Set(warnings)].join("<br/>")}</div>` : "";
 }
 
 function renderDocList(){
   document.getElementById("doc-list").innerHTML = window._tempDocs.map((d,i)=>`
-    <div class="doc-link-row"><span>🔗</span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.label)}</a>
-    <button onclick="removeDocLink(${i})" style="background:none;border:none;color:var(--muted);">✕</button></div>
+    <div class="doc-link-row"><span><i class=&quot;fa-solid fa-link&quot;></i></span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.label)}</a>
+    <button onclick="removeDocLink(${i})" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
   `).join("");
 }
 window.addDocLink = ()=>{
@@ -1045,6 +1077,9 @@ window.submitCase = (id)=>{
   const data = {
     titleSource: window._tempTitleSource, subject: document.getElementById("c-subject").value.trim(),
     parties, court: document.getElementById("c-courtname").value.trim(), courtNumber: document.getElementById("c-court").value.trim(),
+    authorityType: window._tempAuthorityType || "court",
+    chamber: document.getElementById("c-chamber") ? document.getElementById("c-chamber").value.trim() : "",
+    prosecutorInCharge: document.getElementById("c-prosecutor") ? document.getElementById("c-prosecutor").value.trim() : "",
     caseType, status: document.getElementById("c-status").value, priority: !!document.getElementById("c-priority").checked,
     notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs,
     linkedCaseIds: window._tempLinked, noteLog: window._tempNoteLog || []
@@ -1074,16 +1109,18 @@ function openCaseDetailModal(c){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal wide" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">${esc(computeCaseTitle(c))}</div>
-        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">📍 ${esc(c.court)}</div>`:""}
+        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;"><i class=&quot;fa-solid fa-location-dot&quot;></i> ${esc(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-left:4px;">Investigation</span>`:""}</div>`:""}
+        ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.chamber)}</div>`:""}
+        ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${esc(c.prosecutorInCharge)}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
-          <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>📄</button>
-          <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'>⎘</button>
-          <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'>✎</button>
-          <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')">🗑</button>
+          <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-file-pdf&quot;></i></button>
+          <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-clone&quot;></i></button>
+          <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-pen&quot;></i></button>
+          <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')"><i class=&quot;fa-solid fa-trash&quot;></i></button>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin:10px 0 16px;flex-wrap:wrap;">
@@ -1095,12 +1132,12 @@ function openCaseDetailModal(c){
         ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
           <div><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>
           ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;margin-top:2px;">
-            ${p.phone?`<a href="tel:${esc(p.phone)}">📞 ${esc(p.phone)}</a>`:""}
-            ${p.email?`<a href="mailto:${esc(p.email)}">✉ ${esc(p.email)}</a>`:""}
+            ${p.phone?`<a href="tel:${esc(p.phone)}"><i class=&quot;fa-solid fa-phone&quot;></i> ${esc(p.phone)}</a>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}"><i class=&quot;fa-solid fa-envelope&quot;></i> ${esc(p.email)}</a>`:""}
           </div>` : ""}
         </div>`).join("")}</div>` : ""}
 
-      ${c.notes?`<div style="font-size:13.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5;">${esc(c.notes)}</div>`:""}
+      ${c.notes?`<div style="font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5;">${esc(c.notes)}</div>`:""}
 
       <div style="margin-bottom:18px;">
         <div class="section-label">Case Log</div>
@@ -1109,16 +1146,20 @@ function openCaseDetailModal(c){
           <button class="btn-ghost" onclick="addLogEntry('${c.id}')">Add</button>
         </div>
         ${(c.noteLog&&c.noteLog.length) ? `<div>${c.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>`
-          <div style="font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);">
-            <span class="mono" style="color:var(--muted);font-size:11px;">${fmtLong(l.date)}</span> — ${esc(l.text)}
+          <div style="font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div><span class="mono" style="color:var(--muted);font-size:11px;">${fmtLong(l.date)}</span> — <span id="log-text-${l.id}">${esc(l.text)}</span></div>
+            <div style="display:flex;gap:4px;flex-shrink:0;">
+              <button onclick="editLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;"><i class=&quot;fa-solid fa-pen&quot;></i></button>
+              <button onclick="deleteLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;"><i class=&quot;fa-solid fa-trash&quot;></i></button>
+            </div>
           </div>`).join("")}</div>` : `<div style="color:var(--muted);font-size:12.5px;">No log entries yet.</div>`}
       </div>
 
       ${c.documents&&c.documents.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Documents</div>
-        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank">🔗 ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
+        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank"><i class=&quot;fa-solid fa-link&quot;></i> ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
 
       ${linked.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Linked cases</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">${linked.map(lc=>`<button class="group-badge" style="cursor:pointer;" onclick='closeModal();openCaseDetail("${lc.id}")'>🔗 ${esc(computeCaseTitle(lc))}</button>`).join("")}</div></div>` : ""}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${linked.map(lc=>`<button class="group-badge" style="cursor:pointer;" onclick='closeModal();openCaseDetail("${lc.id}")'><i class=&quot;fa-solid fa-link&quot;></i> ${esc(computeCaseTitle(lc))}</button>`).join("")}</div></div>` : ""}
 
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div class="section-label" style="margin-bottom:0;">Dates & Procedures</div>
@@ -1132,7 +1173,7 @@ function openCaseDetailModal(c){
         <button style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick='closeModal();openChecklistModal({caseId:"${c.id}",text:"",done:false})'>+ Add</button>
       </div>
       ${state.checklist.filter(x=>x.caseId===c.id).length===0 ? `<div style="color:var(--muted);font-size:13px;">No checklist items for this case.</div>` :
-        state.checklist.filter(x=>x.caseId===c.id).map(it=>`<div class="checklist-row"><button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'✓':''}</button><div style="flex:1;font-size:13.5px;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</div><button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">🗑</button></div>`).join("")}
+        state.checklist.filter(x=>x.caseId===c.id).map(it=>`<div class="checklist-row"><button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'<i class=&quot;fa-solid fa-check&quot;></i>':''}</button><div style="flex:1;font-size:13.5px;cursor:pointer;${it.done?'text-decoration:line-through;color:var(--muted);':''}" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>${esc(it.text)}</div><button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-trash&quot;></i></button></div>`).join("")}
 
       <div id="delete-confirm-${c.id}"></div>
     </div>
@@ -1150,6 +1191,26 @@ window.addLogEntry = (caseId)=>{
     openCaseDetailModal({...c, noteLog: newLog});
   });
 };
+window.editLogEntry = (caseId, logId)=>{
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const entry = (c.noteLog||[]).find(l=>l.id===logId);
+  if(!entry) return;
+  const newText = prompt("Edit log entry:", entry.text);
+  if(newText===null || !newText.trim()) return;
+  const newLog = (c.noteLog||[]).map(l=> l.id===logId ? {...l, text:newText.trim()} : l);
+  coll("cases").doc(caseId).set({...stripId(c), noteLog:newLog}).then(()=>{
+    openCaseDetailModal({...c, noteLog:newLog});
+  });
+};
+window.deleteLogEntry = (caseId, logId)=>{
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const newLog = (c.noteLog||[]).filter(l=>l.id!==logId);
+  coll("cases").doc(caseId).set({...stripId(c), noteLog:newLog}).then(()=>{
+    openCaseDetailModal({...c, noteLog:newLog});
+  });
+};
 window.duplicateCase = (c)=>{
   closeModal();
   const copy = { ...c, id:null, createdAt:null, courtNumber:"", linkedCaseIds:[c.id], documents:[] };
@@ -1158,7 +1219,7 @@ window.duplicateCase = (c)=>{
 window.confirmDeleteCase = (id)=>{
   document.getElementById(`delete-confirm-${id}`).innerHTML = `
   <div style="margin-top:18px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:12px;">
-    <div style="font-size:13px;margin-bottom:10px;">⚠ Delete this case, all its dates and checklist items? This can't be undone.</div>
+    <div style="font-size:13px;margin-bottom:10px;"><i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> Delete this case, all its dates and checklist items? This can't be undone.</div>
     <div style="display:flex;gap:8px;">
       <button style="background:#B23A32;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px;" onclick="deleteCaseDoc('${id}');closeModal();">Delete</button>
       <button class="btn-ghost" onclick="closeModal()">Cancel</button>
@@ -1172,7 +1233,7 @@ function openSettingsModal(){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
       <div class="field"><span class="field-label">Flag dates as "due soon" within</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <input class="input" id="s-alertdays" type="number" min="1" max="60" value="${state.alertDays}" style="width:80px;" />
@@ -1184,15 +1245,30 @@ function openSettingsModal(){
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
         ${isGoogleUser ?
-          (state.googleConnected ? `<div style="font-size:13px;color:var(--sage);font-weight:600;">✓ Connected — new dates sync automatically while you use the app.</div>`
+          (state.googleConnected ? `<div style="font-size:13px;color:var(--sage);font-weight:600;"><i class=&quot;fa-solid fa-check&quot;></i> Connected — new dates sync automatically while you use the app.</div>`
           : `<div style="font-size:13px;color:var(--brick);margin-bottom:8px;">Not connected right now.</div><button class="btn-ghost" onclick="reconnectGoogle()">Connect Google Calendar</button>`)
           : `<div style="font-size:13px;color:var(--muted);">Sign out and sign back in with "Continue with Google" to enable calendar sync.</div>`}
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Backup</div>
-        <button class="btn-ghost" onclick="exportData()">⬇ Download a full backup (.json)</button>
+        <button class="btn-ghost" onclick="exportData()"><i class=&quot;fa-solid fa-download&quot;></i> Download a full backup (.json)</button>
         <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">A plain copy of every case, date, and checklist item — worth doing occasionally as a safety net.</div>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Custom types you've added</div>
+        ${(state.customCaseTypes.length===0 && state.customProcedureTypes.length===0) ? `<div style="font-size:12.5px;color:var(--muted);">None yet — custom types you type into a case or date form will appear here, removable if added by mistake.</div>` : `
+        ${state.customCaseTypes.length ? `<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Case types</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+            ${state.customCaseTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('case','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;"><i class=&quot;fa-solid fa-xmark&quot;></i></button></span>`).join("")}
+          </div>` : ""}
+        ${state.customProcedureTypes.length ? `<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Procedure types</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${state.customProcedureTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('procedure','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;"><i class=&quot;fa-solid fa-xmark&quot;></i></button></span>`).join("")}
+          </div>` : ""}
+        `}
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Removing a type only hides it from future suggestions — cases already using it are unaffected.</div>
       </div>
 
       <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
@@ -1203,6 +1279,12 @@ function openSettingsModal(){
   </div>`;
 }
 window.saveAlertDays = ()=>{ state.alertDays = Math.max(1, Number(document.getElementById("s-alertdays").value)||1); saveSettings(); closeModal(); };
+window.removeCustomType = (kind, value)=>{
+  if(kind==="case"){ state.customCaseTypes = state.customCaseTypes.filter(t=>t!==value); }
+  else { state.customProcedureTypes = state.customProcedureTypes.filter(t=>t!==value); }
+  saveSettings();
+  openSettingsModal();
+};
 window.exportData = ()=>{
   const payload = { exportedAt: new Date().toISOString(), cases: state.cases, tasks: state.tasks, checklist: state.checklist };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
