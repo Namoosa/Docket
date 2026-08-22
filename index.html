@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Docket</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#182234" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     FIREBASE SETUP — paste your project's config below.
+     See SETUP-GUIDE.md for exact steps to get these values.
+============================================================= -->
+<script>
+  window.FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDWBHEZuaaBfAJfsg1wZrg4vu9XNOtOO30",
+    authDomain: "docket-d82dd.firebaseapp.com",
+    projectId: "docket-d82dd",
+    storageBucket: "docket-d82dd.firebasestorage.app",
+    messagingSenderId: "702066124462",
+    appId: "1:702066124462:web:f7dde9b3e57ba082812f3f"
+  };
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  :root{
+    --ink:#20242C; --paper:#ECE7DA; --panel:#FBF9F3; --navy:#22344A; --navy-dark:#182234;
+    --brass:#A6762E; --brick:#9A3B33; --sage:#556B4F; --slate:#3D5871; --line:#D8D0BB; --muted:#7B7566;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif;
+    min-height:100vh; padding-bottom:90px;
+  }
+  ::-webkit-scrollbar{width:8px;height:8px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit; outline:none;}
+  input:focus,select:focus,textarea:focus{border-color:var(--navy) !important;}
+  .serif{font-family:'Source Serif 4',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:var(--slate);}
+
+  .hidden{display:none !important;}
+  .input{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:15px; color:var(--ink);}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:8px;border:none;background:var(--navy);color:var(--panel);font-weight:600;font-size:14px;}
+  .btn-ghost{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--navy);font-weight:600;font-size:13px;}
+  .icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;color:var(--navy);}
+  .field-label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px;}
+  .field{margin-bottom:14px;}
+
+  /* AUTH SCREEN */
+  #auth-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .auth-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px 24px; width:100%; max-width:380px;}
+  .auth-tabs{display:flex; gap:6px; margin-bottom:18px;}
+  .auth-tab{flex:1; text-align:center; padding:9px 0; border-radius:7px; font-size:13px; font-weight:600; border:1px solid var(--line); background:#fff; color:var(--muted);}
+  .auth-tab.active{background:var(--navy); color:var(--panel); border-color:var(--navy);}
+  #auth-error{color:#B23A32; font-size:12.5px; margin-top:8px; min-height:16px;}
+
+  /* HEADER */
+  header{background:var(--navy-dark); color:var(--panel); padding:16px 16px 12px;}
+  .header-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:8px;font-size:19px;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1.3px solid; font-weight:600; white-space:nowrap;}
+
+  main{max-width:760px;margin:0 auto;padding:16px 16px 0;}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;}
+  .tab-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-weight:600;font-size:14px;}
+  .tab-btn.active{background:var(--navy);color:var(--panel);border-color:var(--navy);}
+
+  /* CALENDAR */
+  .cal-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 10px;margin-bottom:14px;}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-wd{text-align:center;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;}
+  .cal-day{aspect-ratio:1;border-radius:7px;border:1px solid transparent;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;position:relative;}
+  .cal-day.today{border:1.5px solid var(--brass);}
+  .cal-day.selected{border:2px solid var(--navy); background:#DFE3E8;}
+  .dot{width:5px;height:5px;border-radius:3px;}
+  .overdue-mark{position:absolute;top:2px;right:3px;width:6px;height:6px;border-radius:3px;background:#B23A32;}
+
+  .section-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
+  .task-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
+  .task-row.overdue{border-color:#D9A9A3;}
+  .task-check{background:none;border:1.5px solid var(--line);border-radius:5px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .task-title{font-size:13.5px;font-weight:600;}
+  .task-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* CASE CARDS */
+  .case-card{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:9px;}
+  .search-wrap{position:relative;margin-bottom:10px;}
+  .search-wrap input{padding-left:32px;}
+
+  /* FAB */
+  .fab{position:fixed;right:20px;bottom:24px;width:56px;height:56px;border-radius:28px;background:var(--brass);color:var(--navy-dark);border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.28);font-size:26px;z-index:40;}
+
+  /* MODALS */
+  .modal-bg{position:fixed;inset:0;background:rgba(24,20,14,.45);display:flex;align-items:flex-end;justify-content:center;z-index:100;}
+  .modal{background:var(--paper);width:100%;max-width:460px;max-height:88vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:20px 20px 28px;}
+  @media(min-width:640px){ .modal{border-radius:16px; margin-bottom:5vh;} }
+  .modal.wide{max-width:640px;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+
+  .doc-link-row{display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:5px;}
+  .install-banner{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:8px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;font-size:13px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+      <span class="serif" style="font-size:22px;color:var(--navy-dark);">⚖ Docket</span>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin">Sign in</button>
+      <button class="auth-tab" id="tab-signup">Create account</button>
+    </div>
+    <div class="field"><span class="field-label">Email</span><input class="input" id="auth-email" type="email" autocomplete="email" /></div>
+    <div class="field"><span class="field-label">Password</span><input class="input" id="auth-password" type="password" autocomplete="current-password" /></div>
+    <button class="btn-primary" id="auth-submit" style="width:100%;">Sign in</button>
+    <div id="auth-error"></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5;">This account is private to you — only you can see the cases and dates stored here.</div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" class="hidden">
+  <header>
+    <div class="header-inner">
+      <div class="brand"><span style="color:var(--brass);">⚖</span> <span class="serif">Docket</span></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div id="header-badges" style="display:flex;gap:6px;"></div>
+        <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);">⚙</button>
+        <button class="icon-btn" id="signout-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;">Out</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="install-banner-wrap" style="max-width:760px;margin:14px auto 0;padding:0 16px;"></div>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-calendar">📅 Calendar</button>
+      <button class="tab-btn" id="tab-cases">📋 Cases</button>
+    </div>
+    <div id="view-calendar"></div>
+    <div id="view-cases" class="hidden"></div>
+  </main>
+
+  <button class="fab" id="fab-btn">+</button>
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+/* ================= FIREBASE INIT ================= */
+firebase.initializeApp(window.FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ================= CONSTANTS ================= */
+const FIXED_TYPES = ["Hearing","Motion Filing","Memorandum","Consultation"];
+const TYPE_COLOR = {"Hearing":"#9A3B33","Motion Filing":"#A6762E","Memorandum":"#3D5871","Consultation":"#556B4F"};
+const TYPE_ICON = {"Hearing":"⚖","Motion Filing":"✎","Memorandum":"📄","Consultation":"💬"};
+const STATUS_OPTIONS = ["Active","Pending","On Hold","Closed"];
+const colorFor = t => TYPE_COLOR[t] || "#6B6455";
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WD = ["S","M","T","W","T","F","S"];
+
+/* ================= STATE ================= */
+let state = {
+  user:null, cases:[], tasks:[], customTypes:[], alertDays:7, onboardDismissed:false,
+  view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
+  selectedDay: todayKey(), search:"", filterType:"All", filterStatus:"All",
+};
+let unsubCases=null, unsubTasks=null, unsubSettings=null;
+
+function todayKey(){ return dateKey(new Date()); }
+function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function parseKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
+function daysBetween(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000); }
+function fmtLong(k){ const d=parseKey(k); return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
+function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ================= AUTH ================= */
+let authMode = "signin";
+document.getElementById("tab-signin").onclick = ()=>{ authMode="signin"; document.getElementById("tab-signin").classList.add("active"); document.getElementById("tab-signup").classList.remove("active"); document.getElementById("auth-submit").textContent="Sign in"; };
+document.getElementById("tab-signup").onclick = ()=>{ authMode="signup"; document.getElementById("tab-signup").classList.add("active"); document.getElementById("tab-signin").classList.remove("active"); document.getElementById("auth-submit").textContent="Create account"; };
+
+document.getElementById("auth-submit").onclick = async ()=>{
+  const email = document.getElementById("auth-email").value.trim();
+  const pw = document.getElementById("auth-password").value;
+  const errEl = document.getElementById("auth-error");
+  errEl.textContent="";
+  if(!email || !pw){ errEl.textContent="Enter an email and password."; return; }
+  try{
+    if(authMode==="signup") await auth.createUserWithEmailAndPassword(email, pw);
+    else await auth.signInWithEmailAndPassword(email, pw);
+  }catch(e){ errEl.textContent = e.message; }
+};
+
+document.getElementById("signout-btn").onclick = ()=> auth.signOut();
+
+auth.onAuthStateChanged(user=>{
+  if(user){
+    state.user = user;
+    document.getElementById("auth-screen").classList.add("hidden");
+    document.getElementById("app-shell").classList.remove("hidden");
+    attachListeners(user.uid);
+  } else {
+    state.user = null;
+    document.getElementById("auth-screen").classList.remove("hidden");
+    document.getElementById("app-shell").classList.add("hidden");
+    if(unsubCases) unsubCases(); if(unsubTasks) unsubTasks(); if(unsubSettings) unsubSettings();
+  }
+});
+
+/* ================= FIRESTORE SYNC (real-time, private per user) ================= */
+function attachListeners(uid){
+  unsubCases = db.collection("users").doc(uid).collection("cases").onSnapshot(snap=>{
+    state.cases = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    render();
+  });
+  unsubTasks = db.collection("users").doc(uid).collection("tasks").onSnapshot(snap=>{
+    state.tasks = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    render();
+  });
+  unsubSettings = db.collection("users").doc(uid).collection("meta").doc("settings").onSnapshot(snap=>{
+    const d = snap.data() || {};
+    state.alertDays = d.alertDays ?? 7;
+    state.customTypes = d.customTypes || [];
+    state.onboardDismissed = !!d.onboardDismissed;
+    render();
+  });
+}
+function saveSettings(){
+  db.collection("users").doc(state.user.uid).collection("meta").doc("settings")
+    .set({ alertDays: state.alertDays, customTypes: state.customTypes, onboardDismissed: state.onboardDismissed });
+}
+function saveCase(data){
+  const uidRef = state.user.uid;
+  if(data.id){
+    const {id, ...rest} = data;
+    return db.collection("users").doc(uidRef).collection("cases").doc(id).set(rest);
+  } else {
+    const {id, ...rest} = data;
+    return db.collection("users").doc(uidRef).collection("cases").add({...rest, createdAt: Date.now()});
+  }
+}
+function deleteCaseDoc(id){
+  const uidRef = state.user.uid;
+  db.collection("users").doc(uidRef).collection("cases").doc(id).delete();
+  state.tasks.filter(t=>t.caseId===id).forEach(t=> db.collection("users").doc(uidRef).collection("tasks").doc(t.id).delete());
+}
+function saveTask(data){
+  const uidRef = state.user.uid;
+  if(data.id){
+    const {id, ...rest} = data;
+    return db.collection("users").doc(uidRef).collection("tasks").doc(id).set(rest);
+  } else {
+    const {id, ...rest} = data;
+    return db.collection("users").doc(uidRef).collection("tasks").add(rest);
+  }
+}
+function deleteTaskDoc(id){ db.collection("users").doc(state.user.uid).collection("tasks").doc(id).delete(); }
+function toggleTaskDone(id){
+  const t = state.tasks.find(x=>x.id===id);
+  db.collection("users").doc(state.user.uid).collection("tasks").doc(id).set({...stripId(t), completed: !t.completed});
+}
+function stripId(t){ const {id, ...rest}=t; return rest; }
+function ensureCustomType(t){
+  const all = [...FIXED_TYPES, ...state.customTypes];
+  if(t && !all.includes(t)){ state.customTypes.push(t); saveSettings(); }
+}
+
+/* ================= TAB NAV ================= */
+document.getElementById("tab-calendar").onclick = ()=>{ state.view="calendar"; render(); };
+document.getElementById("tab-cases").onclick = ()=>{ state.view="cases"; render(); };
+document.getElementById("settings-btn").onclick = ()=> openSettingsModal();
+document.getElementById("fab-btn").onclick = ()=> state.view==="calendar" ? openTaskModal(null) : openCaseModal(null);
+
+/* ================= RENDER ================= */
+function render(){
+  document.getElementById("tab-calendar").classList.toggle("active", state.view==="calendar");
+  document.getElementById("tab-cases").classList.toggle("active", state.view==="cases");
+  document.getElementById("view-calendar").classList.toggle("hidden", state.view!=="calendar");
+  document.getElementById("view-cases").classList.toggle("hidden", state.view!=="cases");
+
+  const tk = todayKey();
+  const upcoming = state.tasks.filter(t=>!t.completed).map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const urgent = upcoming.filter(t=>t.delta>=0 && t.delta<=state.alertDays).length;
+  const overdue = upcoming.filter(t=>t.delta<0).length;
+
+  const badges = document.getElementById("header-badges");
+  badges.innerHTML = (overdue>0?`<span class="badge" style="border-color:#E5A39B;color:#E5A39B;">${overdue} overdue</span>`:"") +
+                      (urgent>0?`<span class="badge" style="border-color:var(--brass);color:var(--brass);">${urgent} due soon</span>`:"");
+
+  renderInstallBanner();
+  if(state.view==="calendar") renderCalendar(upcoming); else renderCases();
+}
+
+function renderInstallBanner(){
+  const wrap = document.getElementById("install-banner-wrap");
+  if(state.onboardDismissed){ wrap.innerHTML=""; return; }
+  wrap.innerHTML = `<div class="install-banner">
+    <span>📲</span>
+    <div style="flex:1;"><strong>One-tap access:</strong> your browser should offer an "Install" or "Add to Home Screen" option (address bar icon, or the ⋮ / Share menu). Installing gives you a home-screen icon that opens straight into Docket.</div>
+    <button onclick="dismissBanner()" style="background:none;border:none;color:var(--muted);">✕</button>
+  </div>`;
+}
+function dismissBanner(){ state.onboardDismissed = true; saveSettings(); render(); }
+
+/* ---- CALENDAR VIEW ---- */
+function renderCalendar(upcoming){
+  const y = state.cursorY, m = state.cursorM;
+  const tk = todayKey();
+  const tasksByDate = {};
+  state.tasks.forEach(t=>{ (tasksByDate[t.date] = tasksByDate[t.date]||[]).push(t); });
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+
+  const firstWd = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  let cells = "";
+  for(let i=0;i<firstWd;i++) cells += `<div></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dt = new Date(y,m,d); const key = dateKey(dt);
+    const items = tasksByDate[key] || [];
+    const isToday = key===tk, isSel = key===state.selectedDay;
+    const hasOverdue = items.some(t=>!t.completed && daysBetween(tk,key)<0);
+    const dots = items.slice(0,3).map(t=>`<div class="dot" style="background:${t.completed?'#B9B29A':colorFor(t.type)};"></div>`).join("");
+    cells += `<button class="cal-day ${isToday?'today':''} ${isSel?'selected':''}" onclick="selectDay('${key}')">
+      <span style="font-size:12.5px;font-weight:${isToday?700:500};color:${isToday?'var(--brass)':'var(--ink)'};">${d}</span>
+      <div style="display:flex;gap:2px;">${dots}</div>
+      ${hasOverdue?'<div class="overdue-mark"></div>':''}
+    </button>`;
+  }
+
+  const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
+
+  document.getElementById("view-calendar").innerHTML = `
+    <div class="cal-card">
+      <div class="cal-header">
+        <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
+        <div style="display:flex;gap:6px;">
+          <button class="icon-btn" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;" onclick="gotoToday()">Today</button>
+          <button class="icon-btn" onclick="gotoMonth(-1)">‹</button>
+          <button class="icon-btn" onclick="gotoMonth(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-grid" style="margin-bottom:4px;">${WD.map(w=>`<div class="cal-wd">${w}</div>`).join("")}</div>
+      <div class="cal-grid">${cells}</div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <div class="section-label">${fmtLong(state.selectedDay)}${state.selectedDay===tk?' · Today':''}</div>
+      ${dayItems.length===0 ? `<div style="color:var(--muted);font-size:13.5px;padding:10px 2px;">Nothing scheduled this day.</div>` :
+        dayItems.map(t=>taskRowHtml(t, casesById[t.caseId], false)).join("")}
+    </div>
+    <div>
+      <div class="section-label">Upcoming</div>
+      ${upcoming.filter(t=>t.delta>=0).slice(0,8).map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+      ${upcoming.filter(t=>t.delta<0).length>0 ? `<div style="font-size:11.5px;color:#B23A32;font-weight:700;margin:6px 0;letter-spacing:.04em;text-transform:uppercase;">Overdue</div>` +
+        upcoming.filter(t=>t.delta<0).map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("") : ""}
+      ${upcoming.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">No upcoming dates. Tap + to add one.</div>` : ""}
+    </div>
+  `;
+}
+function taskRowHtml(t, caseItem, showDate){
+  const overdue = t.delta<0 && !t.completed;
+  const urgent = !overdue && showDate && t.delta<=state.alertDays && t.delta>=0;
+  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${overdue?'#B23A32':colorFor(t.type)};">
+    <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?'✓':''}</button>
+    <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="color:${colorFor(t.type)};">${TYPE_ICON[t.type]||'•'}</span>
+        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
+        ${urgent?`<span class="badge" style="border-color:var(--brass);color:var(--brass);">${t.delta===0?'Today':t.delta+'d'}</span>`:""}
+        ${overdue?`<span class="badge" style="border-color:#B23A32;color:#B23A32;">Overdue</span>`:""}
+      </div>
+      <div class="task-meta">${caseItem?`v. ${esc(caseItem.opponentName)}`:"No case linked"}${caseItem&&caseItem.courtNumber?` · ${esc(caseItem.courtNumber)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
+    </div>
+    <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);">🗑</button>
+  </div>`;
+}
+window.selectDay = (k)=>{ state.selectedDay=k; render(); };
+window.gotoMonth = (delta)=>{ let m=state.cursorM+delta, y=state.cursorY; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.cursorM=m; state.cursorY=y; render(); };
+window.gotoToday = ()=>{ const d=new Date(); state.cursorY=d.getFullYear(); state.cursorM=d.getMonth(); state.selectedDay=todayKey(); render(); };
+window.toggleTaskDone = toggleTaskDone;
+window.deleteTaskDoc = deleteTaskDoc;
+window.dismissBanner = dismissBanner;
+
+/* ---- CASES VIEW ---- */
+function renderCases(){
+  const allTypes = [...FIXED_TYPES, ...state.customTypes];
+  const q = state.search.trim().toLowerCase();
+  const filtered = state.cases.filter(c=>{
+    if(state.filterType!=="All" && c.caseType!==state.filterType) return false;
+    if(state.filterStatus!=="All" && c.status!==state.filterStatus) return false;
+    if(!q) return true;
+    return (c.opponentName||"").toLowerCase().includes(q) || (c.courtNumber||"").toLowerCase().includes(q);
+  }).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+
+  document.getElementById("view-cases").innerHTML = `
+    <div class="search-wrap">
+      <span style="position:absolute;left:11px;top:11px;color:var(--muted);">🔍</span>
+      <input class="input" id="search-input" placeholder="Search by opponent name or court number…" value="${esc(state.search)}" />
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;">
+      <select class="input" id="filter-type" style="width:auto;font-size:12.5px;padding:7px 9px;">
+        <option value="All">All types</option>
+        ${allTypes.map(t=>`<option value="${esc(t)}" ${state.filterType===t?'selected':''}>${esc(t)}</option>`).join("")}
+      </select>
+      <select class="input" id="filter-status" style="width:auto;font-size:12.5px;padding:7px 9px;">
+        <option value="All">All statuses</option>
+        ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${state.filterStatus===s?'selected':''}>${s}</option>`).join("")}
+      </select>
+    </div>
+    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">⚖<br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
+      `<div>${filtered.map(c=>caseCardHtml(c)).join("")}</div>`}
+  `;
+  document.getElementById("search-input").oninput = e=>{ state.search=e.target.value; renderCasesPartial(); };
+  document.getElementById("filter-type").onchange = e=>{ state.filterType=e.target.value; render(); };
+  document.getElementById("filter-status").onchange = e=>{ state.filterStatus=e.target.value; render(); };
+}
+function renderCasesPartial(){ renderCases(); document.getElementById("search-input").focus(); document.getElementById("search-input").selectionStart = document.getElementById("search-input").value.length; }
+function caseCardHtml(c){
+  const color = colorFor(c.caseType);
+  const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
+  return `<button class="case-card" onclick="openCaseDetail('${c.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <div style="min-width:0;">
+        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">v. ${esc(c.opponentName)}</div>
+        ${c.courtNumber?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${esc(c.courtNumber)}</div>`:""}
+      </div>
+      <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:9px;">
+      <span style="color:${color};">${TYPE_ICON[c.caseType]||'📄'}</span>
+      <span style="font-size:12.5px;font-weight:500;">${esc(c.caseType)}</span>
+      ${c.documents&&c.documents.length ? `<span style="font-size:12px;color:var(--muted);margin-left:6px;">🔗 ${c.documents.length}</span>` : ""}
+    </div>
+  </button>`;
+}
+window.openCaseDetail = (id)=> openCaseDetailModal(state.cases.find(c=>c.id===id));
+
+/* ================= MODALS ================= */
+function closeModal(){ document.getElementById("modal-root").innerHTML=""; }
+
+function openTaskModal(existing){
+  const allTypes = [...FIXED_TYPES, ...state.customTypes];
+  const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allTypes[0], notes:"", completed:false};
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Date / Task</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      ${state.cases.length===0 ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">No cases yet — this will be a standalone date, or add a case first from the Cases tab.</div>` : `
+      <div class="field"><span class="field-label">Case</span>
+        <select class="input" id="f-caseId">
+          <option value="">No case (standalone)</option>
+          ${state.cases.map(c=>`<option value="${c.id}" ${t.caseId===c.id?'selected':''}>v. ${esc(c.opponentName)}${c.courtNumber?` · ${esc(c.courtNumber)}`:""}</option>`).join("")}
+        </select>
+      </div>`}
+      <div class="field"><span class="field-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
+      <div class="field"><span class="field-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
+      <div class="field"><span class="field-label">Type</span><input class="input" id="f-type" list="type-list" value="${esc(t.type)}" /><datalist id="type-list">${allTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div class="field"><span class="field-label">Notes</span><textarea class="input" id="f-notes" style="min-height:60px;">${esc(t.notes)}</textarea></div>
+      <button class="btn-primary" style="width:100%;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add to docket'}</button>
+    </div>
+  </div>`;
+}
+window.submitTask = (id)=>{
+  const title = document.getElementById("f-title").value.trim();
+  const date = document.getElementById("f-date").value;
+  if(!title || !date) return;
+  const caseSel = document.getElementById("f-caseId");
+  const type = document.getElementById("f-type").value.trim() || FIXED_TYPES[0];
+  const data = { caseId: caseSel? (caseSel.value||null) : null, title, date, type, notes: document.getElementById("f-notes").value.trim(), completed:false };
+  if(id) data.id = id;
+  ensureCustomType(type);
+  saveTask(data);
+  closeModal();
+};
+
+function openCaseModal(existing){
+  const allTypes = [...FIXED_TYPES, ...state.customTypes];
+  const c = existing || {opponentName:"", courtNumber:"", caseType:allTypes[0], status:"Active", notes:"", documents:[]};
+  window._tempDocs = (c.documents||[]).slice();
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="field"><span class="field-label">Opponent name</span><input class="input" id="c-opponent" value="${esc(c.opponentName)}" placeholder="e.g. Al-Rashid Holdings" /></div>
+      <div class="field"><span class="field-label">Court number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
+      <div class="field"><span class="field-label">Case type</span><input class="input" id="c-type" list="type-list2" value="${esc(c.caseType)}" /><datalist id="type-list2">${allTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div class="field"><span class="field-label">Status</span>
+        <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
+      </div>
+      <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:70px;">${esc(c.notes)}</textarea></div>
+      <div class="field">
+        <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
+        <div id="doc-list"></div>
+        <div style="display:flex;gap:6px;">
+          <input class="input" id="doc-label" placeholder="Label" style="flex:0 0 40%;" />
+          <input class="input" id="doc-url" placeholder="https://drive.google.com/…" />
+          <button class="btn-ghost" onclick="addDocLink()">Add</button>
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Create case'}</button>
+    </div>
+  </div>`;
+  renderDocList();
+}
+function renderDocList(){
+  document.getElementById("doc-list").innerHTML = window._tempDocs.map((d,i)=>`
+    <div class="doc-link-row"><span>🔗</span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.label)}</a>
+    <button onclick="removeDocLink(${i})" style="background:none;border:none;color:var(--muted);">✕</button></div>
+  `).join("");
+}
+window.addDocLink = ()=>{
+  const url = document.getElementById("doc-url").value.trim();
+  if(!url) return;
+  const label = document.getElementById("doc-label").value.trim() || "Document";
+  window._tempDocs.push({id: uid(), label, url});
+  document.getElementById("doc-label").value=""; document.getElementById("doc-url").value="";
+  renderDocList();
+};
+window.removeDocLink = (i)=>{ window._tempDocs.splice(i,1); renderDocList(); };
+window.submitCase = (id)=>{
+  const opponentName = document.getElementById("c-opponent").value.trim();
+  if(!opponentName) return;
+  const caseType = document.getElementById("c-type").value.trim() || FIXED_TYPES[0];
+  ensureCustomType(caseType);
+  const data = {
+    opponentName, courtNumber: document.getElementById("c-court").value.trim(),
+    caseType, status: document.getElementById("c-status").value,
+    notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs
+  };
+  if(id) data.id = id; else data.createdAt = Date.now();
+  saveCase(data);
+  closeModal();
+};
+
+function openCaseDetailModal(c){
+  const tk = todayKey();
+  const tasks = state.tasks.filter(t=>t.caseId===c.id).map(t=>({...t, delta:daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal wide" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">v. ${esc(c.opponentName)}</div>
+        ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'>✎</button>
+          <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')">🗑</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin:10px 0 16px;">
+        <span class="badge" style="border-color:${colorFor(c.caseType)};color:${colorFor(c.caseType)};">${TYPE_ICON[c.caseType]||''} ${esc(c.caseType)}</span>
+        <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
+      </div>
+      ${c.notes?`<div style="font-size:13.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5;">${esc(c.notes)}</div>`:""}
+      ${c.documents&&c.documents.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Documents</div>
+        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank">🔗 ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="section-label" style="margin-bottom:0;">Dates & Tasks</div>
+        <button style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick='closeModal();openTaskModal(null)'>+ Add</button>
+      </div>
+      ${tasks.length===0? `<div style="color:var(--muted);font-size:13px;">No dates yet for this case.</div>` :
+        tasks.map(t=>taskRowHtml(t, null, true)).join("")}
+      <div id="delete-confirm-${c.id}"></div>
+    </div>
+  </div>`;
+}
+window.confirmDeleteCase = (id)=>{
+  document.getElementById(`delete-confirm-${id}`).innerHTML = `
+  <div style="margin-top:18px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:12px;">
+    <div style="font-size:13px;margin-bottom:10px;">⚠ Delete this case and all its dates? This can't be undone.</div>
+    <div style="display:flex;gap:8px;">
+      <button style="background:#B23A32;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px;" onclick="deleteCaseDoc('${id}');closeModal();">Delete</button>
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>`;
+};
+window.deleteCaseDoc = deleteCaseDoc;
+window.openCaseModal = openCaseModal;
+window.openTaskModal = openTaskModal;
+window.closeModal = closeModal;
+
+function openSettingsModal(){
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div class="field"><span class="field-label">Flag dates as "due soon" within</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="input" id="s-alertdays" type="number" min="1" max="60" value="${state.alertDays}" style="width:80px;" />
+          <span style="font-size:13.5px;color:var(--muted);">days</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveAlertDays()">Save</button>
+      <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
+        ${state.cases.length} case${state.cases.length===1?"":"s"} · ${state.tasks.length} scheduled date${state.tasks.length===1?"":"s"} tracked.<br/><br/>
+        Signed in as ${esc(state.user.email)}. Your data is private to this account and syncs automatically across every device you sign in on.
+      </div>
+    </div>
+  </div>`;
+}
+window.saveAlertDays = ()=>{
+  state.alertDays = Math.max(1, Number(document.getElementById("s-alertdays").value)||1);
+  saveSettings(); closeModal();
+};
+
+/* ================= SERVICE WORKER (installability + offline shell) ================= */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
