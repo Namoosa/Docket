@@ -241,10 +241,27 @@ async function googleSignIn(){
   provider.addScope("https://www.googleapis.com/auth/calendar.events");
   provider.setCustomParameters({ prompt: "consent" });
   try{
-    // Redirect flow is far more reliable than popups on mobile browsers
-    // and installed home-screen apps, which often silently block popups.
-    await auth.signInWithRedirect(provider);
-  }catch(e){ if(errEl) errEl.textContent = e.message; }
+    // Try the popup method first — this works reliably on most desktop
+    // browsers with default privacy settings, and doesn't depend on the
+    // cross-domain storage handoff that redirect mode needs (which strict
+    // tracking-prevention settings can silently block).
+    const result = await auth.signInWithPopup(provider);
+    const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+    if(credential && credential.accessToken){
+      state.googleAccessToken = credential.accessToken;
+      state.googleConnected = true;
+    }
+  }catch(e){
+    const popupFailed = e && ["auth/popup-blocked","auth/cancelled-popup-request","auth/popup-closed-by-user","auth/operation-not-supported-in-this-environment"].includes(e.code);
+    if(popupFailed){
+      // Mobile browsers and installed home-screen apps often block popups —
+      // fall back to a full-page redirect, which works better there.
+      try{ await auth.signInWithRedirect(provider); }
+      catch(e2){ if(errEl) errEl.textContent = e2.message; }
+    } else {
+      if(errEl) errEl.textContent = e.message;
+    }
+  }
 }
 
 // Catch the result after Google sends the user back to this page.
