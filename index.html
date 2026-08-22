@@ -12,7 +12,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 
 <script>
@@ -105,17 +104,12 @@
   .radio-pill.active{background:var(--navy);color:var(--panel);border-color:var(--navy);}
   .group-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--purple);border:1px solid var(--purple);border-radius:3px;padding:2px 6px;font-weight:600;}
   .checklist-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
-  /* Icon sizing — bigger, clearer, consistent everywhere */
-  .icon-btn i{font-size:16px;}
-  .tab-btn i{font-size:15px;margin-right:2px;}
-  .task-title-icon{font-size:17px;width:20px;display:inline-flex;justify-content:center;}
-  .case-type-icon{font-size:16px;width:19px;display:inline-flex;justify-content:center;}
-  .fab i{font-size:22px;}
-  .brand i{font-size:20px;}
-  .badge i{font-size:11px;}
-  .btn-ghost i, .btn-primary i{font-size:14px;}
-  .task-check i{font-size:13px;}
-  .doc-link-row i, .p-item i{font-size:13px;}
+  /* Icon sizing — inline SVGs, self-contained, no external font dependency */
+  .icon-btn svg{width:18px;height:18px;}
+  .tab-btn svg{margin-right:3px;}
+  .fab svg{width:22px;height:22px;}
+  .brand svg{width:20px;height:20px;}
+  .badge svg{width:12px;height:12px;vertical-align:-2px !important;}
   #print-area{display:none;}
   @media print{
     body *{visibility:hidden;}
@@ -135,7 +129,7 @@
 <div id="auth-screen">
   <div class="auth-card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
-      <span class="serif" style="font-size:22px;color:var(--navy-dark);"><i class=&quot;fa-solid fa-scale-balanced&quot;></i> Docket</span>
+      <span class="serif" style="font-size:22px;color:var(--navy-dark);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;21&quot;/><line x1=&quot;8&quot; y1=&quot;21&quot; x2=&quot;16&quot; y2=&quot;21&quot;/><line x1=&quot;5&quot; y1=&quot;7&quot; x2=&quot;19&quot; y2=&quot;7&quot;/><path d=&quot;M5 7L2.5 13a2.7 2.7 0 0 0 5 0z&quot;/><path d=&quot;M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z&quot;/></svg> Docket</span>
     </div>
     <button class="btn-google" id="google-signin-btn">
       <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3c-7.7 0-14.3 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.8 14.3-5l-6.6-5.6C29.6 35.9 27 37 24 37c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.5 40.4 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.6C41.5 36 45 30.6 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
@@ -157,11 +151,11 @@
 <div id="app-shell" class="hidden">
   <header>
     <div class="header-inner">
-      <div class="brand"><span style="color:var(--brass);"><i class=&quot;fa-solid fa-scale-balanced&quot;></i></span> <span class="serif">Docket</span></div>
+      <div class="brand"><span style="color:var(--brass);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;21&quot;/><line x1=&quot;8&quot; y1=&quot;21&quot; x2=&quot;16&quot; y2=&quot;21&quot;/><line x1=&quot;5&quot; y1=&quot;7&quot; x2=&quot;19&quot; y2=&quot;7&quot;/><path d=&quot;M5 7L2.5 13a2.7 2.7 0 0 0 5 0z&quot;/><path d=&quot;M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z&quot;/></svg></span> <span class="serif">Docket</span></div>
       <div style="display:flex;gap:8px;align-items:center;">
         <div id="header-badges" style="display:flex;gap:6px;"></div>
-        <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><i class=&quot;fa-solid fa-print&quot;></i></button>
-        <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><i class=&quot;fa-solid fa-gear&quot;></i></button>
+        <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 6 2 18 2 18 9&quot;/><path d=&quot;M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2&quot;/><rect x=&quot;6&quot; y=&quot;14&quot; width=&quot;12&quot; height=&quot;8&quot;/></svg></button>
+        <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/><path d=&quot;M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z&quot;/></svg></button>
         <button class="icon-btn" id="signout-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;">Out</button>
       </div>
     </div>
@@ -172,16 +166,16 @@
 
   <main>
     <div class="tabs">
-      <button class="tab-btn active" id="tab-calendar"><i class=&quot;fa-solid fa-calendar-days&quot;></i> Calendar</button>
-      <button class="tab-btn" id="tab-cases"><i class=&quot;fa-solid fa-folder-open&quot;></i> Cases</button>
-      <button class="tab-btn" id="tab-checklist"><i class=&quot;fa-solid fa-list-check&quot;></i> Checklist</button>
+      <button class="tab-btn active" id="tab-calendar"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;4&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><line x1=&quot;16&quot; y1=&quot;2&quot; x2=&quot;16&quot; y2=&quot;6&quot;/><line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;6&quot;/><line x1=&quot;3&quot; y1=&quot;10&quot; x2=&quot;21&quot; y2=&quot;10&quot;/></svg> Calendar</button>
+      <button class="tab-btn" id="tab-cases"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z&quot;/></svg> Cases</button>
+      <button class="tab-btn" id="tab-checklist"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;10&quot; y1=&quot;6&quot; x2=&quot;21&quot; y2=&quot;6&quot;/><line x1=&quot;10&quot; y1=&quot;12&quot; x2=&quot;21&quot; y2=&quot;12&quot;/><line x1=&quot;10&quot; y1=&quot;18&quot; x2=&quot;21&quot; y2=&quot;18&quot;/><polyline points=&quot;3 6 4 7 6 5&quot;/><polyline points=&quot;3 12 4 13 6 11&quot;/><polyline points=&quot;3 18 4 19 6 17&quot;/></svg> Checklist</button>
     </div>
     <div id="view-calendar"></div>
     <div id="view-cases" class="hidden"></div>
     <div id="view-checklist" class="hidden"></div>
   </main>
 
-  <button class="fab" id="fab-btn"><i class=&quot;fa-solid fa-plus&quot;></i></button>
+  <button class="fab" id="fab-btn"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/><line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/></svg></button>
 </div>
 
 <div id="modal-root"></div>
@@ -196,11 +190,11 @@ const db = firebase.firestore();
 /* ================= CONSTANTS ================= */
 const PROCEDURE_TYPES = ["Hearing","Motion Filing","Memorandum","Consultation"];
 const PROCEDURE_COLOR = {"Hearing":"#9A3B33","Motion Filing":"#A6762E","Memorandum":"#3D5871","Consultation":"#556B4F"};
-const PROCEDURE_ICON = {"Hearing":"<i class=&quot;fa-solid fa-scale-balanced&quot;></i>","Motion Filing":"<i class=&quot;fa-solid fa-file-signature&quot;></i>","Memorandum":"<i class=&quot;fa-solid fa-file-lines&quot;></i>","Consultation":"<i class=&quot;fa-solid fa-comments&quot;></i>"};
+const PROCEDURE_ICON = {"Hearing":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;21&quot;/><line x1=&quot;8&quot; y1=&quot;21&quot; x2=&quot;16&quot; y2=&quot;21&quot;/><line x1=&quot;5&quot; y1=&quot;7&quot; x2=&quot;19&quot; y2=&quot;7&quot;/><path d=&quot;M5 7L2.5 13a2.7 2.7 0 0 0 5 0z&quot;/><path d=&quot;M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z&quot;/></svg>","Motion Filing":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z&quot;/><polyline points=&quot;14 2 14 8 20 8&quot;/><path d=&quot;M8 17c1-1.2 2-1.2 3 0s2 1.2 3 0&quot;/></svg>","Memorandum":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z&quot;/><polyline points=&quot;14 2 14 8 20 8&quot;/><line x1=&quot;8&quot; y1=&quot;13&quot; x2=&quot;16&quot; y2=&quot;13&quot;/><line x1=&quot;8&quot; y1=&quot;17&quot; x2=&quot;16&quot; y2=&quot;17&quot;/></svg>","Consultation":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z&quot;/></svg>"};
 
 const CASE_TYPES = ["Criminal","Civil","Commercial","Labor","Personal Status","Real Estate","Administrative"];
 const CASE_TYPE_COLOR = {"Criminal":"#9A3B33","Civil":"#3D5871","Commercial":"#A6762E","Labor":"#556B4F","Personal Status":"#6B5B8C","Real Estate":"#8A6E4B","Administrative":"#7B7566"};
-const CASE_TYPE_ICON = {"Criminal":"<i class=&quot;fa-solid fa-handcuffs&quot;></i>","Civil":"<i class=&quot;fa-solid fa-scale-balanced&quot;></i>","Commercial":"<i class=&quot;fa-solid fa-building&quot;></i>","Labor":"<i class=&quot;fa-solid fa-helmet-safety&quot;></i>","Personal Status":"<i class=&quot;fa-solid fa-people-roof&quot;></i>","Real Estate":"<i class=&quot;fa-solid fa-house&quot;></i>","Administrative":"<i class=&quot;fa-solid fa-landmark&quot;></i>"};
+const CASE_TYPE_ICON = {"Criminal":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><circle cx=&quot;8&quot; cy=&quot;12&quot; r=&quot;4&quot;/><circle cx=&quot;16&quot; cy=&quot;12&quot; r=&quot;4&quot;/><line x1=&quot;12&quot; y1=&quot;9&quot; x2=&quot;12&quot; y2=&quot;15&quot;/></svg>","Civil":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;21&quot;/><line x1=&quot;8&quot; y1=&quot;21&quot; x2=&quot;16&quot; y2=&quot;21&quot;/><line x1=&quot;5&quot; y1=&quot;7&quot; x2=&quot;19&quot; y2=&quot;7&quot;/><path d=&quot;M5 7L2.5 13a2.7 2.7 0 0 0 5 0z&quot;/><path d=&quot;M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z&quot;/></svg>","Commercial":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;4&quot; y=&quot;2&quot; width=&quot;16&quot; height=&quot;20&quot; rx=&quot;1&quot;/><line x1=&quot;4&quot; y1=&quot;9&quot; x2=&quot;20&quot; y2=&quot;9&quot;/><line x1=&quot;4&quot; y1=&quot;14&quot; x2=&quot;20&quot; y2=&quot;14&quot;/><line x1=&quot;9&quot; y1=&quot;22&quot; x2=&quot;9&quot; y2=&quot;18&quot;/><line x1=&quot;15&quot; y1=&quot;22&quot; x2=&quot;15&quot; y2=&quot;18&quot;/></svg>","Labor":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M4 18v-2a8 8 0 0 1 16 0v2&quot;/><rect x=&quot;2&quot; y=&quot;18&quot; width=&quot;20&quot; height=&quot;3&quot; rx=&quot;1&quot;/><line x1=&quot;12&quot; y1=&quot;4&quot; x2=&quot;12&quot; y2=&quot;8&quot;/></svg>","Personal Status":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M12 3l9 6h-3v9H6v-9H3z&quot;/><circle cx=&quot;9&quot; cy=&quot;18&quot; r=&quot;1.6&quot;/><circle cx=&quot;15&quot; cy=&quot;18&quot; r=&quot;1.6&quot;/></svg>","Real Estate":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M3 12l9-9 9 9&quot;/><path d=&quot;M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10&quot;/></svg>","Administrative":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;3&quot; y1=&quot;22&quot; x2=&quot;21&quot; y2=&quot;22&quot;/><line x1=&quot;6&quot; y1=&quot;18&quot; x2=&quot;6&quot; y2=&quot;11&quot;/><line x1=&quot;10&quot; y1=&quot;18&quot; x2=&quot;10&quot; y2=&quot;11&quot;/><line x1=&quot;14&quot; y1=&quot;18&quot; x2=&quot;14&quot; y2=&quot;11&quot;/><line x1=&quot;18&quot; y1=&quot;18&quot; x2=&quot;18&quot; y2=&quot;11&quot;/><polygon points=&quot;12 2 20 7 4 7&quot;/></svg>"};
 
 const PARTY_ROLES = ["Client","Opponent","Co-Defendant","Co-Plaintiff","Third Party","Other"];
 const STATUS_OPTIONS = ["Active","Pending","On Hold","Closed"];
@@ -210,7 +204,7 @@ function hashColor(str){ let h=0; for(let i=0;i<str.length;i++){ h = str.charCod
 function colorForProcedure(t){ return PROCEDURE_COLOR[t] || hashColor(t||"?"); }
 function colorForCaseType(t){ return CASE_TYPE_COLOR[t] || hashColor(t||"?"); }
 function iconForProcedure(t){ return PROCEDURE_ICON[t] || "•"; }
-function iconForCaseType(t){ return CASE_TYPE_ICON[t] || "<i class=&quot;fa-solid fa-folder&quot;></i>"; }
+function iconForCaseType(t){ return CASE_TYPE_ICON[t] || "<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z&quot;/></svg>"; }
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const WD = ["S","M","T","W","T","F","S"];
@@ -425,10 +419,10 @@ function printTodaysDocket(){
   const dueToday = state.tasks.filter(t=>!t.completed && t.date===tk).sort((a,b)=>(a.kind==="deadline")-(b.kind==="deadline"));
   const overdue = state.tasks.filter(t=>!t.completed && t.date<tk).sort((a,b)=>a.date.localeCompare(b.date));
   const openChecklist = state.checklist.filter(x=>!x.done);
-  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?"<i class=&quot;fa-solid fa-hourglass-half&quot;></i> ":"<i class=&quot;fa-solid fa-calendar-days&quot;></i> "}${esc(t.title)}</strong> — ${esc(t.type)}
+  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M6 2h12M6 22h12M6 2c0 5 6 5 6 10s-6 5-6 10M18 2c0 5-6 5-6 10s6 5 6 10&quot;/></svg> ":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;4&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><line x1=&quot;16&quot; y1=&quot;2&quot; x2=&quot;16&quot; y2=&quot;6&quot;/><line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;6&quot;/><line x1=&quot;3&quot; y1=&quot;10&quot; x2=&quot;21&quot; y2=&quot;10&quot;/></svg> "}${esc(t.title)}</strong> — ${esc(t.type)}
     <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):"No case linked"}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}${t.date!==tk?` · ${fmtLong(t.date)}`:""}</div></div>`;
   document.getElementById("print-area").innerHTML = `
-    <h1><i class=&quot;fa-solid fa-scale-balanced&quot;></i> Docket — Today</h1>
+    <h1><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;21&quot;/><line x1=&quot;8&quot; y1=&quot;21&quot; x2=&quot;16&quot; y2=&quot;21&quot;/><line x1=&quot;5&quot; y1=&quot;7&quot; x2=&quot;19&quot; y2=&quot;7&quot;/><path d=&quot;M5 7L2.5 13a2.7 2.7 0 0 0 5 0z&quot;/><path d=&quot;M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z&quot;/></svg> Docket — Today</h1>
     <div class="p-sub">${fmtLong(tk)}</div>
     <div class="p-section">
       <div class="p-section-title">Today</div>
@@ -436,7 +430,7 @@ function printTodaysDocket(){
     </div>
     ${overdue.length>0?`<div class="p-section"><div class="p-section-title">Overdue</div>${overdue.map(itemHtml).join("")}</div>`:""}
     ${openChecklist.length>0?`<div class="p-section"><div class="p-section-title">Open checklist items</div>
-      ${openChecklist.map(it=>`<div class="p-item"><i class=&quot;fa-regular fa-square&quot;></i> ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
+      ${openChecklist.map(it=>`<div class="p-item"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/></svg> ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
     </div>`:""}
   `;
   window.print();
@@ -447,7 +441,7 @@ window.printCaseHistory = (c)=>{
   const log = (c.noteLog||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
 
   const taskHtml = (t)=>`<div class="p-item">
-      <strong>${t.kind==="deadline"?(t.critical?"<i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> CRITICAL DEADLINE — ":"<i class=&quot;fa-solid fa-hourglass-half&quot;></i> Deadline — "):"<i class=&quot;fa-solid fa-calendar-days&quot;></i> "}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
+      <strong>${t.kind==="deadline"?(t.critical?"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z&quot;/><line x1=&quot;12&quot; y1=&quot;9&quot; x2=&quot;12&quot; y2=&quot;13&quot;/><line x1=&quot;12&quot; y1=&quot;17&quot; x2=&quot;12.01&quot; y2=&quot;17&quot;/></svg> CRITICAL DEADLINE — ":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M6 2h12M6 22h12M6 2c0 5 6 5 6 10s-6 5-6 10M18 2c0 5-6 5-6 10s6 5 6 10&quot;/></svg> Deadline — "):"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;4&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><line x1=&quot;16&quot; y1=&quot;2&quot; x2=&quot;16&quot; y2=&quot;6&quot;/><line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;6&quot;/><line x1=&quot;3&quot; y1=&quot;10&quot; x2=&quot;21&quot; y2=&quot;10&quot;/></svg> "}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
       ${t.notes?`<div class="p-meta">${esc(t.notes)}</div>`:""}
       ${t.postponeReason?`<div class="p-meta">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
     </div>`;
@@ -472,7 +466,7 @@ window.printCaseHistory = (c)=>{
     </div>
 
     ${checklistItems.length?`<div class="p-section"><div class="p-section-title">Checklist</div>
-      ${checklistItems.map(it=>`<div class="p-item">${it.done?"<i class=&quot;fa-solid fa-square-check&quot;></i>":"<i class=&quot;fa-regular fa-square&quot;></i>"} ${esc(it.text)}</div>`).join("")}
+      ${checklistItems.map(it=>`<div class="p-item">${it.done?"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><polyline points=&quot;8 12 11 15 16 9&quot;/></svg>":"<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/></svg>"} ${esc(it.text)}</div>`).join("")}
     </div>`:""}
 
     ${(c.documents&&c.documents.length)?`<div class="p-section"><div class="p-section-title">Documents</div>
@@ -516,9 +510,9 @@ function renderInstallBanner(){
   const wrap = document.getElementById("install-banner-wrap");
   if(state.onboardDismissed){ wrap.innerHTML=""; return; }
   wrap.innerHTML = `<div class="install-banner">
-    <span><i class=&quot;fa-solid fa-mobile-screen-button&quot;></i></span>
+    <span><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;7&quot; y=&quot;2&quot; width=&quot;10&quot; height=&quot;20&quot; rx=&quot;2&quot;/><line x1=&quot;11&quot; y1=&quot;18&quot; x2=&quot;13&quot; y2=&quot;18&quot;/></svg></span>
     <div style="flex:1;"><strong>One-tap access:</strong> your browser should offer an "Install" or "Add to Home Screen" option (address bar icon, or the ⋮ / Share menu).</div>
-    <button onclick="dismissBanner()" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-xmark&quot;></i></button>
+    <button onclick="dismissBanner()" style="background:none;border:none;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button>
   </div>`;
 }
 function dismissBanner(){ state.onboardDismissed = true; saveSettings(); render(); }
@@ -529,7 +523,7 @@ function renderReconnectBanner(){
   const isGoogleUser = state.user && state.user.providerData.some(p=>p.providerId==="google.com");
   if(isGoogleUser && !state.googleConnected){
     wrap.innerHTML = `<div class="install-banner" style="border-left-color:var(--brick);margin-top:10px;">
-      <span><i class=&quot;fa-solid fa-calendar-days&quot;></i></span>
+      <span><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;4&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><line x1=&quot;16&quot; y1=&quot;2&quot; x2=&quot;16&quot; y2=&quot;6&quot;/><line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;6&quot;/><line x1=&quot;3&quot; y1=&quot;10&quot; x2=&quot;21&quot; y2=&quot;10&quot;/></svg></span>
       <div style="flex:1;">Google Calendar sync needs to be reconnected (this happens periodically for security). Your dates are still safe — this only affects calendar syncing.</div>
       <button class="btn-ghost" onclick="reconnectGoogle()">Reconnect</button>
     </div>`;
@@ -567,7 +561,7 @@ function renderCalendar(upcoming){
 
   document.getElementById("view-calendar").innerHTML = `
     ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
-      <div class="section-label" style="color:var(--brick);margin-bottom:8px;"><i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> Critical deadlines</div>
+      <div class="section-label" style="color:var(--brick);margin-bottom:8px;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z&quot;/><line x1=&quot;12&quot; y1=&quot;9&quot; x2=&quot;12&quot; y2=&quot;13&quot;/><line x1=&quot;12&quot; y1=&quot;17&quot; x2=&quot;12.01&quot; y2=&quot;17&quot;/></svg> Critical deadlines</div>
       ${criticalItems.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
     </div>` : ""}
     <div class="cal-card">
@@ -575,8 +569,8 @@ function renderCalendar(upcoming){
         <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
         <div style="display:flex;gap:6px;">
           <button class="icon-btn" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;" onclick="gotoToday()">Today</button>
-          <button class="icon-btn" onclick="gotoMonth(-1)"><i class=&quot;fa-solid fa-chevron-left&quot;></i></button>
-          <button class="icon-btn" onclick="gotoMonth(1)"><i class=&quot;fa-solid fa-chevron-right&quot;></i></button>
+          <button class="icon-btn" onclick="gotoMonth(-1)"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;15 18 9 12 15 6&quot;/></svg></button>
+          <button class="icon-btn" onclick="gotoMonth(1)"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg></button>
         </div>
       </div>
       <div class="cal-grid" style="margin-bottom:4px;">${WD.map(w=>`<div class="cal-wd">${w}</div>`).join("")}</div>
@@ -601,7 +595,7 @@ function taskRowHtml(t, caseItem, showDate){
   const isCritical = !!t.critical;
   const overdue = t.delta<0 && !t.completed;
   const urgent = !overdue && showDate && t.delta<=state.alertDays && t.delta>=0;
-  const icon = isCritical ? "<i class=&quot;fa-solid fa-triangle-exclamation&quot;></i>" : (isDeadline ? "<i class=&quot;fa-solid fa-hourglass-half&quot;></i>" : iconForProcedure(t.type));
+  const icon = isCritical ? "<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z&quot;/><line x1=&quot;12&quot; y1=&quot;9&quot; x2=&quot;12&quot; y2=&quot;13&quot;/><line x1=&quot;12&quot; y1=&quot;17&quot; x2=&quot;12.01&quot; y2=&quot;17&quot;/></svg>" : (isDeadline ? "<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M6 2h12M6 22h12M6 2c0 5 6 5 6 10s-6 5-6 10M18 2c0 5-6 5-6 10s6 5 6 10&quot;/></svg>" : iconForProcedure(t.type));
   const color = isCritical ? "var(--brick)" : (isDeadline ? "var(--purple)" : colorForProcedure(t.type));
   const countdownLabel = t.delta===0 ? (isDeadline||isCritical?'Due today':'Today') : `${t.delta}d${(isDeadline||isCritical)?' left':''}`;
   let statusBadge = "";
@@ -612,18 +606,18 @@ function taskRowHtml(t, caseItem, showDate){
     else if(urgent) statusBadge = `<span class="badge" style="border-color:var(--brass);color:var(--brass);">${countdownLabel}</span>`;
   }
   return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${overdue?'#B23A32':color};${isCritical?'border-width:5px;':''}">
-    <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?'<i class=&quot;fa-solid fa-check&quot;></i>':''}</button>
+    <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?'<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;20 6 9 17 4 12&quot;/></svg>':''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="task-title-icon" style="color:${color};">${icon}</span>
         <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
-        ${t.googleEventId?`<span title="Synced to Google Calendar" style="font-size:11px;"><i class=&quot;fa-solid fa-calendar-check&quot;></i></span>`:""}
+        ${t.googleEventId?`<span title="Synced to Google Calendar" style="font-size:11px;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;4&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><line x1=&quot;16&quot; y1=&quot;2&quot; x2=&quot;16&quot; y2=&quot;6&quot;/><line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;6&quot;/><line x1=&quot;3&quot; y1=&quot;10&quot; x2=&quot;21&quot; y2=&quot;10&quot;/><polyline points=&quot;9 16 11 18 15 14&quot;/></svg></span>`:""}
         ${statusBadge}
       </div>
-      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · <i class=&quot;fa-solid fa-location-dot&quot;></i> ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
+      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z&quot;/><circle cx=&quot;12&quot; cy=&quot;10&quot; r=&quot;3&quot;/></svg> ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
       ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
     </div>
-    <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-trash&quot;></i></button>
+    <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;3 6 5 6 21 6&quot;/><path d=&quot;M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6&quot;/><line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/><line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/><path d=&quot;M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2&quot;/></svg></button>
   </div>`;
 }
 window.selectDay = (k)=>{ state.selectedDay=k; render(); };
@@ -659,7 +653,7 @@ function renderCases(){
     const tasksHere = state.tasks.filter(t=>caseIdsHere.has(t.caseId) && !t.completed)
       .map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
     courtBlock = `<div style="margin-bottom:18px;">
-      <div class="section-label"><i class=&quot;fa-solid fa-location-dot&quot;></i> At ${esc(state.filterCourt)} — every open procedure & deadline</div>
+      <div class="section-label"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z&quot;/><circle cx=&quot;12&quot; cy=&quot;10&quot; r=&quot;3&quot;/></svg> At ${esc(state.filterCourt)} — every open procedure & deadline</div>
       ${tasksHere.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">Nothing open at this court right now.</div>` :
         tasksHere.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
     </div>`;
@@ -667,7 +661,7 @@ function renderCases(){
 
   document.getElementById("view-cases").innerHTML = `
     <div class="search-wrap">
-      <span style="position:absolute;left:11px;top:11px;color:var(--muted);"><i class=&quot;fa-solid fa-magnifying-glass&quot;></i></span>
+      <span style="position:absolute;left:11px;top:11px;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;7&quot;/><line x1=&quot;21&quot; y1=&quot;21&quot; x2=&quot;16.65&quot; y2=&quot;16.65&quot;/></svg></span>
       <input class="input" id="search-input" placeholder="Search by name, title, court, or file number…" value="${esc(state.search)}" />
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;">
@@ -688,7 +682,7 @@ function renderCases(){
       <input type="checkbox" id="toggle-closed" ${state.hideClosed===false?'':'checked'} /> Hide closed cases (${closedCount} hidden)
     </label>` : ""}
     ${courtBlock}
-    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);"><i class=&quot;fa-solid fa-scale-balanced&quot;></i><br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
+    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;21&quot;/><line x1=&quot;8&quot; y1=&quot;21&quot; x2=&quot;16&quot; y2=&quot;21&quot;/><line x1=&quot;5&quot; y1=&quot;7&quot; x2=&quot;19&quot; y2=&quot;7&quot;/><path d=&quot;M5 7L2.5 13a2.7 2.7 0 0 0 5 0z&quot;/><path d=&quot;M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z&quot;/></svg><br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
       `<div>${filtered.map(c=>caseCardHtml(c)).join("")}</div>`}
   `;
   document.getElementById("search-input").oninput = e=>{ const pos=e.target.selectionStart; state.search=e.target.value; renderCases(); const el=document.getElementById("search-input"); el.focus(); el.setSelectionRange(pos,pos); };
@@ -705,8 +699,8 @@ function caseCardHtml(c){
   return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
       <div style="min-width:0;">
-        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?'<i class=&quot;fa-solid fa-star&quot;></i> ':''}${esc(computeCaseTitle(c))}</div>
-        ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;"><i class=&quot;fa-solid fa-location-dot&quot;></i> ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` · ${esc(c.chamber)}`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` · ${esc(c.prosecutorInCharge)}`:""}</div>`:""}
+        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?'<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot; fill=&quot;currentColor&quot;/></svg> ':''}${esc(computeCaseTitle(c))}</div>
+        ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z&quot;/><circle cx=&quot;12&quot; cy=&quot;10&quot; r=&quot;3&quot;/></svg> ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` · ${esc(c.chamber)}`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` · ${esc(c.prosecutorInCharge)}`:""}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${esc(c.courtNumber)}</div>`:""}
       </div>
       <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
@@ -714,8 +708,8 @@ function caseCardHtml(c){
     <div style="display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap;">
       <span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span>
       <span style="font-size:12.5px;font-weight:500;">${esc(c.caseType)}</span>
-      ${c.documents&&c.documents.length ? `<span style="font-size:12px;color:var(--muted);"><i class=&quot;fa-solid fa-link&quot;></i> ${c.documents.length}</span>` : ""}
-      ${groupSize>0 ? `<span class="group-badge"><i class=&quot;fa-solid fa-link&quot;></i> linked (${groupSize})</span>` : ""}
+      ${c.documents&&c.documents.length ? `<span style="font-size:12px;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71&quot;/><path d=&quot;M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71&quot;/></svg> ${c.documents.length}</span>` : ""}
+      ${groupSize>0 ? `<span class="group-badge"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71&quot;/><path d=&quot;M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71&quot;/></svg> linked (${groupSize})</span>` : ""}
     </div>
   </button>`;
 }
@@ -726,16 +720,16 @@ function renderChecklist(){
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
   const items = state.checklist.slice().sort((a,b)=> (a.done - b.done) || (b.createdAt||0)-(a.createdAt||0));
   document.getElementById("view-checklist").innerHTML = `
-    ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);"><i class=&quot;fa-solid fa-list-check&quot;></i><br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
+    ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;10&quot; y1=&quot;6&quot; x2=&quot;21&quot; y2=&quot;6&quot;/><line x1=&quot;10&quot; y1=&quot;12&quot; x2=&quot;21&quot; y2=&quot;12&quot;/><line x1=&quot;10&quot; y1=&quot;18&quot; x2=&quot;21&quot; y2=&quot;18&quot;/><polyline points=&quot;3 6 4 7 6 5&quot;/><polyline points=&quot;3 12 4 13 6 11&quot;/><polyline points=&quot;3 18 4 19 6 17&quot;/></svg><br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
       items.map(it=>{
         const c = casesById[it.caseId];
         return `<div class="checklist-row">
-          <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'<i class=&quot;fa-solid fa-check&quot;></i>':''}</button>
+          <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;20 6 9 17 4 12&quot;/></svg>':''}</button>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
             <div style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</div>
             ${c?`<div class="task-meta">${esc(computeCaseTitle(c))}</div>`:""}
           </div>
-          <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-trash&quot;></i></button>
+          <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;3 6 5 6 21 6&quot;/><path d=&quot;M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6&quot;/><line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/><line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/><path d=&quot;M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2&quot;/></svg></button>
         </div>`;
       }).join("")}
   `;
@@ -748,7 +742,7 @@ function openChecklistModal(existing){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Checklist Item</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Checklist Item</h2><button class="icon-btn" onclick="closeModal()"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></div>
       <div class="field"><span class="field-label">Task</span><input class="input" id="chk-text" value="${esc(it.text)}" placeholder="e.g. Prepare witness list" /></div>
       <div class="field"><span class="field-label">Link to a case (optional)</span>
         <select class="input" id="chk-case">
@@ -782,12 +776,12 @@ function openTaskModal(existing){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Procedure / Date</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Procedure / Date</h2><button class="icon-btn" onclick="closeModal()"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></div>
 
       <div class="field"><span class="field-label">This is a…</span>
         <div class="radio-row" id="kind-row">
-          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')"><i class=&quot;fa-solid fa-calendar-days&quot;></i> Scheduled event</button>
-          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')"><i class=&quot;fa-solid fa-hourglass-half&quot;></i> Deadline</button>
+          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;3&quot; y=&quot;4&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><line x1=&quot;16&quot; y1=&quot;2&quot; x2=&quot;16&quot; y2=&quot;6&quot;/><line x1=&quot;8&quot; y1=&quot;2&quot; x2=&quot;8&quot; y2=&quot;6&quot;/><line x1=&quot;3&quot; y1=&quot;10&quot; x2=&quot;21&quot; y2=&quot;10&quot;/></svg> Scheduled event</button>
+          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M6 2h12M6 22h12M6 2c0 5 6 5 6 10s-6 5-6 10M18 2c0 5-6 5-6 10s6 5 6 10&quot;/></svg> Deadline</button>
         </div>
       </div>
 
@@ -803,7 +797,7 @@ function openTaskModal(existing){
       <div class="field"><span class="field-label">Procedure type</span><input class="input" id="f-type" list="proc-list" value="${esc(t.type)}" /><datalist id="proc-list">${allProcTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
       <div id="critical-field" class="field ${window._tempKind==='deadline'?'':'hidden'}" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;">
         <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--brick);">
-          <input type="checkbox" id="f-critical" ${t.critical?'checked':''} /> <i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> Critical (e.g. statute of limitations, appeal window)
+          <input type="checkbox" id="f-critical" ${t.critical?'checked':''} /> <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z&quot;/><line x1=&quot;12&quot; y1=&quot;9&quot; x2=&quot;12&quot; y2=&quot;13&quot;/><line x1=&quot;12&quot; y1=&quot;17&quot; x2=&quot;12.01&quot; y2=&quot;17&quot;/></svg> Critical (e.g. statute of limitations, appeal window)
         </label>
         <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">Stays pinned at the top of your Calendar until resolved, no matter how far away it is.</div>
       </div>
@@ -812,7 +806,7 @@ function openTaskModal(existing){
       ${!existing ? `
       <div class="field">
         <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);">
-          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> <i class=&quot;fa-solid fa-rotate&quot;></i> Repeat this session
+          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;23 4 23 10 17 10&quot;/><polyline points=&quot;1 20 1 14 7 14&quot;/><path d=&quot;M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15&quot;/></svg> Repeat this session
         </label>
         <div id="repeat-fields" class="hidden" style="margin-top:10px;display:flex;gap:8px;">
           <select class="input" id="f-repeat-freq">
@@ -826,7 +820,7 @@ function openTaskModal(existing){
         <div id="repeat-hint" class="hidden" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Creates this many sessions total, spaced at the interval above, each individually editable afterward.</div>
       </div>` : `
       <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
-        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-rotate&quot;></i> Continue — schedule the next session</button>
+        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;23 4 23 10 17 10&quot;/><polyline points=&quot;1 20 1 14 7 14&quot;/><path d=&quot;M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15&quot;/></svg> Continue — schedule the next session</button>
       </div>`}
 
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add to docket'}</button>
@@ -877,7 +871,7 @@ function openContinueModal(t){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;"><i class=&quot;fa-solid fa-rotate&quot;></i> Continue Session</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;23 4 23 10 17 10&quot;/><polyline points=&quot;1 20 1 14 7 14&quot;/><path d=&quot;M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15&quot;/></svg> Continue Session</h2><button class="icon-btn" onclick="closeModal()"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Schedules the next session for "${esc(t.title)}" on a new date.</div>
       <div class="field"><span class="field-label">Reason for postponement (optional)</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
@@ -922,7 +916,7 @@ function openCaseModal(existingRaw){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></div>
 
       <div class="field"><span class="field-label">Identify this case by</span>
         <div class="radio-row" id="title-source-row">
@@ -955,10 +949,10 @@ function openCaseModal(existingRaw){
       <div class="field"><span class="field-label">Status</span>
         <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
       </div>
-      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> <i class=&quot;fa-solid fa-star&quot;></i> Priority case — stand out in the list</label></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> <svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot; fill=&quot;currentColor&quot;/></svg> Priority case — stand out in the list</label></div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
 
-      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length)?'<i class=&quot;fa-solid fa-chevron-down&quot;></i> Documents & linked cases':'<i class=&quot;fa-solid fa-chevron-right&quot;></i> Documents & linked cases (optional)'}</button>
+      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length)?'<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg> Documents & linked cases':'<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg> Documents & linked cases (optional)'}</button>
       <div id="advanced-fields" class="${(window._tempDocs.length||window._tempLinked.length)?'':'hidden'}">
       <div class="field">
         <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
@@ -997,7 +991,7 @@ window.toggleCaseAdvanced = ()=>{
   const fields = document.getElementById("advanced-fields");
   const btn = document.getElementById("advanced-toggle-btn");
   const nowHidden = fields.classList.toggle("hidden");
-  btn.textContent = nowHidden ? "<i class=&quot;fa-solid fa-chevron-right&quot;></i> Documents & linked cases (optional)" : "<i class=&quot;fa-solid fa-chevron-down&quot;></i> Documents & linked cases";
+  btn.textContent = nowHidden ? "<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;9 18 15 12 9 6&quot;/></svg> Documents & linked cases (optional)" : "<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;6 9 12 15 18 9&quot;/></svg> Documents & linked cases";
 };
 
 function renderPartyList(){
@@ -1006,7 +1000,7 @@ function renderPartyList(){
       <div class="party-row" style="margin-bottom:6px;">
         <select onchange="updatePartyField(${i},'role',this.value)">${PARTY_ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join("")}</select>
         <input class="input" value="${esc(p.name)}" placeholder="Full name" oninput="updatePartyField(${i},'name',this.value)" />
-        <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;"><i class=&quot;fa-solid fa-xmark&quot;></i></button>
+        <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button>
       </div>
       <div style="display:flex;gap:6px;">
         <input class="input" style="font-size:12.5px;" value="${esc(p.phone||'')}" placeholder="Phone (optional)" oninput="updatePartyField(${i},'phone',this.value)" />
@@ -1036,13 +1030,13 @@ function checkConflicts(){
       });
     });
   });
-  el.innerHTML = warnings.length ? `<div style="margin-top:8px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:6px;padding:8px 10px;font-size:12px;color:var(--brick);line-height:1.5;"><i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> ${[...new Set(warnings)].join("<br/>")}</div>` : "";
+  el.innerHTML = warnings.length ? `<div style="margin-top:8px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:6px;padding:8px 10px;font-size:12px;color:var(--brick);line-height:1.5;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z&quot;/><line x1=&quot;12&quot; y1=&quot;9&quot; x2=&quot;12&quot; y2=&quot;13&quot;/><line x1=&quot;12&quot; y1=&quot;17&quot; x2=&quot;12.01&quot; y2=&quot;17&quot;/></svg> ${[...new Set(warnings)].join("<br/>")}</div>` : "";
 }
 
 function renderDocList(){
   document.getElementById("doc-list").innerHTML = window._tempDocs.map((d,i)=>`
-    <div class="doc-link-row"><span><i class=&quot;fa-solid fa-link&quot;></i></span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.label)}</a>
-    <button onclick="removeDocLink(${i})" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
+    <div class="doc-link-row"><span><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71&quot;/><path d=&quot;M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71&quot;/></svg></span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.label)}</a>
+    <button onclick="removeDocLink(${i})" style="background:none;border:none;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></div>
   `).join("");
 }
 window.addDocLink = ()=>{
@@ -1109,18 +1103,18 @@ function openCaseDetailModal(c){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal wide" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">${esc(computeCaseTitle(c))}</div>
-        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;"><i class=&quot;fa-solid fa-location-dot&quot;></i> ${esc(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-left:4px;">Investigation</span>`:""}</div>`:""}
+        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z&quot;/><circle cx=&quot;12&quot; cy=&quot;10&quot; r=&quot;3&quot;/></svg> ${esc(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-left:4px;">Investigation</span>`:""}</div>`:""}
         ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.chamber)}</div>`:""}
         ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${esc(c.prosecutorInCharge)}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
-          <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-file-pdf&quot;></i></button>
-          <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-clone&quot;></i></button>
-          <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'><i class=&quot;fa-solid fa-pen&quot;></i></button>
-          <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')"><i class=&quot;fa-solid fa-trash&quot;></i></button>
+          <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z&quot;/><polyline points=&quot;14 2 14 8 20 8&quot;/></svg></button>
+          <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;9&quot; y=&quot;9&quot; width=&quot;11&quot; height=&quot;11&quot; rx=&quot;2&quot;/><path d=&quot;M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1&quot;/></svg></button>
+          <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M12 20h9&quot;/><path d=&quot;M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z&quot;/></svg></button>
+          <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;3 6 5 6 21 6&quot;/><path d=&quot;M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6&quot;/><line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/><line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/><path d=&quot;M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2&quot;/></svg></button>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin:10px 0 16px;flex-wrap:wrap;">
@@ -1132,8 +1126,8 @@ function openCaseDetailModal(c){
         ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
           <div><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>
           ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;margin-top:2px;">
-            ${p.phone?`<a href="tel:${esc(p.phone)}"><i class=&quot;fa-solid fa-phone&quot;></i> ${esc(p.phone)}</a>`:""}
-            ${p.email?`<a href="mailto:${esc(p.email)}"><i class=&quot;fa-solid fa-envelope&quot;></i> ${esc(p.email)}</a>`:""}
+            ${p.phone?`<a href="tel:${esc(p.phone)}"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z&quot;/></svg> ${esc(p.phone)}</a>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><rect x=&quot;2&quot; y=&quot;4&quot; width=&quot;20&quot; height=&quot;16&quot; rx=&quot;2&quot;/><polyline points=&quot;2 6 12 13 22 6&quot;/></svg> ${esc(p.email)}</a>`:""}
           </div>` : ""}
         </div>`).join("")}</div>` : ""}
 
@@ -1149,17 +1143,17 @@ function openCaseDetailModal(c){
           <div style="font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
             <div><span class="mono" style="color:var(--muted);font-size:11px;">${fmtLong(l.date)}</span> — <span id="log-text-${l.id}">${esc(l.text)}</span></div>
             <div style="display:flex;gap:4px;flex-shrink:0;">
-              <button onclick="editLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;"><i class=&quot;fa-solid fa-pen&quot;></i></button>
-              <button onclick="deleteLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;"><i class=&quot;fa-solid fa-trash&quot;></i></button>
+              <button onclick="editLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M12 20h9&quot;/><path d=&quot;M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z&quot;/></svg></button>
+              <button onclick="deleteLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;3 6 5 6 21 6&quot;/><path d=&quot;M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6&quot;/><line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/><line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/><path d=&quot;M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2&quot;/></svg></button>
             </div>
           </div>`).join("")}</div>` : `<div style="color:var(--muted);font-size:12.5px;">No log entries yet.</div>`}
       </div>
 
       ${c.documents&&c.documents.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Documents</div>
-        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank"><i class=&quot;fa-solid fa-link&quot;></i> ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
+        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71&quot;/><path d=&quot;M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71&quot;/></svg> ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
 
       ${linked.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Linked cases</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">${linked.map(lc=>`<button class="group-badge" style="cursor:pointer;" onclick='closeModal();openCaseDetail("${lc.id}")'><i class=&quot;fa-solid fa-link&quot;></i> ${esc(computeCaseTitle(lc))}</button>`).join("")}</div></div>` : ""}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${linked.map(lc=>`<button class="group-badge" style="cursor:pointer;" onclick='closeModal();openCaseDetail("${lc.id}")'><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71&quot;/><path d=&quot;M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71&quot;/></svg> ${esc(computeCaseTitle(lc))}</button>`).join("")}</div></div>` : ""}
 
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div class="section-label" style="margin-bottom:0;">Dates & Procedures</div>
@@ -1173,7 +1167,7 @@ function openCaseDetailModal(c){
         <button style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick='closeModal();openChecklistModal({caseId:"${c.id}",text:"",done:false})'>+ Add</button>
       </div>
       ${state.checklist.filter(x=>x.caseId===c.id).length===0 ? `<div style="color:var(--muted);font-size:13px;">No checklist items for this case.</div>` :
-        state.checklist.filter(x=>x.caseId===c.id).map(it=>`<div class="checklist-row"><button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'<i class=&quot;fa-solid fa-check&quot;></i>':''}</button><div style="flex:1;font-size:13.5px;cursor:pointer;${it.done?'text-decoration:line-through;color:var(--muted);':''}" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>${esc(it.text)}</div><button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);"><i class=&quot;fa-solid fa-trash&quot;></i></button></div>`).join("")}
+        state.checklist.filter(x=>x.caseId===c.id).map(it=>`<div class="checklist-row"><button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?'<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;20 6 9 17 4 12&quot;/></svg>':''}</button><div style="flex:1;font-size:13.5px;cursor:pointer;${it.done?'text-decoration:line-through;color:var(--muted);':''}" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>${esc(it.text)}</div><button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;3 6 5 6 21 6&quot;/><path d=&quot;M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6&quot;/><line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/><line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/><path d=&quot;M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2&quot;/></svg></button></div>`).join("")}
 
       <div id="delete-confirm-${c.id}"></div>
     </div>
@@ -1219,7 +1213,7 @@ window.duplicateCase = (c)=>{
 window.confirmDeleteCase = (id)=>{
   document.getElementById(`delete-confirm-${id}`).innerHTML = `
   <div style="margin-top:18px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:12px;">
-    <div style="font-size:13px;margin-bottom:10px;"><i class=&quot;fa-solid fa-triangle-exclamation&quot;></i> Delete this case, all its dates and checklist items? This can't be undone.</div>
+    <div style="font-size:13px;margin-bottom:10px;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z&quot;/><line x1=&quot;12&quot; y1=&quot;9&quot; x2=&quot;12&quot; y2=&quot;13&quot;/><line x1=&quot;12&quot; y1=&quot;17&quot; x2=&quot;12.01&quot; y2=&quot;17&quot;/></svg> Delete this case, all its dates and checklist items? This can't be undone.</div>
     <div style="display:flex;gap:8px;">
       <button style="background:#B23A32;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px;" onclick="deleteCaseDoc('${id}');closeModal();">Delete</button>
       <button class="btn-ghost" onclick="closeModal()">Cancel</button>
@@ -1233,7 +1227,7 @@ function openSettingsModal(){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()"><i class=&quot;fa-solid fa-xmark&quot;></i></button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></div>
       <div class="field"><span class="field-label">Flag dates as "due soon" within</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <input class="input" id="s-alertdays" type="number" min="1" max="60" value="${state.alertDays}" style="width:80px;" />
@@ -1245,14 +1239,14 @@ function openSettingsModal(){
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
         ${isGoogleUser ?
-          (state.googleConnected ? `<div style="font-size:13px;color:var(--sage);font-weight:600;"><i class=&quot;fa-solid fa-check&quot;></i> Connected — new dates sync automatically while you use the app.</div>`
+          (state.googleConnected ? `<div style="font-size:13px;color:var(--sage);font-weight:600;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><polyline points=&quot;20 6 9 17 4 12&quot;/></svg> Connected — new dates sync automatically while you use the app.</div>`
           : `<div style="font-size:13px;color:var(--brick);margin-bottom:8px;">Not connected right now.</div><button class="btn-ghost" onclick="reconnectGoogle()">Connect Google Calendar</button>`)
           : `<div style="font-size:13px;color:var(--muted);">Sign out and sign back in with "Continue with Google" to enable calendar sync.</div>`}
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Backup</div>
-        <button class="btn-ghost" onclick="exportData()"><i class=&quot;fa-solid fa-download&quot;></i> Download a full backup (.json)</button>
+        <button class="btn-ghost" onclick="exportData()"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;/><polyline points=&quot;7 10 12 15 17 10&quot;/><line x1=&quot;12&quot; y1=&quot;15&quot; x2=&quot;12&quot; y2=&quot;3&quot;/></svg> Download a full backup (.json)</button>
         <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">A plain copy of every case, date, and checklist item — worth doing occasionally as a safety net.</div>
       </div>
 
@@ -1261,11 +1255,11 @@ function openSettingsModal(){
         ${(state.customCaseTypes.length===0 && state.customProcedureTypes.length===0) ? `<div style="font-size:12.5px;color:var(--muted);">None yet — custom types you type into a case or date form will appear here, removable if added by mistake.</div>` : `
         ${state.customCaseTypes.length ? `<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Case types</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-            ${state.customCaseTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('case','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;"><i class=&quot;fa-solid fa-xmark&quot;></i></button></span>`).join("")}
+            ${state.customCaseTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('case','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></span>`).join("")}
           </div>` : ""}
         ${state.customProcedureTypes.length ? `<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Procedure types</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            ${state.customProcedureTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('procedure','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;"><i class=&quot;fa-solid fa-xmark&quot;></i></button></span>`).join("")}
+            ${state.customProcedureTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('procedure','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;"><svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; width=&quot;18&quot; height=&quot;18&quot; style=&quot;vertical-align:-4px;flex-shrink:0;&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button></span>`).join("")}
           </div>` : ""}
         `}
         <div style="font-size:11px;color:var(--muted);margin-top:6px;">Removing a type only hides it from future suggestions — cases already using it are unaffected.</div>
