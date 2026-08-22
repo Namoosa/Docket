@@ -31,7 +31,7 @@
 <style>
   :root{
     --ink:#20242C; --paper:#ECE7DA; --panel:#FBF9F3; --navy:#22344A; --navy-dark:#182234;
-    --brass:#A6762E; --brick:#9A3B33; --sage:#556B4F; --slate:#3D5871; --line:#D8D0BB; --muted:#7B7566;
+    --brass:#8F6526; --brick:#9A3B33; --sage:#556B4F; --slate:#3D5871; --line:#D8D0BB; --muted:#7B7566;
     --purple:#6B5B8C; --clay:#8A6E4B;
   }
   *{box-sizing:border-box;}
@@ -103,6 +103,18 @@
   .radio-pill.active{background:var(--navy);color:var(--panel);border-color:var(--navy);}
   .group-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--purple);border:1px solid var(--purple);border-radius:3px;padding:2px 6px;font-weight:600;}
   .checklist-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
+  #print-area{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #print-area, #print-area *{visibility:visible;}
+    #print-area{display:block !important;position:absolute;top:0;left:0;width:100%;padding:20px;color:#000;}
+    #print-area h1{font-family:'Source Serif 4',serif;font-size:22px;margin-bottom:4px;}
+    #print-area .p-sub{color:#555;font-size:13px;margin-bottom:18px;}
+    #print-area .p-section{margin-bottom:20px;}
+    #print-area .p-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#555;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px;}
+    #print-area .p-item{padding:6px 0;border-bottom:1px solid #eee;font-size:13.5px;}
+    #print-area .p-item .p-meta{color:#666;font-size:12px;margin-top:2px;}
+  }
 </style>
 </head>
 <body>
@@ -135,6 +147,7 @@
       <div class="brand"><span style="color:var(--brass);">⚖</span> <span class="serif">Docket</span></div>
       <div style="display:flex;gap:8px;align-items:center;">
         <div id="header-badges" style="display:flex;gap:6px;"></div>
+        <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket">🖨</button>
         <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);">⚙</button>
         <button class="icon-btn" id="signout-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;">Out</button>
       </div>
@@ -159,6 +172,7 @@
 </div>
 
 <div id="modal-root"></div>
+<div id="print-area"></div>
 
 <script>
 /* ================= FIREBASE INIT ================= */
@@ -194,7 +208,7 @@ let state = {
   cases:[], tasks:[], checklist:[],
   customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false,
   view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
-  selectedDay: todayKey(), search:"", filterType:"All", filterStatus:"All",
+  selectedDay: todayKey(), search:"", filterType:"All", filterStatus:"All", filterCourt:"All",
 };
 let unsubCases=null, unsubTasks=null, unsubChecklist=null, unsubSettings=null;
 
@@ -207,6 +221,11 @@ function fmtLong(k){ const d=parseKey(k); return `${MONTHS[d.getMonth()]} ${d.ge
 function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36); }
 function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+function uniqueCourts(){
+  const set = new Set();
+  state.cases.forEach(c=>{ if(c.court && c.court.trim()) set.add(c.court.trim()); });
+  return Array.from(set).sort();
+}
 function computeCaseTitle(c){
   if(c.titleSource==="subject" && c.subject) return c.subject;
   const wantRole = c.titleSource==="client" ? "Client" : "Opponent";
@@ -386,6 +405,71 @@ document.getElementById("tab-calendar").onclick = ()=>{ state.view="calendar"; r
 document.getElementById("tab-cases").onclick = ()=>{ state.view="cases"; render(); };
 document.getElementById("tab-checklist").onclick = ()=>{ state.view="checklist"; render(); };
 document.getElementById("settings-btn").onclick = ()=> openSettingsModal();
+document.getElementById("print-btn").onclick = ()=> printTodaysDocket();
+function printTodaysDocket(){
+  const tk = todayKey();
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const dueToday = state.tasks.filter(t=>!t.completed && t.date===tk).sort((a,b)=>(a.kind==="deadline")-(b.kind==="deadline"));
+  const overdue = state.tasks.filter(t=>!t.completed && t.date<tk).sort((a,b)=>a.date.localeCompare(b.date));
+  const openChecklist = state.checklist.filter(x=>!x.done);
+  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?"⏳ ":"📅 "}${esc(t.title)}</strong> — ${esc(t.type)}
+    <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):"No case linked"}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}${t.date!==tk?` · ${fmtLong(t.date)}`:""}</div></div>`;
+  document.getElementById("print-area").innerHTML = `
+    <h1>⚖ Docket — Today</h1>
+    <div class="p-sub">${fmtLong(tk)}</div>
+    <div class="p-section">
+      <div class="p-section-title">Today</div>
+      ${dueToday.length===0?`<div class="p-item">Nothing due today.</div>`:dueToday.map(itemHtml).join("")}
+    </div>
+    ${overdue.length>0?`<div class="p-section"><div class="p-section-title">Overdue</div>${overdue.map(itemHtml).join("")}</div>`:""}
+    ${openChecklist.length>0?`<div class="p-section"><div class="p-section-title">Open checklist items</div>
+      ${openChecklist.map(it=>`<div class="p-item">☐ ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
+    </div>`:""}
+  `;
+  window.print();
+}
+window.printCaseHistory = (c)=>{
+  const tasks = state.tasks.filter(t=>t.caseId===c.id).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const checklistItems = state.checklist.filter(x=>x.caseId===c.id);
+  const log = (c.noteLog||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+
+  const taskHtml = (t)=>`<div class="p-item">
+      <strong>${t.kind==="deadline"?(t.critical?"⚠ CRITICAL DEADLINE — ":"⏳ Deadline — "):"📅 "}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
+      ${t.notes?`<div class="p-meta">${esc(t.notes)}</div>`:""}
+      ${t.postponeReason?`<div class="p-meta">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
+    </div>`;
+
+  document.getElementById("print-area").innerHTML = `
+    <h1>${esc(computeCaseTitle(c))}</h1>
+    <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}</div>
+
+    ${(c.parties&&c.parties.length)?`<div class="p-section">
+      <div class="p-section-title">Parties</div>
+      ${c.parties.map(p=>`<div class="p-item"><strong>${esc(p.role)}:</strong> ${esc(p.name)}${p.phone?(" · "+esc(p.phone)):""}${p.email?(" · "+esc(p.email)):""}</div>`).join("")}
+    </div>`:""}
+
+    ${c.notes?`<div class="p-section"><div class="p-section-title">Notes</div><div class="p-item">${esc(c.notes)}</div></div>`:""}
+
+    ${log.length?`<div class="p-section"><div class="p-section-title">Case Log</div>
+      ${log.map(l=>`<div class="p-item">${fmtLong(l.date)} — ${esc(l.text)}</div>`).join("")}
+    </div>`:""}
+
+    <div class="p-section"><div class="p-section-title">All Procedures & Deadlines (${tasks.length})</div>
+      ${tasks.length===0?`<div class="p-item">None recorded.</div>`:tasks.map(taskHtml).join("")}
+    </div>
+
+    ${checklistItems.length?`<div class="p-section"><div class="p-section-title">Checklist</div>
+      ${checklistItems.map(it=>`<div class="p-item">${it.done?"☑":"☐"} ${esc(it.text)}</div>`).join("")}
+    </div>`:""}
+
+    ${(c.documents&&c.documents.length)?`<div class="p-section"><div class="p-section-title">Documents</div>
+      ${c.documents.map(d=>`<div class="p-item">${esc(d.label)} — ${esc(d.url)}</div>`).join("")}
+    </div>`:""}
+
+    <div class="p-sub" style="margin-top:20px;">Exported ${fmtLong(todayKey())}</div>
+  `;
+  window.print();
+};
 document.getElementById("fab-btn").onclick = ()=>{
   if(state.view==="calendar") openTaskModal(null);
   else if(state.view==="cases") openCaseModal(null);
@@ -465,8 +549,14 @@ function renderCalendar(upcoming){
   }
 
   const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
+  const tk2 = todayKey();
+  const criticalItems = state.tasks.filter(t=>t.critical && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
 
   document.getElementById("view-calendar").innerHTML = `
+    ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
+      <div class="section-label" style="color:var(--brick);margin-bottom:8px;">⚠ Critical deadlines</div>
+      ${criticalItems.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+    </div>` : ""}
     <div class="cal-card">
       <div class="cal-header">
         <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
@@ -494,19 +584,31 @@ function renderCalendar(upcoming){
   `;
 }
 function taskRowHtml(t, caseItem, showDate){
+  const isDeadline = t.kind==="deadline";
+  const isCritical = !!t.critical;
   const overdue = t.delta<0 && !t.completed;
   const urgent = !overdue && showDate && t.delta<=state.alertDays && t.delta>=0;
-  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${overdue?'#B23A32':colorForProcedure(t.type)};">
+  const icon = isCritical ? "⚠" : (isDeadline ? "⏳" : iconForProcedure(t.type));
+  const color = isCritical ? "var(--brick)" : (isDeadline ? "var(--purple)" : colorForProcedure(t.type));
+  const countdownLabel = t.delta===0 ? (isDeadline||isCritical?'Due today':'Today') : `${t.delta}d${(isDeadline||isCritical)?' left':''}`;
+  let statusBadge = "";
+  if(overdue){ statusBadge = `<span class="badge" style="border-color:#B23A32;color:#B23A32;">${isDeadline?'Missed deadline':'Overdue'}</span>`; }
+  else if(!t.completed && typeof t.delta==="number"){
+    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--brick);color:var(--brick);background:#FBEAE8;">CRITICAL · ${countdownLabel}</span>`;
+    else if(isDeadline) statusBadge = `<span class="badge" style="border-color:var(--purple);color:var(--purple);">${countdownLabel}</span>`;
+    else if(urgent) statusBadge = `<span class="badge" style="border-color:var(--brass);color:var(--brass);">${countdownLabel}</span>`;
+  }
+  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${overdue?'#B23A32':color};${isCritical?'border-width:5px;':''}">
     <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?'✓':''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span style="color:${colorForProcedure(t.type)};">${iconForProcedure(t.type)}</span>
+        <span style="color:${color};">${icon}</span>
         <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
         ${t.googleEventId?`<span title="Synced to Google Calendar" style="font-size:11px;">📆</span>`:""}
-        ${urgent?`<span class="badge" style="border-color:var(--brass);color:var(--brass);">${t.delta===0?'Today':t.delta+'d'}</span>`:""}
-        ${overdue?`<span class="badge" style="border-color:#B23A32;color:#B23A32;">Overdue</span>`:""}
+        ${statusBadge}
       </div>
-      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.courtNumber?` · ${esc(caseItem.courtNumber)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
+      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · 📍 ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
+      ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
     </div>
     <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);">🗑</button>
   </div>`;
@@ -520,22 +622,46 @@ window.deleteTaskDoc = deleteTaskDoc;
 /* ---- CASES VIEW ---- */
 function renderCases(){
   const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
+  const courts = uniqueCourts();
   const q = state.search.trim().toLowerCase();
+  const hideClosed = state.hideClosed!==false && !q;
   const filtered = state.cases.filter(c=>{
+    if(hideClosed && c.status==="Closed" && state.filterStatus!=="Closed") return false;
     if(state.filterType!=="All" && c.caseType!==state.filterType) return false;
     if(state.filterStatus!=="All" && c.status!==state.filterStatus) return false;
+    if(state.filterCourt && state.filterCourt!=="All" && c.court!==state.filterCourt) return false;
     if(!q) return true;
     const title = computeCaseTitle(c).toLowerCase();
     const partyMatch = (c.parties||[]).some(p=>p.name.toLowerCase().includes(q));
-    return title.includes(q) || (c.courtNumber||"").toLowerCase().includes(q) || (c.subject||"").toLowerCase().includes(q) || partyMatch;
-  }).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    return title.includes(q) || (c.courtNumber||"").toLowerCase().includes(q) || (c.court||"").toLowerCase().includes(q) || (c.subject||"").toLowerCase().includes(q) || partyMatch;
+  }).sort((a,b)=> (b.priority?1:0)-(a.priority?1:0) || (b.createdAt||0)-(a.createdAt||0));
+
+  const closedCount = state.cases.filter(c=>c.status==="Closed").length;
+
+  let courtBlock = "";
+  if(state.filterCourt && state.filterCourt!=="All"){
+    const tk = todayKey();
+    const caseIdsHere = new Set(state.cases.filter(c=>c.court===state.filterCourt).map(c=>c.id));
+    const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+    const tasksHere = state.tasks.filter(t=>caseIdsHere.has(t.caseId) && !t.completed)
+      .map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+    courtBlock = `<div style="margin-bottom:18px;">
+      <div class="section-label">📍 At ${esc(state.filterCourt)} — every open procedure & deadline</div>
+      ${tasksHere.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">Nothing open at this court right now.</div>` :
+        tasksHere.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+    </div>`;
+  }
 
   document.getElementById("view-cases").innerHTML = `
     <div class="search-wrap">
       <span style="position:absolute;left:11px;top:11px;color:var(--muted);">🔍</span>
-      <input class="input" id="search-input" placeholder="Search by name, subject, or court number…" value="${esc(state.search)}" />
+      <input class="input" id="search-input" placeholder="Search by name, title, court, or file number…" value="${esc(state.search)}" />
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;">
+      <select class="input" id="filter-court" style="width:auto;font-size:12.5px;padding:7px 9px;">
+        <option value="All">All courts</option>
+        ${courts.map(c=>`<option value="${esc(c)}" ${state.filterCourt===c?'selected':''}>${esc(c)}</option>`).join("")}
+      </select>
       <select class="input" id="filter-type" style="width:auto;font-size:12.5px;padding:7px 9px;">
         <option value="All">All case types</option>
         ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${state.filterType===t?'selected':''}>${esc(t)}</option>`).join("")}
@@ -545,21 +671,29 @@ function renderCases(){
         ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${state.filterStatus===s?'selected':''}>${s}</option>`).join("")}
       </select>
     </div>
+    ${closedCount>0 ? `<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:12px;">
+      <input type="checkbox" id="toggle-closed" ${state.hideClosed===false?'':'checked'} /> Hide closed cases (${closedCount} hidden)
+    </label>` : ""}
+    ${courtBlock}
     ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">⚖<br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
       `<div>${filtered.map(c=>caseCardHtml(c)).join("")}</div>`}
   `;
   document.getElementById("search-input").oninput = e=>{ const pos=e.target.selectionStart; state.search=e.target.value; renderCases(); const el=document.getElementById("search-input"); el.focus(); el.setSelectionRange(pos,pos); };
+  document.getElementById("filter-court").onchange = e=>{ state.filterCourt=e.target.value; render(); };
   document.getElementById("filter-type").onchange = e=>{ state.filterType=e.target.value; render(); };
   document.getElementById("filter-status").onchange = e=>{ state.filterStatus=e.target.value; render(); };
+  const tc = document.getElementById("toggle-closed");
+  if(tc) tc.onchange = e=>{ state.hideClosed = e.target.checked; render(); };
 }
 function caseCardHtml(c){
   const color = colorForCaseType(c.caseType);
   const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
   const groupSize = (c.linkedCaseIds||[]).length;
-  return `<button class="case-card" onclick="openCaseDetail('${c.id}')">
+  return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
       <div style="min-width:0;">
-        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${esc(computeCaseTitle(c))}</div>
+        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?'⭐ ':''}${esc(computeCaseTitle(c))}</div>
+        ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;">📍 ${esc(c.court)}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${esc(c.courtNumber)}</div>`:""}
       </div>
       <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
@@ -629,27 +763,76 @@ window.closeModal = closeModal;
 
 function openTaskModal(existing){
   const allProcTypes = [...PROCEDURE_TYPES, ...state.customProcedureTypes];
-  const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allProcTypes[0], notes:"", completed:false};
+  const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allProcTypes[0], notes:"", completed:false, kind:"event"};
+  window._tempKind = t.kind || "event";
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Procedure / Date</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+
+      <div class="field"><span class="field-label">This is a…</span>
+        <div class="radio-row" id="kind-row">
+          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')">📅 Scheduled event</button>
+          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')">⏳ Deadline</button>
+        </div>
+      </div>
+
       ${state.cases.length===0 ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">No cases yet — this will be a standalone date, or add a case first from the Cases tab.</div>` : `
       <div class="field"><span class="field-label">Case</span>
         <select class="input" id="f-caseId">
           <option value="">No case (standalone)</option>
-          ${state.cases.map(c=>`<option value="${c.id}" ${t.caseId===c.id?'selected':''}>${esc(computeCaseTitle(c))}${c.courtNumber?` · ${esc(c.courtNumber)}`:""}</option>`).join("")}
+          ${state.cases.map(c=>`<option value="${c.id}" ${t.caseId===c.id?'selected':''}>${esc(computeCaseTitle(c))}${c.court?` · ${esc(c.court)}`:""}</option>`).join("")}
         </select>
       </div>`}
-      <div class="field"><span class="field-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
-      <div class="field"><span class="field-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
+      <div class="field"><span class="field-label" id="f-title-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
+      <div class="field"><span class="field-label" id="f-date-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
       <div class="field"><span class="field-label">Procedure type</span><input class="input" id="f-type" list="proc-list" value="${esc(t.type)}" /><datalist id="proc-list">${allProcTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div id="critical-field" class="field ${window._tempKind==='deadline'?'':'hidden'}" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--brick);">
+          <input type="checkbox" id="f-critical" ${t.critical?'checked':''} /> ⚠ Critical (e.g. statute of limitations, appeal window)
+        </label>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">Stays pinned at the top of your Calendar until resolved, no matter how far away it is.</div>
+      </div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="f-notes" style="min-height:60px;">${esc(t.notes)}</textarea></div>
+
+      ${!existing ? `
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);">
+          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> 🔁 Repeat this session
+        </label>
+        <div id="repeat-fields" class="hidden" style="margin-top:10px;display:flex;gap:8px;">
+          <select class="input" id="f-repeat-freq">
+            <option value="7">Weekly</option>
+            <option value="14" selected>Every 2 weeks</option>
+            <option value="21">Every 3 weeks</option>
+            <option value="28">Every 4 weeks</option>
+          </select>
+          <input class="input" id="f-repeat-count" type="number" min="2" max="20" value="4" style="width:90px;" title="Number of sessions" />
+        </div>
+        <div id="repeat-hint" class="hidden" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Creates this many sessions total, spaced at the interval above, each individually editable afterward.</div>
+      </div>` : `
+      <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
+        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>🔁 Continue — schedule the next session</button>
+      </div>`}
+
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add to docket'}</button>
     </div>
   </div>`;
+  updateKindLabels();
 }
 window.openTaskModal = openTaskModal;
+window.setTaskKind = (v)=>{ window._tempKind=v; document.querySelectorAll("#kind-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); updateKindLabels(); const cf=document.getElementById("critical-field"); if(cf) cf.classList.toggle("hidden", v!=="deadline"); };
+window.toggleRepeatFields = (checked)=>{
+  document.getElementById("repeat-fields").classList.toggle("hidden", !checked);
+  document.getElementById("repeat-hint").classList.toggle("hidden", !checked);
+};
+function updateKindLabels(){
+  const isDeadline = window._tempKind==="deadline";
+  const titleLabel = document.getElementById("f-title-label");
+  const dateLabel = document.getElementById("f-date-label");
+  if(titleLabel) titleLabel.textContent = isDeadline ? "What's due" : "Title";
+  if(dateLabel) dateLabel.textContent = isDeadline ? "Deadline date" : "Date";
+}
 window.submitTask = (id)=>{
   const title = document.getElementById("f-title").value.trim();
   const date = document.getElementById("f-date").value;
@@ -657,20 +840,70 @@ window.submitTask = (id)=>{
   const caseSel = document.getElementById("f-caseId");
   const type = document.getElementById("f-type").value.trim() || PROCEDURE_TYPES[0];
   const existing = id ? state.tasks.find(x=>x.id===id) : null;
-  const data = { caseId: caseSel? (caseSel.value||null) : null, title, date, type, notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null };
-  if(id) data.id = id;
+  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", critical: window._tempKind==="deadline" && !!document.getElementById("f-critical")?.checked, notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null };
   ensureCustomProcedureType(type);
-  saveTask(data);
+
+  const repeatOn = document.getElementById("f-repeat-on");
+  if(!existing && repeatOn && repeatOn.checked){
+    const interval = Number(document.getElementById("f-repeat-freq").value);
+    const count = Math.max(2, Math.min(20, Number(document.getElementById("f-repeat-count").value)||2));
+    for(let i=0;i<count;i++){
+      const occDate = addDays(date, i*interval);
+      saveTask({ ...baseData, title: `${title} — Session ${i+1} of ${count}`, date: occDate });
+    }
+  } else {
+    const data = { ...baseData, title, date };
+    if(id) data.id = id;
+    saveTask(data);
+  }
   closeModal();
 };
 
-function openCaseModal(existing){
+function openContinueModal(t){
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">🔁 Continue Session</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Schedules the next session for "${esc(t.title)}" on a new date.</div>
+      <div class="field"><span class="field-label">Reason for postponement (optional)</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          ${["Judge unavailable","Opposing counsel requested","Missing documents","Party absent","Court backlog"].map(r=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;" onclick="fillReason('${r}')">${r}</button>`).join("")}
+        </div>
+        <input class="input" id="cont-reason" placeholder="Tap a quick option above, or type your own" />
+      </div>
+      <div class="field"><span class="field-label">Next session date</span><input class="input" id="cont-date" type="date" value="${addDays(t.date,14)}" /></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;"><input type="checkbox" id="cont-markdone" checked /> Mark the original date as completed</label></div>
+      <button class="btn-primary" style="width:100%;" onclick="submitContinue('${t.id}')">Schedule next session</button>
+    </div>
+  </div>`;
+}
+window.fillReason = (r)=>{ document.getElementById("cont-reason").value = r; };
+window.openContinueModal = openContinueModal;
+window.submitContinue = (origId)=>{
+  const newDate = document.getElementById("cont-date").value;
+  if(!newDate) return;
+  const reason = document.getElementById("cont-reason").value.trim();
+  const orig = state.tasks.find(x=>x.id===origId);
+  if(!orig) return;
+  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", critical:orig.critical||false, notes:orig.notes, completed:false, googleEventId:null });
+  if(document.getElementById("cont-markdone").checked){
+    coll("tasks").doc(origId).set({...stripId(orig), completed:true, postponeReason: reason || orig.postponeReason || null});
+  } else if(reason){
+    coll("tasks").doc(origId).set({...stripId(orig), postponeReason: reason});
+  }
+  closeModal();
+};
+
+function openCaseModal(existingRaw){
+  const existing = (existingRaw && existingRaw.id) ? existingRaw : null;
   const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
-  const c = existing || {titleSource:"opponent", subject:"", parties:[], courtNumber:"", caseType:allCaseTypes[0], status:"Active", notes:"", documents:[], linkedCaseIds:[]};
+  const c = existingRaw || {titleSource:"opponent", subject:"", parties:[], courtNumber:"", caseType:allCaseTypes[0], status:"Active", notes:"", documents:[], linkedCaseIds:[]};
   window._tempDocs = (c.documents||[]).slice();
   window._tempParties = (c.parties||[]).slice();
   window._tempLinked = (c.linkedCaseIds||[]).slice();
   window._tempTitleSource = c.titleSource || "opponent";
+  window._editingCaseId = existing ? existing.id : null;
+  window._tempNoteLog = (c.noteLog || []).slice();
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -680,25 +913,30 @@ function openCaseModal(existing){
         <div class="radio-row" id="title-source-row">
           <button type="button" class="radio-pill ${window._tempTitleSource==='opponent'?'active':''}" data-v="opponent" onclick="setTitleSource('opponent')">Opponent name</button>
           <button type="button" class="radio-pill ${window._tempTitleSource==='client'?'active':''}" data-v="client" onclick="setTitleSource('client')">Client name</button>
-          <button type="button" class="radio-pill ${window._tempTitleSource==='subject'?'active':''}" data-v="subject" onclick="setTitleSource('subject')">Subject</button>
+          <button type="button" class="radio-pill ${window._tempTitleSource==='subject'?'active':''}" data-v="subject" onclick="setTitleSource('subject')">Title</button>
         </div>
       </div>
 
-      <div class="field"><span class="field-label">Subject / short description ${window._tempTitleSource==='subject'?'(used as title)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" /></div>
+      <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" /></div>
 
       <div class="field">
         <span class="field-label">Parties</span>
         <div id="party-list"></div>
         <button type="button" class="btn-ghost" onclick="addPartyRow()">+ Add party</button>
+        <div id="conflict-warning"></div>
       </div>
 
-      <div class="field"><span class="field-label">Court number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
+      <div class="field"><span class="field-label">Court</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="e.g. Tripoli Court of First Instance" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div class="field"><span class="field-label">Case / file number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
       <div class="field"><span class="field-label">Case type</span><input class="input" id="c-type" list="case-type-list" value="${esc(c.caseType)}" /><datalist id="case-type-list">${allCaseTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
       <div class="field"><span class="field-label">Status</span>
         <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
       </div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ⭐ Priority case — stand out in the list</label></div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
 
+      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length)?'▾ Documents & linked cases':'▸ Documents & linked cases (optional)'}</button>
+      <div id="advanced-fields" class="${(window._tempDocs.length||window._tempLinked.length)?'':'hidden'}">
       <div class="field">
         <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
         <div id="doc-list"></div>
@@ -714,27 +952,60 @@ function openCaseModal(existing){
         <span class="field-label">Link to other cases (same client / dispute)</span>
         <div id="link-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:#fff;"></div>
       </div>` : ""}
+      </div>
 
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Create case'}</button>
     </div>
   </div>`;
-  renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null);
+  renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts();
 }
 window.openCaseModal = openCaseModal;
 window.setTitleSource = (v)=>{ window._tempTitleSource=v; document.querySelectorAll("#title-source-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v)); };
+window.toggleCaseAdvanced = ()=>{
+  const fields = document.getElementById("advanced-fields");
+  const btn = document.getElementById("advanced-toggle-btn");
+  const nowHidden = fields.classList.toggle("hidden");
+  btn.textContent = nowHidden ? "▸ Documents & linked cases (optional)" : "▾ Documents & linked cases";
+};
 
 function renderPartyList(){
   document.getElementById("party-list").innerHTML = window._tempParties.map((p,i)=>`
-    <div class="party-row">
-      <select onchange="updatePartyRole(${i}, this.value)">${PARTY_ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join("")}</select>
-      <input class="input" value="${esc(p.name)}" placeholder="Full name" oninput="updatePartyName(${i}, this.value)" />
-      <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;">✕</button>
+    <div style="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:#fff;">
+      <div class="party-row" style="margin-bottom:6px;">
+        <select onchange="updatePartyField(${i},'role',this.value)">${PARTY_ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join("")}</select>
+        <input class="input" value="${esc(p.name)}" placeholder="Full name" oninput="updatePartyField(${i},'name',this.value)" />
+        <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <input class="input" style="font-size:12.5px;" value="${esc(p.phone||'')}" placeholder="Phone (optional)" oninput="updatePartyField(${i},'phone',this.value)" />
+        <input class="input" style="font-size:12.5px;" value="${esc(p.email||'')}" placeholder="Email (optional)" oninput="updatePartyField(${i},'email',this.value)" />
+      </div>
     </div>`).join("");
 }
-window.addPartyRow = ()=>{ window._tempParties.push({id:uid(), role:"Client", name:""}); renderPartyList(); };
-window.removePartyRow = (i)=>{ window._tempParties.splice(i,1); renderPartyList(); };
-window.updatePartyRole = (i,v)=>{ window._tempParties[i].role=v; };
-window.updatePartyName = (i,v)=>{ window._tempParties[i].name=v; };
+window.addPartyRow = ()=>{ window._tempParties.push({id:uid(), role:"Client", name:"", phone:"", email:""}); renderPartyList(); };
+window.removePartyRow = (i)=>{ window._tempParties.splice(i,1); renderPartyList(); checkConflicts(); };
+window.updatePartyField = (i,field,v)=>{ window._tempParties[i][field]=v; if(field==="name"||field==="role") checkConflicts(); };
+function checkConflicts(){
+  const el = document.getElementById("conflict-warning");
+  if(!el) return;
+  const selfId = window._editingCaseId;
+  const warnings = [];
+  window._tempParties.forEach(p=>{
+    const name = (p.name||"").trim().toLowerCase();
+    if(!name) return;
+    state.cases.forEach(c=>{
+      if(c.id===selfId) return;
+      (c.parties||[]).forEach(op=>{
+        const opName = (op.name||"").trim().toLowerCase();
+        const crossesSides = (op.role==="Opponent" && p.role!=="Opponent") || (p.role==="Opponent" && op.role!=="Opponent");
+        if(opName===name && crossesSides){
+          warnings.push(`"${esc(p.name)}" appears as ${esc(op.role)} in ${esc(computeCaseTitle(c))} — potential conflict.`);
+        }
+      });
+    });
+  });
+  el.innerHTML = warnings.length ? `<div style="margin-top:8px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:6px;padding:8px 10px;font-size:12px;color:var(--brick);line-height:1.5;">⚠ ${[...new Set(warnings)].join("<br/>")}</div>` : "";
+}
 
 function renderDocList(){
   document.getElementById("doc-list").innerHTML = window._tempDocs.map((d,i)=>`
@@ -773,10 +1044,10 @@ window.submitCase = (id)=>{
   const parties = window._tempParties.filter(p=>p.name.trim()).map(p=>({...p, name:p.name.trim()}));
   const data = {
     titleSource: window._tempTitleSource, subject: document.getElementById("c-subject").value.trim(),
-    parties, courtNumber: document.getElementById("c-court").value.trim(),
-    caseType, status: document.getElementById("c-status").value,
+    parties, court: document.getElementById("c-courtname").value.trim(), courtNumber: document.getElementById("c-court").value.trim(),
+    caseType, status: document.getElementById("c-status").value, priority: !!document.getElementById("c-priority").checked,
     notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs,
-    linkedCaseIds: window._tempLinked
+    linkedCaseIds: window._tempLinked, noteLog: window._tempNoteLog || []
   };
   if(parties.length===0 && !data.subject){ alert("Add at least one party name or a subject so this case can be identified."); return; }
   if(id) data.id = id; else data.createdAt = Date.now();
@@ -806,8 +1077,11 @@ function openCaseDetailModal(c){
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()">✕</button></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">${esc(computeCaseTitle(c))}</div>
+        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">📍 ${esc(c.court)}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
+          <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>📄</button>
+          <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'>⎘</button>
           <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'>✎</button>
           <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')">🗑</button>
         </div>
@@ -818,9 +1092,27 @@ function openCaseDetailModal(c){
       </div>
 
       ${(c.parties&&c.parties.length) ? `<div style="margin-bottom:16px;"><div class="section-label" style="font-size:11px;">Parties</div>
-        ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:3px;"><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>`).join("")}</div>` : ""}
+        ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
+          <div><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>
+          ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;margin-top:2px;">
+            ${p.phone?`<a href="tel:${esc(p.phone)}">📞 ${esc(p.phone)}</a>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}">✉ ${esc(p.email)}</a>`:""}
+          </div>` : ""}
+        </div>`).join("")}</div>` : ""}
 
       ${c.notes?`<div style="font-size:13.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5;">${esc(c.notes)}</div>`:""}
+
+      <div style="margin-bottom:18px;">
+        <div class="section-label">Case Log</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <input class="input" id="log-entry-input" placeholder="Add a dated note (e.g. client called about settlement)…" />
+          <button class="btn-ghost" onclick="addLogEntry('${c.id}')">Add</button>
+        </div>
+        ${(c.noteLog&&c.noteLog.length) ? `<div>${c.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>`
+          <div style="font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);">
+            <span class="mono" style="color:var(--muted);font-size:11px;">${fmtLong(l.date)}</span> — ${esc(l.text)}
+          </div>`).join("")}</div>` : `<div style="color:var(--muted);font-size:12.5px;">No log entries yet.</div>`}
+      </div>
 
       ${c.documents&&c.documents.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Documents</div>
         ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank">🔗 ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
@@ -847,6 +1139,22 @@ function openCaseDetailModal(c){
   </div>`;
 }
 window.openCaseDetail = (id)=> openCaseDetailModal(state.cases.find(c=>c.id===id));
+window.addLogEntry = (caseId)=>{
+  const input = document.getElementById("log-entry-input");
+  const text = input.value.trim();
+  if(!text) return;
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text }];
+  coll("cases").doc(caseId).set({...stripId(c), noteLog: newLog}).then(()=>{
+    openCaseDetailModal({...c, noteLog: newLog});
+  });
+};
+window.duplicateCase = (c)=>{
+  closeModal();
+  const copy = { ...c, id:null, createdAt:null, courtNumber:"", linkedCaseIds:[c.id], documents:[] };
+  openCaseModal(copy);
+};
 window.confirmDeleteCase = (id)=>{
   document.getElementById(`delete-confirm-${id}`).innerHTML = `
   <div style="margin-top:18px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:12px;">
@@ -881,6 +1189,12 @@ function openSettingsModal(){
           : `<div style="font-size:13px;color:var(--muted);">Sign out and sign back in with "Continue with Google" to enable calendar sync.</div>`}
       </div>
 
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Backup</div>
+        <button class="btn-ghost" onclick="exportData()">⬇ Download a full backup (.json)</button>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">A plain copy of every case, date, and checklist item — worth doing occasionally as a safety net.</div>
+      </div>
+
       <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
         ${state.cases.length} case${state.cases.length===1?"":"s"} · ${state.tasks.length} date${state.tasks.length===1?"":"s"} · ${state.checklist.length} checklist item${state.checklist.length===1?"":"s"}.<br/><br/>
         Signed in as ${esc(state.user.email)}. Your data is private to this account and syncs automatically across every device you sign in on.
@@ -889,6 +1203,15 @@ function openSettingsModal(){
   </div>`;
 }
 window.saveAlertDays = ()=>{ state.alertDays = Math.max(1, Number(document.getElementById("s-alertdays").value)||1); saveSettings(); closeModal(); };
+window.exportData = ()=>{
+  const payload = { exportedAt: new Date().toISOString(), cases: state.cases, tasks: state.tasks, checklist: state.checklist };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `docket-backup-${todayKey()}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
 
 if("serviceWorker" in navigator){ window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{})); }
 </script>
