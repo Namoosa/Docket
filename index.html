@@ -743,6 +743,17 @@ function taskRowHtml(t, caseItem, showDate){
     else if(isDeadline) statusBadge = `<span class="badge" style="border-color:var(--purple);color:var(--purple);">${countdownLabel}</span>`;
     else if(urgent) statusBadge = `<span class="badge" style="border-color:var(--brass);color:var(--brass);">${countdownLabel}</span>`;
   }
+  const prepItems = state.checklist.filter(c=>c.taskId===t.id);
+  const prepDone = prepItems.filter(c=>c.done).length;
+  const prepHtml = prepItems.length ? `
+    <div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);">
+      <div style="font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Prep for this date — ${prepDone}/${prepItems.length}</div>
+      ${prepItems.map(it=>`
+        <div style="display:flex;align-items:center;gap:7px;padding:2px 0;" onclick="event.stopPropagation()">
+          <button class="task-check" style="width:16px;height:16px;${it.done?'border-color:var(--sage);':''}" onclick="toggleChecklistDone('${it.id}')">${it.done?ICONS.check:''}</button>
+          <span style="font-size:12.5px;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
+        </div>`).join("")}
+    </div>` : "";
   return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${overdue?'#B23A32':color};${isCritical?'border-width:5px;':''}">
     <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?ICONS.check:''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
@@ -755,6 +766,7 @@ function taskRowHtml(t, caseItem, showDate){
       </div>
       <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
       ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
+      ${prepHtml}
     </div>
     <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
   </div>`;
@@ -857,16 +869,21 @@ window.openCaseDetail = (id)=> openCaseDetailModal(state.cases.find(c=>c.id===id
 /* ---- CHECKLIST VIEW ---- */
 function renderChecklist(){
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const tasksById = {}; state.tasks.forEach(t=>tasksById[t.id]=t);
   const items = state.checklist.slice().sort((a,b)=> (a.done - b.done) || (b.createdAt||0)-(a.createdAt||0));
   document.getElementById("view-checklist").innerHTML = `
     ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.list_check}<br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
       items.map(it=>{
         const c = casesById[it.caseId];
+        const linkedTask = it.taskId ? tasksById[it.taskId] : null;
+        const metaLine = linkedTask
+          ? `${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : (c ? esc(computeCaseTitle(c)) : "");
         return `<div class="checklist-row">
           <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
             <div style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</div>
-            ${c?`<div class="task-meta">${esc(computeCaseTitle(c))}</div>`:""}
+            ${metaLine?`<div class="task-meta">${linkedTask?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
           </div>
           <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
         </div>`;
@@ -877,28 +894,48 @@ window.toggleChecklistDone = toggleChecklistDone;
 window.deleteChecklistItem = deleteChecklistItem;
 
 function openChecklistModal(existing){
-  const it = existing || {caseId:"", text:"", done:false};
+  const it = existing || {caseId:"", text:"", done:false, taskId:""};
+  const openTasksForCase = (caseId)=> state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Checklist Item</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
       <div class="field"><span class="field-label">Task</span><input class="input" id="chk-text" value="${esc(it.text)}" placeholder="e.g. Prepare witness list" /></div>
       <div class="field"><span class="field-label">Link to a case (optional)</span>
-        <select class="input" id="chk-case">
+        <select class="input" id="chk-case" onchange="refreshChecklistTaskOptions()">
           <option value="">General — no case</option>
           ${state.cases.map(c=>`<option value="${c.id}" ${it.caseId===c.id?'selected':''}>${esc(computeCaseTitle(c))}</option>`).join("")}
         </select>
+      </div>
+      <div class="field" id="chk-task-field" style="${it.caseId?'':'display:none;'}">
+        <span class="field-label">Link to a specific date / hearing (optional)</span>
+        <select class="input" id="chk-task">
+          <option value="">Not tied to a specific date</option>
+          ${it.caseId ? openTasksForCase(it.caseId).map(t=>`<option value="${t.id}" ${it.taskId===t.id?'selected':''}>${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("") : ""}
+        </select>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Shows this item right alongside that date, and flags it urgent as the date approaches.</div>
       </div>
       <button class="btn-primary" style="width:100%;" onclick="submitChecklist(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add item'}</button>
     </div>
   </div>`;
 }
+window.refreshChecklistTaskOptions = ()=>{
+  const caseId = document.getElementById("chk-case").value;
+  const field = document.getElementById("chk-task-field");
+  const select = document.getElementById("chk-task");
+  if(!caseId){ field.style.display="none"; select.innerHTML = `<option value="">Not tied to a specific date</option>`; return; }
+  field.style.display = "";
+  const openTasks = state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
+  select.innerHTML = `<option value="">Not tied to a specific date</option>` +
+    openTasks.map(t=>`<option value="${t.id}">${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("");
+};
 window.openChecklistModal = openChecklistModal;
 window.submitChecklist = (id)=>{
   const text = document.getElementById("chk-text").value.trim();
   if(!text) return;
   const existing = id ? state.checklist.find(x=>x.id===id) : null;
-  const data = { text, caseId: document.getElementById("chk-case").value || null, done: existing ? existing.done : false };
+  const taskSel = document.getElementById("chk-task");
+  const data = { text, caseId: document.getElementById("chk-case").value || null, taskId: taskSel ? (taskSel.value || null) : null, done: existing ? existing.done : false };
   if(id) data.id = id;
   saveChecklistItem(data);
   closeModal();
