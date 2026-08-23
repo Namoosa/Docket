@@ -214,8 +214,8 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* ================= CONSTANTS ================= */
-const PROCEDURE_TYPES = ["Hearing","Motion Filing","Memorandum","Consultation"];
-const PROCEDURE_COLOR = {"Hearing":"#5F4B8B","Motion Filing":"#6F3091","Memorandum":"#732F74","Consultation":"#8B4B76"};
+const PROCEDURE_TYPES = ["Hearing","Procedure"];
+const PROCEDURE_COLOR = {"Hearing":"#5F4B8B","Procedure":"#6F3091"};
 const ICONS = {
   xmark: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>`,
   check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>`,
@@ -257,12 +257,12 @@ const ICONS = {
   square: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/></svg>`,
   square_check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><polyline points='8 12 11 15 16 9'/></svg>`,
   scale_balanced: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg>`,
-  gavel: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 4l6 6'/><path d='M4 14l6 6'/><path d='M6.5 11.5l6-6 3 3-6 6z'/><path d='M2 22l6-6'/><path d='M17 8l3-3 2 2-3 3z'/></svg>`,
+  gavel: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='3' width='14' height='6' rx='1.5'/><line x1='12' y1='9' x2='12' y2='18'/><line x1='8' y1='21' x2='16' y2='21'/></svg>`,
   info: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><line x1='12' y1='16' x2='12' y2='12'/><line x1='12' y1='8' x2='12.01' y2='8'/></svg>`,
   tag: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.59 13.41L11 3.83a2 2 0 0 0-1.41-.59H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z'/><circle cx='7.5' cy='7.5' r='1.5' fill='currentColor' stroke='none'/></svg>`,
   scroll: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 21h8a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4'/><path d='M19 17V5a2 2 0 0 0-2-2H7'/></svg>`,
 };
-const PROCEDURE_ICON = {"Hearing":ICONS.gavel,"Motion Filing":ICONS.file_signature,"Memorandum":ICONS.file_lines,"Consultation":ICONS.comments};
+const PROCEDURE_ICON = {"Hearing":ICONS.gavel,"Procedure":ICONS.file_signature};
 
 const CASE_TYPES = ["Criminal","Civil","Commercial","Corporate","Family","Labor","Personal Status","Real Estate","Administrative","Counsel"];
 const CASE_TYPE_COLOR = {"Criminal":"#744C2F","Civil":"#8B7C4B","Commercial":"#889130","Corporate":"#56742F","Family":"#5A8B4B","Labor":"#30913B","Personal Status":"#2F744E","Real Estate":"#4B8B7E","Administrative":"#305491","Counsel":"#2F3174"};
@@ -407,7 +407,13 @@ auth.onAuthStateChanged(user=>{
     // using a possibly-stale read of googleAccessToken can silently
     // overwrite a real, just-completed connection back to "disconnected."
     if(!state.googleConnected){
-      state.googleConnected = user.providerData.some(p=>p.providerId==="google.com") && !!state.googleAccessToken;
+      const sessionToken = loadTokenFromSession();
+      if(sessionToken){
+        state.googleAccessToken = sessionToken;
+        state.googleConnected = true;
+      } else {
+        state.googleConnected = user.providerData.some(p=>p.providerId==="google.com") && !!state.googleAccessToken;
+      }
     }
     document.getElementById("auth-screen").classList.add("hidden");
     document.getElementById("app-shell").classList.remove("hidden");
@@ -416,6 +422,7 @@ auth.onAuthStateChanged(user=>{
     state.user = null;
     state.googleAccessToken = null;
     state.googleConnected = false;
+    clearTokenFromSession();
     document.getElementById("auth-screen").classList.remove("hidden");
     document.getElementById("app-shell").classList.add("hidden");
     if(unsubCases) unsubCases(); if(unsubTasks) unsubTasks(); if(unsubChecklist) unsubChecklist(); if(unsubSettings) unsubSettings();
@@ -469,7 +476,7 @@ async function saveTask(data){
   if(state.googleConnected && state.googleAccessToken){
     const caseItem = state.cases.find(c=>c.id===payload.caseId);
     const result = await pushToGoogleCalendar({...payload, id:docId}, caseItem);
-    if(result && result.needsReconnect){ state.googleConnected=false; render(); }
+    if(result && result.needsReconnect){ state.googleConnected=false; clearTokenFromSession(); render(); }
     else if(result && result.error){ showToast(result.message); }
     else if(result && result.id){
       coll("tasks").doc(docId).set({...payload, googleEventId: result.id, googleEventLink: result.link || null});
@@ -529,6 +536,30 @@ async function deleteFromGoogleCalendar(eventId){
   if(!state.googleAccessToken || !eventId) return;
   try{ await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, { method:"DELETE", headers:{ "Authorization":"Bearer "+state.googleAccessToken } }); }catch(e){}
 }
+// Token persists across a page refresh via sessionStorage — but unlike
+// localStorage, it's automatically wiped the moment this tab or browser
+// closes, so it doesn't linger indefinitely. Still requires reconnecting
+// once the token actually expires (~1hr) or in a brand new tab/session.
+function saveTokenToSession(accessToken, expiresInSeconds){
+  try{
+    const expiresAt = Date.now() + (Number(expiresInSeconds || 3300) * 1000);
+    sessionStorage.setItem("docket_g_token", accessToken);
+    sessionStorage.setItem("docket_g_token_expiry", String(expiresAt));
+  }catch(e){ /* sessionStorage unavailable — connection just won't survive a refresh */ }
+}
+function loadTokenFromSession(){
+  try{
+    const token = sessionStorage.getItem("docket_g_token");
+    const expiry = Number(sessionStorage.getItem("docket_g_token_expiry") || 0);
+    if(token && expiry && Date.now() < expiry) return token;
+    if(token){ sessionStorage.removeItem("docket_g_token"); sessionStorage.removeItem("docket_g_token_expiry"); }
+  }catch(e){}
+  return null;
+}
+function clearTokenFromSession(){
+  try{ sessionStorage.removeItem("docket_g_token"); sessionStorage.removeItem("docket_g_token_expiry"); }catch(e){}
+}
+
 let gisTokenClient = null;
 function getGisTokenClient(){
   if(gisTokenClient) return gisTokenClient;
@@ -544,6 +575,7 @@ function getGisTokenClient(){
         state.googleAccessToken = tokenResponse.access_token;
         state.googleConnected = true;
         state.calendarEverConnected = true;
+        saveTokenToSession(tokenResponse.access_token, tokenResponse.expires_in);
         saveSettings();
         showToast("Google Calendar connected.");
         render();
@@ -991,6 +1023,7 @@ window.openCaseDetail = (id)=> openCaseDetailModal(state.cases.find(c=>c.id===id
 function renderChecklist(){
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
   const tasksById = {}; state.tasks.forEach(t=>tasksById[t.id]=t);
+  const tk = todayKey();
   const items = state.checklist.slice().sort((a,b)=> (a.done - b.done) || (b.createdAt||0)-(a.createdAt||0));
   document.getElementById("view-checklist").innerHTML = `
     ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.list_check}<br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
@@ -999,21 +1032,31 @@ function renderChecklist(){
         const linkedTask = it.taskId ? tasksById[it.taskId] : null;
         const followedHearing = (it.followNextHearing && it.caseId) ? nextHearingForCase(it.caseId) : null;
         const effectiveTask = linkedTask || followedHearing;
-        const rowColor = effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (c ? colorForCaseType(c.caseType) : "var(--line)");
-        const rowIcon = effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : "");
-        const metaLine = linkedTask
-          ? `${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+        const effectiveDate = it.dueDate || (linkedTask ? linkedTask.date : null) || (followedHearing ? followedHearing.date : null);
+        const hasOwnDeadline = !!it.dueDate;
+        const deltaDays = effectiveDate ? daysBetween(tk, effectiveDate) : null;
+        const isOverdue = effectiveDate && deltaDays<0 && !it.done;
+        const rowColor = isOverdue ? "var(--overdue)" : effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (hasOwnDeadline ? "var(--heads-up)" : (c ? colorForCaseType(c.caseType) : "var(--line)"));
+        const rowIcon = hasOwnDeadline ? ICONS.hourglass_half : (effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : ""));
+        const deadlineBadge = effectiveDate && !it.done
+          ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">Overdue</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?'Today':deltaDays+'d'}</span>`)
+          : "";
+        const metaLine = hasOwnDeadline
+          ? `Due ${fmtLong(it.dueDate)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : linkedTask
+          ? `Before: ${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
           : followedHearing
-          ? `Next hearing · ${fmtLong(followedHearing.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          ? `Before next hearing · ${fmtLong(followedHearing.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
           : it.followNextHearing
-          ? `Next hearing (none scheduled yet)${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          ? `Before next hearing (none scheduled yet)${c?` · ${esc(computeCaseTitle(c))}`:""}`
           : (c ? esc(computeCaseTitle(c)) : "");
         return `<div class="checklist-row" style="border-left:4px solid ${it.done?'var(--line)':rowColor};">
           <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
-            <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               ${rowIcon&&!it.done?`<span style="color:${rowColor};flex-shrink:0;">${rowIcon}</span>`:""}
               <span style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
+              ${deadlineBadge}
             </div>
             ${metaLine?`<div class="task-meta">${(linkedTask||it.followNextHearing)?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
           </div>
@@ -1027,7 +1070,7 @@ window.deleteChecklistItem = deleteChecklistItem;
 
 function openChecklistModal(existing){
   const it = existing || {caseId:"", text:"", done:false, taskId:"", followNextHearing:false};
-  window._tempLinkMode = it.followNextHearing ? "hearing" : "date";
+  window._tempLinkMode = it.followNextHearing ? "hearing" : (it.dueDate ? "deadline" : "date");
   const openTasksForCase = (caseId)=> state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
@@ -1045,15 +1088,20 @@ function openChecklistModal(existing){
         <div class="radio-row" id="chk-linkmode-row" style="margin-bottom:8px;">
           <button type="button" class="radio-pill ${window._tempLinkMode==='date'?'active':''}" data-v="date" onclick="setChecklistLinkMode('date')">A specific date</button>
           <button type="button" class="radio-pill ${window._tempLinkMode==='hearing'?'active':''}" data-v="hearing" onclick="setChecklistLinkMode('hearing')">Next court hearing</button>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='deadline'?'active':''}" data-v="deadline" onclick="setChecklistLinkMode('deadline')">Set a deadline</button>
         </div>
-        <div id="chk-date-picker" class="${window._tempLinkMode==='hearing'?'hidden':''}">
+        <div id="chk-date-picker" class="${window._tempLinkMode==='date'?'':'hidden'}">
           <select class="input" id="chk-task">
             <option value="">Not tied to a specific date</option>
             ${it.caseId ? openTasksForCase(it.caseId).map(t=>`<option value="${t.id}" ${it.taskId===t.id?'selected':''}>${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("") : ""}
           </select>
-          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Shows this item right alongside that date, and flags it urgent as the date approaches.</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before that date. Flags it urgent as it approaches.</div>
         </div>
-        <div id="chk-hearing-note" class="${window._tempLinkMode==='hearing'?'':'hidden'}" style="font-size:11.5px;color:var(--muted);">Automatically follows whichever Hearing is next for this case — if it gets postponed or continued, this item moves with it. No need to re-link.</div>
+        <div id="chk-hearing-note" class="${window._tempLinkMode==='hearing'?'':'hidden'}" style="font-size:11.5px;color:var(--muted);">Means: finish this before whichever Hearing is next for this case. If it gets postponed, this moves with it — no need to re-link.</div>
+        <div id="chk-deadline-picker" class="${window._tempLinkMode==='deadline'?'':'hidden'}">
+          <input class="input" id="chk-due-date" type="date" value="${it.dueDate||''}" />
+          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before this date — for when there's no hearing or existing date to tie it to.</div>
+        </div>
       </div>
       <button class="btn-primary" style="width:100%;" onclick="submitChecklist(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add item'}</button>
     </div>
@@ -1062,8 +1110,9 @@ function openChecklistModal(existing){
 window.setChecklistLinkMode = (v)=>{
   window._tempLinkMode = v;
   document.querySelectorAll("#chk-linkmode-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
-  document.getElementById("chk-date-picker").classList.toggle("hidden", v==="hearing");
+  document.getElementById("chk-date-picker").classList.toggle("hidden", v!=="date");
   document.getElementById("chk-hearing-note").classList.toggle("hidden", v!=="hearing");
+  document.getElementById("chk-deadline-picker").classList.toggle("hidden", v!=="deadline");
 };
 window.refreshChecklistTaskOptions = ()=>{
   const caseId = document.getElementById("chk-case").value;
@@ -1086,12 +1135,16 @@ window.submitChecklist = (id)=>{
   if(!text) return;
   const existing = id ? state.checklist.find(x=>x.id===id) : null;
   const caseId = document.getElementById("chk-case").value || null;
-  const followNextHearing = caseId && window._tempLinkMode === "hearing";
+  const mode = window._tempLinkMode;
+  const followNextHearing = !!(caseId && mode === "hearing");
+  const isDeadlineMode = mode === "deadline";
   const taskSel = document.getElementById("chk-task");
+  const dueDateInput = document.getElementById("chk-due-date");
   const data = {
     text, caseId,
-    taskId: (followNextHearing || !taskSel) ? null : (taskSel.value || null),
-    followNextHearing: !!followNextHearing,
+    taskId: (mode==="date" && taskSel) ? (taskSel.value || null) : null,
+    followNextHearing,
+    dueDate: (isDeadlineMode && dueDateInput && dueDateInput.value) ? dueDateInput.value : null,
     done: existing ? existing.done : false
   };
   if(id) data.id = id;
@@ -1104,9 +1157,10 @@ function closeModal(){ document.getElementById("modal-root").innerHTML=""; }
 window.closeModal = closeModal;
 
 function openTaskModal(existing){
-  const allProcTypes = [...PROCEDURE_TYPES, ...state.customProcedureTypes];
+  const allProcTypes = PROCEDURE_TYPES;
   const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allProcTypes[0], notes:"", completed:false, kind:"event"};
   window._tempKind = t.kind || "event";
+  window._tempProcType = PROCEDURE_TYPES.includes(t.type) ? t.type : PROCEDURE_TYPES[0];
   window._tempFlag = t.flag || "none";
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
@@ -1129,7 +1183,11 @@ function openTaskModal(existing){
       </div>`}
       <div class="field"><span class="field-label" id="f-title-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
       <div class="field"><span class="field-label" id="f-date-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
-      <div class="field"><span class="field-label">Procedure type</span><input class="input" id="f-type" list="proc-list" value="${esc(t.type)}" /><datalist id="proc-list">${allProcTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+      <div class="field"><span class="field-label">Procedure type</span>
+        <div class="radio-row" id="proc-type-row">
+          ${allProcTypes.map(pt=>`<button type="button" class="radio-pill ${t.type===pt?'active':''}" data-v="${esc(pt)}" onclick="setProcType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+        </div>
+      </div>
       <div class="field">
         <span class="field-label">Flag this date</span>
         <div class="radio-row" id="flag-row">
@@ -1168,6 +1226,7 @@ function openTaskModal(existing){
 }
 window.openTaskModal = openTaskModal;
 window.setTaskKind = (v)=>{ window._tempKind=v; document.querySelectorAll("#kind-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); updateKindLabels(); };
+window.setProcType = (v)=>{ window._tempProcType=v; document.querySelectorAll("#proc-type-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); };
 window._tempFlag = window._tempFlag || "none";
 window.setTaskFlag = (v)=>{
   window._tempFlag = v;
@@ -1199,10 +1258,10 @@ window.submitTask = (id)=>{
   const date = document.getElementById("f-date").value;
   if(!title || !date) return;
   const caseSel = document.getElementById("f-caseId");
-  const type = document.getElementById("f-type").value.trim() || PROCEDURE_TYPES[0];
+  const type = window._tempProcType || PROCEDURE_TYPES[0];
   const existing = id ? state.tasks.find(x=>x.id===id) : null;
   const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null };
-  ensureCustomProcedureType(type);
+  // Procedure type is now fixed to Hearing/Procedure — no custom-type registration needed.
 
   const repeatOn = document.getElementById("f-repeat-on");
   if(!existing && repeatOn && repeatOn.checked){
@@ -1673,16 +1732,11 @@ function openSettingsModal(){
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Custom types you've added</div>
-        ${(state.customCaseTypes.length===0 && state.customProcedureTypes.length===0) ? `<div style="font-size:12.5px;color:var(--muted);">None yet — custom types you type into a case or date form will appear here, removable if added by mistake.</div>` : `
-        ${state.customCaseTypes.length ? `<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Case types</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <div class="field-label" style="margin-bottom:8px;">Custom case types you've added</div>
+        ${state.customCaseTypes.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">None yet — custom case types you type into the case form will appear here, removable if added by mistake. (Procedure type is fixed to Hearing/Procedure.)</div>` : `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
             ${state.customCaseTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('case','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
-          </div>` : ""}
-        ${state.customProcedureTypes.length ? `<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Procedure types</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            ${state.customProcedureTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('procedure','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
-          </div>` : ""}
+        </div>
         `}
         <div style="font-size:11px;color:var(--muted);margin-top:6px;">Removing a type only hides it from future suggestions — cases already using it are unaffected.</div>
       </div>
