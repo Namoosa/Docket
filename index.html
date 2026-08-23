@@ -257,7 +257,7 @@ const ICONS = {
   square: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/></svg>`,
   square_check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><polyline points='8 12 11 15 16 9'/></svg>`,
   scale_balanced: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg>`,
-  gavel: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='3' width='14' height='6' rx='1.5'/><line x1='12' y1='9' x2='12' y2='18'/><line x1='8' y1='21' x2='16' y2='21'/></svg>`,
+  gavel: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='5,4 19,4 16,20 8,20'/><line x1='7' y1='10' x2='17' y2='10'/><line x1='3' y1='21' x2='21' y2='21'/></svg>`,
   info: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><line x1='12' y1='16' x2='12' y2='12'/><line x1='12' y1='8' x2='12.01' y2='8'/></svg>`,
   tag: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.59 13.41L11 3.83a2 2 0 0 0-1.41-.59H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z'/><circle cx='7.5' cy='7.5' r='1.5' fill='currentColor' stroke='none'/></svg>`,
   scroll: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 21h8a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4'/><path d='M19 17V5a2 2 0 0 0-2-2H7'/></svg>`,
@@ -598,6 +598,24 @@ function getGisTokenClient(){
 window.connectGoogleCalendar = ()=>{
   const client = getGisTokenClient();
   if(client) client.requestAccessToken();
+};
+window.syncAllUnsynced = async ()=>{
+  if(!state.googleConnected || !state.googleAccessToken){ showToast("Connect Google Calendar first."); return; }
+  const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId);
+  if(unsynced.length===0){ showToast("Nothing to sync — you're all caught up."); return; }
+  showToast(`Syncing ${unsynced.length} date${unsynced.length===1?'':'s'}…`);
+  let successCount = 0;
+  for(const t of unsynced){
+    const caseItem = state.cases.find(c=>c.id===t.caseId);
+    const result = await pushToGoogleCalendar(t, caseItem);
+    if(result && result.needsReconnect){ state.googleConnected=false; clearTokenFromSession(); showToast("Reconnect needed partway through — synced what it could, reconnect and try again for the rest."); render(); return; }
+    if(result && result.id){
+      await coll("tasks").doc(t.id).set({...stripId(t), googleEventId: result.id, googleEventLink: result.link || null});
+      successCount++;
+    }
+  }
+  showToast(`Synced ${successCount} of ${unsynced.length} date${unsynced.length===1?'':'s'}.`);
+  closeModal();
 };
 window.reconnectGoogle = window.connectGoogleCalendar;
 function showToast(message){
@@ -1720,8 +1738,13 @@ function openSettingsModal(){
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
         ${state.googleConnected
-          ? `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically, with reminders (1 day + 1 hour before; 3 days too for Critical) handled by Google Calendar itself.</div>`
-          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Not connected. You can still add any date to Google Calendar manually with one tap — look for the calendar icon next to any date.</div>
+          ? (()=>{
+              const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId).length;
+              return `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically, with reminders (1 day + 1 hour before; 3 days too for Critical) handled by Google Calendar itself.</div>
+              ${unsynced>0 ? `<button class="btn-ghost" style="margin-top:10px;" onclick="syncAllUnsynced()">${ICONS.rotate} Sync ${unsynced} unsynced date${unsynced===1?'':'s'} now</button>
+              <div style="font-size:11px;color:var(--muted);margin-top:5px;">These were likely added while disconnected, so they never made it to Google Calendar. This catches them up.</div>` : ''}`;
+            })()
+          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Not connected. Dates added while disconnected won't sync automatically — you can still add any of them to Google Calendar manually with one tap (look for the calendar icon next to any date), or reconnect and use "Sync unsynced dates" below.</div>
              <button class="btn-ghost" onclick="connectGoogleCalendar()">Connect Google Calendar</button>`}
       </div>
 
@@ -1783,6 +1806,14 @@ window.openQuickReference = (isFirstTime)=>{
         <div class="section-label">Checklist</div>
         <div style="font-size:13px;line-height:1.7;color:var(--ink);">
           Link a checklist item to a specific date, or to "Next court hearing" so it automatically follows whichever hearing is soonest — even through postponements.
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:10px 12px;">
+        <div class="section-label" style="color:var(--brick);">${ICONS.triangle_exclamation} Google Calendar — important</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Anything you add while <strong>not</strong> connected won't sync to Google Calendar automatically — Docket has no way to reach it until you reconnect. The connection can quietly lapse (usually within about an hour), so it's worth checking the Calendar tab occasionally for the "Reconnect" banner.<br/><br/>
+          Already added something while disconnected? Reconnect, then either open that date and tap Save (even with no changes) to sync just that one, or use <strong>Settings → Sync unsynced dates</strong> to catch up everything at once.
         </div>
       </div>
 
