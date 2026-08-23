@@ -111,6 +111,8 @@
   .brand svg{width:20px;height:20px;}
   .badge svg{width:12px;height:12px;vertical-align:-2px !important;}
   #print-area{display:none;}
+  .app-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--navy-dark);color:var(--panel);padding:11px 18px;border-radius:8px;font-size:13px;max-width:88vw;box-shadow:0 6px 18px rgba(0,0,0,.3);opacity:0;transition:opacity .25s, transform .25s;z-index:200;}
+  .app-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   @media print{
     body *{visibility:hidden;}
     #print-area, #print-area *{visibility:visible;}
@@ -234,9 +236,9 @@ const ICONS = {
 };
 const PROCEDURE_ICON = {"Hearing":ICONS.scale_balanced,"Motion Filing":ICONS.file_signature,"Memorandum":ICONS.file_lines,"Consultation":ICONS.comments};
 
-const CASE_TYPES = ["Criminal","Civil","Commercial","Labor","Personal Status","Real Estate","Administrative"];
-const CASE_TYPE_COLOR = {"Criminal":"#9A3B33","Civil":"#3D5871","Commercial":"#A6762E","Labor":"#556B4F","Personal Status":"#6B5B8C","Real Estate":"#8A6E4B","Administrative":"#7B7566"};
-const CASE_TYPE_ICON = {"Criminal":ICONS.handcuffs,"Civil":ICONS.scale_balanced,"Commercial":ICONS.building,"Labor":ICONS.helmet_safety,"Personal Status":ICONS.people_roof,"Real Estate":ICONS.house,"Administrative":ICONS.landmark};
+const CASE_TYPES = ["Criminal","Civil","Commercial","Corporate","Family","Labor","Personal Status","Real Estate","Administrative","Counsel"];
+const CASE_TYPE_COLOR = {"Criminal":"#9A3B33","Civil":"#3D5871","Commercial":"#A6762E","Corporate":"#2E5F5A","Family":"#B5654A","Labor":"#556B4F","Personal Status":"#6B5B8C","Real Estate":"#8A6E4B","Administrative":"#7B7566","Counsel":"#6E7B8B"};
+const CASE_TYPE_ICON = {"Criminal":ICONS.handcuffs,"Civil":ICONS.scale_balanced,"Commercial":ICONS.building,"Corporate":ICONS.building,"Family":ICONS.people_roof,"Labor":ICONS.helmet_safety,"Personal Status":ICONS.people_roof,"Real Estate":ICONS.house,"Administrative":ICONS.landmark,"Counsel":ICONS.comments};
 
 const PARTY_ROLES = ["Client","Opponent","Co-Defendant","Co-Plaintiff","Third Party","Other"];
 const STATUS_OPTIONS = ["Active","Pending","On Hold","Closed"];
@@ -302,12 +304,15 @@ document.getElementById("auth-submit").onclick = async ()=>{
   }catch(e){ errEl.textContent = e.message; }
 };
 
-async function googleSignIn(){
+async function googleSignIn(forceConsent){
   const errEl = document.getElementById("auth-error");
   if(errEl) errEl.textContent = "";
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.addScope("https://www.googleapis.com/auth/calendar.events");
-  provider.setCustomParameters({ prompt: "consent" });
+  // Only force the full consent screen the first time (or when explicitly asked) —
+  // once granted, Google will typically skip straight past it on renewal,
+  // making "Reconnect" noticeably faster for repeat use.
+  if(forceConsent !== false) provider.setCustomParameters({ prompt: "consent" });
   try{
     // Try the popup method first — this works reliably on most desktop
     // browsers with default privacy settings, and doesn't depend on the
@@ -318,6 +323,7 @@ async function googleSignIn(){
     if(credential && credential.accessToken){
       state.googleAccessToken = credential.accessToken;
       state.googleConnected = true;
+      if(state.user) render();
     }
   }catch(e){
     const popupFailed = e && ["auth/popup-blocked","auth/cancelled-popup-request","auth/popup-closed-by-user","auth/operation-not-supported-in-this-environment"].includes(e.code);
@@ -406,7 +412,10 @@ async function saveTask(data){
     const caseItem = state.cases.find(c=>c.id===payload.caseId);
     const result = await pushToGoogleCalendar({...payload, id:docId}, caseItem);
     if(result && result.needsReconnect){ state.googleConnected=false; render(); }
-    else if(result && result.id && result.id !== payload.googleEventId){ coll("tasks").doc(docId).set({...payload, googleEventId: result.id}); }
+    else if(result && result.error){ showToast(result.message); }
+    else if(result && result.id){
+      coll("tasks").doc(docId).set({...payload, googleEventId: result.id, googleEventLink: result.link || null});
+    }
   }
 }
 function deleteTaskDoc(id){
@@ -439,15 +448,56 @@ async function pushToGoogleCalendar(task, caseItem){
     if(task.googleEventId){ url += "/" + task.googleEventId; method = "PUT"; }
     const res = await fetch(url, { method, headers:{ "Authorization":"Bearer "+state.googleAccessToken, "Content-Type":"application/json" }, body: JSON.stringify(body) });
     if(res.status===401 || res.status===403){ return {needsReconnect:true}; }
+    if(!res.ok){
+      let detail = "";
+      try{ const errBody = await res.json(); detail = errBody?.error?.message || ""; }catch(e){}
+      return { error:true, message: `Google Calendar declined the sync (${res.status})${detail?": "+detail:""}.` };
+    }
     const data = await res.json();
-    return { id: data.id };
-  }catch(e){ console.error("calendar push failed", e); return null; }
+    return { id: data.id, link: data.htmlLink || null };
+  }catch(e){
+    console.error("calendar push failed", e);
+    return { error:true, message: "Couldn't reach Google Calendar — check your connection and try again." };
+  }
 }
 async function deleteFromGoogleCalendar(eventId){
   if(!state.googleAccessToken || !eventId) return;
   try{ await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, { method:"DELETE", headers:{ "Authorization":"Bearer "+state.googleAccessToken } }); }catch(e){}
 }
-window.reconnectGoogle = async ()=>{ await googleSignIn(); render(); };
+window.reconnectGoogle = async ()=>{ await googleSignIn(false); render(); };
+window.linkGoogleCalendar = async ()=>{
+  const btn = document.getElementById("link-google-btn");
+  const errBox = document.getElementById("link-google-error");
+  if(errBox) errBox.textContent = "";
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.addScope("https://www.googleapis.com/auth/calendar.events");
+  provider.setCustomParameters({ prompt: "consent" });
+  try{
+    // linkWithPopup adds Google to the SAME account you're already signed
+    // into — unlike signing out and back in, this can never create a second,
+    // disconnected account under the same email.
+    const result = await auth.currentUser.linkWithPopup(provider);
+    const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+    state.user = result.user || auth.currentUser;
+    if(credential && credential.accessToken){
+      state.googleAccessToken = credential.accessToken;
+      state.googleConnected = true;
+    }
+    openSettingsModal();
+  }catch(e){
+    if(errBox) errBox.textContent = e.code==="auth/credential-already-in-use"
+      ? "This Google account is already linked to a different Docket login. Sign in with that account instead."
+      : e.message;
+  }
+};
+function showToast(message){
+  const el = document.createElement("div");
+  el.className = "app-toast";
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(()=>{ el.classList.add("show"); }, 10);
+  setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(), 400); }, 5000);
+}
 
 /* ================= TAB NAV ================= */
 document.getElementById("tab-calendar").onclick = ()=>{ state.view="calendar"; render(); };
@@ -653,7 +703,7 @@ function taskRowHtml(t, caseItem, showDate){
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="task-title-icon" style="color:${color};">${icon}</span>
         <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
-        ${t.googleEventId?`<span title="Synced to Google Calendar" style="font-size:11px;">${ICONS.calendar_check}</span>`:""}
+        ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="Open in Google Calendar" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:""}
         ${statusBadge}
       </div>
       <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
@@ -994,7 +1044,7 @@ function openCaseModal(existingRaw){
       <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ${ICONS.star} Priority case — stand out in the list</label></div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
 
-      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length)?'${ICONS.chevron_down} Documents & linked cases':'${ICONS.chevron_right} Documents & linked cases (optional)'}</button>
+      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length) ? (ICONS.chevron_down+' Documents & linked cases') : (ICONS.chevron_right+' Documents & linked cases (optional)')}</button>
       <div id="advanced-fields" class="${(window._tempDocs.length||window._tempLinked.length)?'':'hidden'}">
       <div class="field">
         <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
@@ -1033,7 +1083,7 @@ window.toggleCaseAdvanced = ()=>{
   const fields = document.getElementById("advanced-fields");
   const btn = document.getElementById("advanced-toggle-btn");
   const nowHidden = fields.classList.toggle("hidden");
-  btn.textContent = nowHidden ? "${ICONS.chevron_right} Documents & linked cases (optional)" : "${ICONS.chevron_down} Documents & linked cases";
+  btn.innerHTML = nowHidden ? (ICONS.chevron_right+" Documents & linked cases (optional)") : (ICONS.chevron_down+" Documents & linked cases");
 };
 
 function renderPartyList(){
@@ -1283,7 +1333,9 @@ function openSettingsModal(){
         ${isGoogleUser ?
           (state.googleConnected ? `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically while you use the app.</div>`
           : `<div style="font-size:13px;color:var(--brick);margin-bottom:8px;">Not connected right now.</div><button class="btn-ghost" onclick="reconnectGoogle()">Connect Google Calendar</button>`)
-          : `<div style="font-size:13px;color:var(--muted);">Sign out and sign back in with "Continue with Google" to enable calendar sync.</div>`}
+          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Add Google Calendar sync to this account — no need to sign out.</div>
+             <button class="btn-ghost" id="link-google-btn" onclick="linkGoogleCalendar()">Connect Google Calendar</button>
+             <div id="link-google-error" style="color:#B23A32;font-size:12px;margin-top:6px;"></div>`}
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
