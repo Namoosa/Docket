@@ -375,13 +375,7 @@ auth.onAuthStateChanged(user=>{
     // using a possibly-stale read of googleAccessToken can silently
     // overwrite a real, just-completed connection back to "disconnected."
     if(!state.googleConnected){
-      const storedToken = loadTokenFromStorage();
-      if(storedToken){
-        state.googleAccessToken = storedToken;
-        state.googleConnected = true;
-      } else {
-        state.googleConnected = user.providerData.some(p=>p.providerId==="google.com") && !!state.googleAccessToken;
-      }
+      state.googleConnected = user.providerData.some(p=>p.providerId==="google.com") && !!state.googleAccessToken;
     }
     document.getElementById("auth-screen").classList.add("hidden");
     document.getElementById("app-shell").classList.remove("hidden");
@@ -390,7 +384,6 @@ auth.onAuthStateChanged(user=>{
     state.user = null;
     state.googleAccessToken = null;
     state.googleConnected = false;
-    clearTokenFromStorage();
     document.getElementById("auth-screen").classList.remove("hidden");
     document.getElementById("app-shell").classList.add("hidden");
     if(unsubCases) unsubCases(); if(unsubTasks) unsubTasks(); if(unsubChecklist) unsubChecklist(); if(unsubSettings) unsubSettings();
@@ -438,7 +431,7 @@ async function saveTask(data){
   if(state.googleConnected && state.googleAccessToken){
     const caseItem = state.cases.find(c=>c.id===payload.caseId);
     const result = await pushToGoogleCalendar({...payload, id:docId}, caseItem);
-    if(result && result.needsReconnect){ state.googleConnected=false; clearTokenFromStorage(); render(); }
+    if(result && result.needsReconnect){ state.googleConnected=false; render(); }
     else if(result && result.error){ showToast(result.message); }
     else if(result && result.id){
       coll("tasks").doc(docId).set({...payload, googleEventId: result.id, googleEventLink: result.link || null});
@@ -491,28 +484,6 @@ async function deleteFromGoogleCalendar(eventId){
   if(!state.googleAccessToken || !eventId) return;
   try{ await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, { method:"DELETE", headers:{ "Authorization":"Bearer "+state.googleAccessToken } }); }catch(e){}
 }
-// Persist the token (and its real expiry) across reloads so a refresh
-// within the token's ~1hr lifetime doesn't force an unnecessary reconnect.
-function saveTokenToStorage(accessToken, expiresInSeconds){
-  try{
-    const expiresAt = Date.now() + (Number(expiresInSeconds || 3300) * 1000);
-    localStorage.setItem("docket_g_token", accessToken);
-    localStorage.setItem("docket_g_token_expiry", String(expiresAt));
-  }catch(e){ /* localStorage unavailable — connection just won't persist across reloads */ }
-}
-function loadTokenFromStorage(){
-  try{
-    const token = localStorage.getItem("docket_g_token");
-    const expiry = Number(localStorage.getItem("docket_g_token_expiry") || 0);
-    if(token && expiry && Date.now() < expiry) return token;
-    if(token){ localStorage.removeItem("docket_g_token"); localStorage.removeItem("docket_g_token_expiry"); }
-  }catch(e){}
-  return null;
-}
-function clearTokenFromStorage(){
-  try{ localStorage.removeItem("docket_g_token"); localStorage.removeItem("docket_g_token_expiry"); }catch(e){}
-}
-
 let gisTokenClient = null;
 function getGisTokenClient(){
   if(gisTokenClient) return gisTokenClient;
@@ -528,7 +499,6 @@ function getGisTokenClient(){
         state.googleAccessToken = tokenResponse.access_token;
         state.googleConnected = true;
         state.calendarEverConnected = true;
-        saveTokenToStorage(tokenResponse.access_token, tokenResponse.expires_in);
         saveSettings();
         showToast("Google Calendar connected.");
         render();
