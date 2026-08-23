@@ -45,7 +45,8 @@
   :root{
     --ink:#20242C; --paper:#ECE7DA; --panel:#FBF9F3; --navy:#22344A; --navy-dark:#182234;
     --brass:#8F6526; --brick:#9A3B33; --sage:#556B4F; --slate:#3D5871; --line:#D8D0BB; --muted:#7B7566; --surface:#F6F1E4;
-    --purple:#6B5B8C; --clay:#8A6E4B;
+    --purple:#6B5B8C; --clay:#8A6E4B; --info:#3E6B8A;
+    --overdue:#B23A32; --critical:#6B2439; --heads-up:#3E6B8A;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -62,7 +63,7 @@
   .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:8px;border:none;background:var(--navy);color:var(--panel);font-weight:600;font-size:14px;}
   .btn-google{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:#3c4043;font-weight:600;font-size:14px;}
   .btn-ghost{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--navy);font-weight:600;font-size:13px;}
-  .icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;color:var(--navy);}
+  .icon-btn{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;color:var(--navy);}
   .field-label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px;}
   .field{margin-bottom:14px;}
   #auth-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
@@ -85,15 +86,17 @@
   .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
   .cal-wd{text-align:center;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;}
-  .cal-day{aspect-ratio:1;border-radius:7px;border:1px solid transparent;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;position:relative;}
+  .cal-day{aspect-ratio:1;border-radius:7px;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;position:relative;}
   .cal-day.today{border:1.5px solid var(--brass);}
   .cal-day.selected{border:2px solid var(--navy); background:#DFE3E8;}
+  .cal-day.has-critical{box-shadow:inset 0 0 0 2px var(--critical);}
   .dot{width:5px;height:5px;border-radius:3px;}
   .overdue-mark{position:absolute;top:2px;right:3px;width:6px;height:6px;border-radius:3px;background:#B23A32;}
+  .cal-icon svg{width:12.5px !important;height:12.5px !important;vertical-align:middle !important;}
   .section-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
   .task-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
   .task-row.overdue{border-color:#D9A9A3;}
-  .task-check{background:none;border:1.5px solid var(--line);border-radius:5px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .task-check{background:none;border:1.5px solid var(--line);border-radius:5px;width:23px;height:23px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .task-title{font-size:13.5px;font-weight:600;}
   .task-meta{font-size:12px;color:var(--muted);margin-top:2px;}
   .case-card{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:9px;}
@@ -140,7 +143,15 @@
 </head>
 <body>
 
-<div id="auth-screen">
+<div id="loading-screen" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--paper);">
+  <span style="color:var(--brass);animation:docket-pulse 1.6s ease-in-out infinite;">
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='34' height='34' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg>
+  </span>
+  <span class="serif" style="font-size:20px;color:var(--navy-dark);letter-spacing:.02em;">Docket</span>
+</div>
+<style>@keyframes docket-pulse{0%,100%{opacity:.45;}50%{opacity:1;}}</style>
+
+<div id="auth-screen" class="hidden">
   <div class="auth-card">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
       <span class="serif" style="font-size:22px;color:var(--navy-dark);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg> Docket</span>
@@ -164,10 +175,12 @@
 
 <div id="app-shell" class="hidden">
   <header>
+  <div id="badge-menu-wrap" style="position:relative;"></div>
     <div class="header-inner">
       <div class="brand"><span style="color:var(--brass);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg></span> <span class="serif">Docket</span></div>
       <div style="display:flex;gap:8px;align-items:center;">
         <div id="header-badges" style="display:flex;gap:6px;"></div>
+        <button class="icon-btn" id="help-btn" onclick="openQuickReference()" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Quick reference"><span style="display:inline-flex;">${ICONS.info}</span></button>
         <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'/><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><rect x='6' y='14' width='12' height='8'/></svg></button>
         <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg></button>
         <button class="icon-btn" id="signout-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;">Out</button>
@@ -203,7 +216,7 @@ const db = firebase.firestore();
 
 /* ================= CONSTANTS ================= */
 const PROCEDURE_TYPES = ["Hearing","Motion Filing","Memorandum","Consultation"];
-const PROCEDURE_COLOR = {"Hearing":"#9A3B33","Motion Filing":"#A6762E","Memorandum":"#3D5871","Consultation":"#556B4F"};
+const PROCEDURE_COLOR = {"Hearing":"#5F4B8B","Motion Filing":"#6F3091","Memorandum":"#732F74","Consultation":"#8B4B76"};
 const ICONS = {
   xmark: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>`,
   check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>`,
@@ -245,12 +258,15 @@ const ICONS = {
   square: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/></svg>`,
   square_check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><polyline points='8 12 11 15 16 9'/></svg>`,
   scale_balanced: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg>`,
+  gavel: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 4l6 6'/><path d='M4 14l6 6'/><path d='M6.5 11.5l6-6 3 3-6 6z'/><path d='M2 22l6-6'/><path d='M17 8l3-3 2 2-3 3z'/></svg>`,
+  info: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><line x1='12' y1='16' x2='12' y2='12'/><line x1='12' y1='8' x2='12.01' y2='8'/></svg>`,
+  scroll: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 21h8a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4'/><path d='M19 17V5a2 2 0 0 0-2-2H7'/></svg>`,
 };
-const PROCEDURE_ICON = {"Hearing":ICONS.scale_balanced,"Motion Filing":ICONS.file_signature,"Memorandum":ICONS.file_lines,"Consultation":ICONS.comments};
+const PROCEDURE_ICON = {"Hearing":ICONS.gavel,"Motion Filing":ICONS.file_signature,"Memorandum":ICONS.file_lines,"Consultation":ICONS.comments};
 
 const CASE_TYPES = ["Criminal","Civil","Commercial","Corporate","Family","Labor","Personal Status","Real Estate","Administrative","Counsel"];
-const CASE_TYPE_COLOR = {"Criminal":"#9A3B33","Civil":"#3D5871","Commercial":"#A6762E","Corporate":"#2E5F5A","Family":"#B5654A","Labor":"#556B4F","Personal Status":"#6B5B8C","Real Estate":"#8A6E4B","Administrative":"#7B7566","Counsel":"#6E7B8B"};
-const CASE_TYPE_ICON = {"Criminal":ICONS.handcuffs,"Civil":ICONS.scale_balanced,"Commercial":ICONS.building,"Corporate":ICONS.building,"Family":ICONS.people_roof,"Labor":ICONS.helmet_safety,"Personal Status":ICONS.people_roof,"Real Estate":ICONS.house,"Administrative":ICONS.landmark,"Counsel":ICONS.comments};
+const CASE_TYPE_COLOR = {"Criminal":"#744C2F","Civil":"#8B7C4B","Commercial":"#889130","Corporate":"#56742F","Family":"#5A8B4B","Labor":"#30913B","Personal Status":"#2F744E","Real Estate":"#4B8B7E","Administrative":"#305491","Counsel":"#2F3174"};
+const CASE_TYPE_ICON = {"Criminal":ICONS.handcuffs,"Civil":ICONS.scroll,"Commercial":ICONS.building,"Corporate":ICONS.building,"Family":ICONS.people_roof,"Labor":ICONS.helmet_safety,"Personal Status":ICONS.people_roof,"Real Estate":ICONS.house,"Administrative":ICONS.landmark,"Counsel":ICONS.comments};
 
 const PARTY_ROLES = ["Client","Opponent","Co-Defendant","Co-Plaintiff","Third Party","Other"];
 const STATUS_OPTIONS = ["Active","Pending","On Hold","Closed"];
@@ -267,7 +283,7 @@ const WD = ["S","M","T","W","T","F","S"];
 
 /* ================= STATE ================= */
 let state = {
-  user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false,
+  user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false, hasSeenQuickRef:false,
   cases:[], tasks:[], checklist:[],
   customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false,
   view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
@@ -381,6 +397,8 @@ document.getElementById("google-signin-btn").onclick = googleSignIn;
 document.getElementById("signout-btn").onclick = ()=> { state.googleAccessToken=null; state.googleConnected=false; auth.signOut(); };
 
 auth.onAuthStateChanged(user=>{
+  const loadingScreen = document.getElementById("loading-screen");
+  if(loadingScreen) loadingScreen.style.display = "none";
   if(user){
     state.user = user;
     // Only compute this fresh if we don't already know we're connected —
@@ -417,11 +435,17 @@ function attachListeners(uidVal){
     state.customProcedureTypes = d.customProcedureTypes || [];
     state.onboardDismissed = !!d.onboardDismissed;
     state.calendarEverConnected = !!d.calendarEverConnected;
+    const wasUnset = !state.hasSeenQuickRef && !d.hasSeenQuickRef;
+    state.hasSeenQuickRef = !!d.hasSeenQuickRef;
     render();
+    if(wasUnset && !document.getElementById("modal-root").innerHTML){
+      state.hasSeenQuickRef = true; saveSettings();
+      openQuickReference(true);
+    }
   });
 }
 function saveSettings(){
-  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected });
+  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef });
 }
 function stripId(t){ const {id, ...rest}=t; return rest; }
 
@@ -475,7 +499,14 @@ function toggleChecklistDone(id){ const c = state.checklist.find(x=>x.id===id); 
 async function pushToGoogleCalendar(task, caseItem){
   if(!state.googleAccessToken) return null;
   const summary = (caseItem ? computeCaseTitle(caseItem) + " — " : "") + task.title;
-  const body = { summary, description: task.notes||"", start:{date: task.date}, end:{date: addDays(task.date,1)} };
+  // Reminders come from Google Calendar's own app — which already has real
+  // background/lock-screen push permission on your phone — rather than
+  // anything Docket could build itself without a server. Critical dates get
+  // an extra, earlier reminder on top of the normal pair.
+  const overrides = task.flag==="critical"
+    ? [{method:"popup", minutes: 3*24*60}, {method:"popup", minutes: 24*60}, {method:"popup", minutes: 60}]
+    : [{method:"popup", minutes: 24*60}, {method:"popup", minutes: 60}];
+  const body = { summary, description: task.notes||"", start:{date: task.date}, end:{date: addDays(task.date,1)}, reminders: { useDefault:false, overrides } };
   try{
     let url = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
     let method = "POST";
@@ -579,11 +610,14 @@ window.printCaseHistory = (c)=>{
   const checklistItems = state.checklist.filter(x=>x.caseId===c.id);
   const log = (c.noteLog||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
 
-  const taskHtml = (t)=>`<div class="p-item">
-      <strong>${t.kind==="deadline"?(t.critical?"${ICONS.triangle_exclamation} CRITICAL DEADLINE — ":"${ICONS.hourglass_half} Deadline — "):"${ICONS.calendar_days} "}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
+  const taskHtml = (t)=>{
+    const label = t.flag==="critical" ? "CRITICAL — " : (t.kind==="deadline" ? "Deadline — " : "");
+    return `<div class="p-item">
+      <strong>${esc(label)}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
       ${t.notes?`<div class="p-meta">${esc(t.notes)}</div>`:""}
       ${t.postponeReason?`<div class="p-meta">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
     </div>`;
+  };
 
   document.getElementById("print-area").innerHTML = `
     <h1>${esc(computeCaseTitle(c))}</h1>
@@ -631,12 +665,15 @@ function render(){
 
   const tk = todayKey();
   const upcoming = state.tasks.filter(t=>!t.completed).map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
-  const urgent = upcoming.filter(t=>t.delta>=0 && t.delta<=state.alertDays).length;
-  const overdue = upcoming.filter(t=>t.delta<0).length;
+  const headsUpItems = upcoming.filter(t=> t.delta>=0 && (t.delta<=state.alertDays || (t.flag==="fyi" && t.delta<=7)) && t.flag!=="critical");
+  const overdueItems = upcoming.filter(t=>t.delta<0);
+  state._headsUpItems = headsUpItems;
+  state._overdueItems = overdueItems;
 
   const badges = document.getElementById("header-badges");
-  badges.innerHTML = (overdue>0?`<span class="badge" style="border-color:#E5A39B;color:#E5A39B;">${overdue} overdue</span>`:"") +
-                      (urgent>0?`<span class="badge" style="border-color:var(--brass);color:var(--brass);">${urgent} due soon</span>`:"");
+  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;">${overdueItems.length} overdue</button>`:"") +
+                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${headsUpItems.length} due soon</button>`:"");
+  renderBadgeMenu();
 
   renderInstallBanner();
   renderReconnectBanner();
@@ -645,6 +682,23 @@ function render(){
   else renderChecklist();
 }
 
+let openBadgeMenu = null;
+window.toggleBadgeMenu = (which)=>{ openBadgeMenu = (openBadgeMenu===which) ? null : which; renderBadgeMenu(); };
+function renderBadgeMenu(){
+  const wrap = document.getElementById("badge-menu-wrap");
+  if(!wrap) return;
+  if(!openBadgeMenu){ wrap.innerHTML=""; return; }
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : (state._headsUpItems||[]);
+  const title = openBadgeMenu==="overdue" ? "Overdue" : "Due soon";
+  wrap.innerHTML = `<div style="position:absolute;right:16px;top:64px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
+      <span class="section-label" style="margin-bottom:0;">${title} (${items.length})</span>
+      <button onclick="toggleBadgeMenu('${openBadgeMenu}')" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
+    </div>
+    ${items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${taskRowHtml(t, casesById[t.caseId], true)}</div>`).join("")}
+  </div>`;
+}
 function renderInstallBanner(){
   const wrap = document.getElementById("install-banner-wrap");
   if(state.onboardDismissed){ wrap.innerHTML=""; return; }
@@ -686,19 +740,28 @@ function renderCalendar(upcoming){
     const isToday = key===tk, isSel = key===state.selectedDay;
     const hasOverdue = items.some(t=>!t.completed && daysBetween(tk,key)<0);
     const activeItems = items.filter(t=>!t.completed);
-    const barColor = activeItems.length===0 ? null : (activeItems.some(t=>t.critical) ? "var(--brick)" : colorForProcedure(activeItems[0].type));
-    const eventBar = items.length ? `<div style="width:70%;height:4px;border-radius:2px;background:${activeItems.length?barColor:'#B9B29A'};margin-top:1px;"></div>` : "";
-    const countBadge = items.length>1 ? `<span style="font-size:8.5px;color:var(--muted);font-weight:700;line-height:1;margin-top:1px;">${items.length}</span>` : "";
-    cells += `<button class="cal-day ${isToday?'today':''} ${isSel?'selected':''}" onclick="selectDay('${key}')">
+    const hasCritical = activeItems.some(t=>t.flag==="critical");
+    const seenTypes = new Set();
+    const uniqueDisplay = [];
+    activeItems.forEach(t=>{
+      if(!seenTypes.has(t.type) && uniqueDisplay.length<2){ seenTypes.add(t.type); uniqueDisplay.push(t); }
+    });
+    const iconsHtml = uniqueDisplay.map(t=>{
+      return `<span class="cal-icon" style="color:${colorForProcedure(t.type)};">${iconForProcedure(t.type)}</span>`;
+    }).join("");
+    const extraCount = activeItems.length - uniqueDisplay.length;
+    const moreLabel = extraCount>0 ? `<span style="font-size:8px;color:var(--muted);font-weight:700;">+${extraCount}</span>` : "";
+    const allDoneMark = (items.length>0 && activeItems.length===0) ? `<span class="cal-icon" style="color:#B9B29A;">${ICONS.check}</span>` : "";
+    cells += `<button class="cal-day ${isToday?'today':''} ${isSel?'selected':''} ${hasCritical?'has-critical':''}" onclick="selectDay('${key}')">
       <span style="font-size:12.5px;font-weight:${isToday?700:500};color:${isToday?'var(--brass)':'var(--ink)'};">${d}</span>
-      ${eventBar}${countBadge}
+      <div style="display:flex;align-items:center;justify-content:center;gap:2px;min-height:12px;">${iconsHtml}${allDoneMark}${moreLabel}</div>
       ${hasOverdue?'<div class="overdue-mark"></div>':''}
     </button>`;
   }
 
   const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
   const tk2 = todayKey();
-  const criticalItems = state.tasks.filter(t=>t.critical && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const criticalItems = state.tasks.filter(t=>t.flag==="critical" && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
 
   document.getElementById("view-calendar").innerHTML = `
     ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
@@ -707,15 +770,20 @@ function renderCalendar(upcoming){
     </div>` : ""}
     <div class="cal-card">
       <div class="cal-header">
-        <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
+        <button onclick="openMonthPicker()" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:4px;" title="Jump to a month">
+          <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
+          <span style="color:var(--muted);">${ICONS.chevron_down}</span>
+        </button>
         <div style="display:flex;gap:6px;">
           <button class="icon-btn" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;" onclick="gotoToday()">Today</button>
           <button class="icon-btn" onclick="gotoMonth(-1)">${ICONS.chevron_left}</button>
           <button class="icon-btn" onclick="gotoMonth(1)">${ICONS.chevron_right}</button>
         </div>
       </div>
+      <div id="cal-swipe-area">
       <div class="cal-grid" style="margin-bottom:4px;">${WD.map(w=>`<div class="cal-wd">${w}</div>`).join("")}</div>
       <div class="cal-grid">${cells}</div>
+      </div>
     </div>
     <div style="margin-bottom:18px;">
       <div class="section-label">${fmtLong(state.selectedDay)}${state.selectedDay===tk?' · Today':''}</div>
@@ -730,21 +798,30 @@ function renderCalendar(upcoming){
       ${upcoming.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">No upcoming dates. Tap + to add one.</div>` : ""}
     </div>
   `;
+  attachSwipeHandler();
 }
 function taskRowHtml(t, caseItem, showDate){
   const isDeadline = t.kind==="deadline";
-  const isCritical = !!t.critical;
+  const isCritical = t.flag==="critical";
+  const isFyi = t.flag==="fyi";
   const overdue = t.delta<0 && !t.completed;
-  const urgent = !overdue && showDate && t.delta<=state.alertDays && t.delta>=0;
-  const icon = isCritical ? ICONS.triangle_exclamation : (isDeadline ? ICONS.hourglass_half : iconForProcedure(t.type));
-  const color = isCritical ? "var(--brick)" : (isDeadline ? "var(--purple)" : colorForProcedure(t.type));
-  const countdownLabel = t.delta===0 ? (isDeadline||isCritical?'Due today':'Today') : `${t.delta}d${(isDeadline||isCritical)?' left':''}`;
+  // Heads-up: automatic (within your alertDays window) OR manually forced via the FYI flag,
+  // whichever gives more notice. Critical and Overdue are the only two colors that override
+  // the icon itself — everything else keeps its normal category color, with urgency shown
+  // only via the badge text, so "what it is" and "how urgent" never get confused for each other.
+  const autoHeadsUp = !overdue && showDate && t.delta<=state.alertDays && t.delta>=0;
+  const fyiHeadsUp = isFyi && !overdue && typeof t.delta==="number" && t.delta<=7 && t.delta>=0;
+  const headsUp = !isCritical && (autoHeadsUp || fyiHeadsUp);
+  const baseIcon = iconForProcedure(t.type);
+  const baseColor = colorForProcedure(t.type);
+  const icon = baseIcon;
+  const color = overdue ? "var(--overdue)" : (isCritical ? "var(--critical)" : baseColor);
+  const countdownLabel = t.delta===0 ? "Today" : `${t.delta}d`;
   let statusBadge = "";
-  if(overdue){ statusBadge = `<span class="badge" style="border-color:#B23A32;color:#B23A32;">${isDeadline?'Missed deadline':'Overdue'}</span>`; }
+  if(overdue){ statusBadge = `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${isDeadline?'Missed deadline':'Overdue'}</span>`; }
   else if(!t.completed && typeof t.delta==="number"){
-    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--brick);color:var(--brick);background:#FBEAE8;">CRITICAL · ${countdownLabel}</span>`;
-    else if(isDeadline) statusBadge = `<span class="badge" style="border-color:var(--purple);color:var(--purple);">${countdownLabel}</span>`;
-    else if(urgent) statusBadge = `<span class="badge" style="border-color:var(--brass);color:var(--brass);">${countdownLabel}</span>`;
+    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--critical);color:var(--critical);background:#F6E8EC;">CRITICAL · ${countdownLabel}</span>`;
+    else if(headsUp) statusBadge = `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${countdownLabel} · heads-up</span>`;
   }
   const isNextHearingForCase = caseItem && t.type==="Hearing" && !t.completed && nextHearingForCase(caseItem.id)?.id===t.id;
   const prepItems = state.checklist.filter(c=> c.taskId===t.id || (isNextHearingForCase && c.followNextHearing && c.caseId===caseItem.id));
@@ -758,12 +835,12 @@ function taskRowHtml(t, caseItem, showDate){
           <span style="font-size:12.5px;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
         </div>`).join("")}
     </div>` : "";
-  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${overdue?'#B23A32':color};${isCritical?'border-width:5px;':''}">
+  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${color};${isCritical?'border-width:5px;':''}">
     <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?ICONS.check:''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="task-title-icon" style="color:${color};">${icon}</span>
-        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
+        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}${isDeadline?' <span style="font-size:11px;color:var(--muted);font-weight:500;">(deadline)</span>':''}</span>
         ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="Open in Google Calendar" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:
           `<a href="${esc(googleCalendarAddLink(t, caseItem))}" target="_blank" onclick="event.stopPropagation()" title="Add to Google Calendar" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>`}
         ${statusBadge}
@@ -776,7 +853,40 @@ function taskRowHtml(t, caseItem, showDate){
   </div>`;
 }
 window.selectDay = (k)=>{ state.selectedDay=k; render(); };
-window.gotoMonth = (delta)=>{ let m=state.cursorM+delta, y=state.cursorY; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.cursorM=m; state.cursorY=y; render(); };
+window.gotoMonth = (delta)=>{ let m=state.cursorM+delta, y=state.cursorY; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.cursorM=m; state.cursorY=y; render(); attachSwipeHandler(); };
+function attachSwipeHandler(){
+  const el = document.getElementById("cal-swipe-area");
+  if(!el) return;
+  let startX=0, startY=0, tracking=false;
+  el.ontouchstart = (e)=>{ startX=e.touches[0].clientX; startY=e.touches[0].clientY; tracking=true; };
+  el.ontouchend = (e)=>{
+    if(!tracking) return; tracking=false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5){ gotoMonth(dx<0?1:-1); }
+  };
+}
+window.openMonthPicker = ()=>{
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Jump to a month</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div class="field"><span class="field-label">Year</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="icon-btn" onclick="shiftPickerYear(-1)">${ICONS.chevron_left}</button>
+          <span id="picker-year" class="serif" style="font-size:18px;flex:1;text-align:center;">${state.cursorY}</span>
+          <button class="icon-btn" onclick="shiftPickerYear(1)">${ICONS.chevron_right}</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        ${MONTHS.map((mn,i)=>`<button class="btn-ghost" data-month="${i}" onclick="jumpToMonth(${i})" style="${i===state.cursorM?'background:var(--navy);color:var(--panel);border-color:var(--navy);':''}">${mn.slice(0,3)}</button>`).join("")}
+      </div>
+    </div>
+  </div>`;
+  window._pickerYear = state.cursorY;
+};
+window.shiftPickerYear = (d)=>{ window._pickerYear += d; document.getElementById("picker-year").textContent = window._pickerYear; };
+window.jumpToMonth = (m)=>{ state.cursorM=m; state.cursorY=window._pickerYear; closeModal(); render(); attachSwipeHandler(); };
 window.gotoToday = ()=>{ const d=new Date(); state.cursorY=d.getFullYear(); state.cursorM=d.getMonth(); state.selectedDay=todayKey(); render(); };
 window.toggleTaskDone = toggleTaskDone;
 window.deleteTaskDoc = deleteTaskDoc;
@@ -851,22 +961,27 @@ function caseCardHtml(c){
   const color = colorForCaseType(c.caseType);
   const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
   const groupSize = (c.linkedCaseIds||[]).filter(lid=>state.cases.some(x=>x.id===lid)).length;
+
+  const locationPiece = c.court
+    ? `${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` (${esc(c.chamber)})`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` (${esc(c.prosecutorInCharge)})`:""}`
+    : (c.caseType==="Counsel"&&c.dateReceived) ? `${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}`
+    : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"Gen. "+esc(c.generalNumber):""}`
+    : c.courtNumber ? esc(c.courtNumber) : "";
+
+  const metaPieces = [
+    `<span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span> ${esc(c.caseType)}`,
+    locationPiece,
+    (c.documents&&c.documents.length) ? `${ICONS.link} ${c.documents.length}` : "",
+    groupSize>0 ? `${ICONS.link} linked (${groupSize})` : ""
+  ].filter(Boolean);
+
   return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-      <div style="min-width:0;">
-        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?(ICONS.star+' '):''}${esc(computeCaseTitle(c))}</div>
-        ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;">${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` · ${esc(c.chamber)}`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` · ${esc(c.prosecutorInCharge)}`:""}</div>`:""}
-        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12px;color:var(--slate);font-weight:600;">${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}</div>`:""}
-        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${c.partialNumber?esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"Gen. "+esc(c.generalNumber):""}</div>`:""}
-        ${c.courtNumber?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${esc(c.courtNumber)}</div>`:""}
-      </div>
-      <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
+      <div class="serif" style="font-size:16px;color:var(--navy-dark);min-width:0;">${c.priority?(ICONS.star+' '):''}${esc(computeCaseTitle(c))}</div>
+      <span class="badge" style="border-color:${statusColor};color:${statusColor};flex-shrink:0;">${c.status}</span>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:9px;flex-wrap:wrap;">
-      <span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span>
-      <span style="font-size:12.5px;font-weight:500;">${esc(c.caseType)}</span>
-      ${c.documents&&c.documents.length ? `<span style="font-size:12px;color:var(--muted);">${ICONS.link} ${c.documents.length}</span>` : ""}
-      ${groupSize>0 ? `<span class="group-badge">${ICONS.link} linked (${groupSize})</span>` : ""}
+    <div style="font-size:12.5px;color:var(--muted);margin-top:5px;display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
+      ${metaPieces.map((p,i)=>i===0?p:` · ${p}`).join("")}
     </div>
   </button>`;
 }
@@ -884,7 +999,7 @@ function renderChecklist(){
         const linkedTask = it.taskId ? tasksById[it.taskId] : null;
         const followedHearing = (it.followNextHearing && it.caseId) ? nextHearingForCase(it.caseId) : null;
         const effectiveTask = linkedTask || followedHearing;
-        const rowColor = effectiveTask ? (effectiveTask.critical ? "var(--brick)" : colorForProcedure(effectiveTask.type)) : (c ? colorForCaseType(c.caseType) : "var(--line)");
+        const rowColor = effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (c ? colorForCaseType(c.caseType) : "var(--line)");
         const rowIcon = effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : "");
         const metaLine = linkedTask
           ? `${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
@@ -992,6 +1107,7 @@ function openTaskModal(existing){
   const allProcTypes = [...PROCEDURE_TYPES, ...state.customProcedureTypes];
   const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allProcTypes[0], notes:"", completed:false, kind:"event"};
   window._tempKind = t.kind || "event";
+  window._tempFlag = t.flag || "none";
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1014,11 +1130,14 @@ function openTaskModal(existing){
       <div class="field"><span class="field-label" id="f-title-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
       <div class="field"><span class="field-label" id="f-date-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
       <div class="field"><span class="field-label">Procedure type</span><input class="input" id="f-type" list="proc-list" value="${esc(t.type)}" /><datalist id="proc-list">${allProcTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
-      <div id="critical-field" class="field ${window._tempKind==='deadline'?'':'hidden'}" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--brick);">
-          <input type="checkbox" id="f-critical" ${t.critical?'checked':''} /> ${ICONS.triangle_exclamation} Critical (e.g. statute of limitations, appeal window)
-        </label>
-        <div style="font-size:11.5px;color:var(--muted);margin-top:4px;">Stays pinned at the top of your Calendar until resolved, no matter how far away it is.</div>
+      <div class="field">
+        <span class="field-label">Flag this date</span>
+        <div class="radio-row" id="flag-row">
+          <button type="button" class="radio-pill ${(t.flag||'none')==='none'?'active':''}" data-v="none" onclick="setTaskFlag('none')">None</button>
+          <button type="button" class="radio-pill ${t.flag==='fyi'?'active':''}" data-v="fyi" onclick="setTaskFlag('fyi')" style="${t.flag==='fyi'?'background:var(--heads-up);border-color:var(--heads-up);':''}">FYI</button>
+          <button type="button" class="radio-pill ${t.flag==='critical'?'active':''}" data-v="critical" onclick="setTaskFlag('critical')" style="${t.flag==='critical'?'background:var(--critical);border-color:var(--critical);':''}">Critical</button>
+        </div>
+        <div id="flag-hint" style="font-size:11.5px;color:var(--muted);margin-top:6px;">${(t.flag==='critical') ? "A can't-miss date — pinned to the top of your Calendar no matter how far away it is." : (t.flag==='fyi') ? "Not urgent — shows a quiet heads-up once it's within 7 days out." : "No flag — this date only shows the normal due-soon heads-up close to its date, based on your Settings."}</div>
       </div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="f-notes" style="min-height:60px;">${esc(t.notes)}</textarea></div>
 
@@ -1048,7 +1167,22 @@ function openTaskModal(existing){
   updateKindLabels();
 }
 window.openTaskModal = openTaskModal;
-window.setTaskKind = (v)=>{ window._tempKind=v; document.querySelectorAll("#kind-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); updateKindLabels(); const cf=document.getElementById("critical-field"); if(cf) cf.classList.toggle("hidden", v!=="deadline"); };
+window.setTaskKind = (v)=>{ window._tempKind=v; document.querySelectorAll("#kind-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); updateKindLabels(); };
+window._tempFlag = window._tempFlag || "none";
+window.setTaskFlag = (v)=>{
+  window._tempFlag = v;
+  document.querySelectorAll("#flag-row .radio-pill").forEach(b=>{
+    const active = b.dataset.v===v;
+    b.classList.toggle("active", active);
+    if(v==="fyi"){ b.style.background = (b.dataset.v==="fyi") ? "var(--heads-up)" : ""; b.style.borderColor = (b.dataset.v==="fyi") ? "var(--heads-up)" : ""; }
+    else if(v==="critical"){ b.style.background = (b.dataset.v==="critical") ? "var(--critical)" : ""; b.style.borderColor = (b.dataset.v==="critical") ? "var(--critical)" : ""; }
+    else { b.style.background = ""; b.style.borderColor = ""; }
+  });
+  const hint = document.getElementById("flag-hint");
+  hint.textContent = v==="critical" ? "A can't-miss date — pinned to the top of your Calendar no matter how far away it is."
+    : v==="fyi" ? "Not urgent — shows a quiet heads-up once it's within 7 days out."
+    : "No flag — this date only shows the normal due-soon heads-up close to its date, based on your Settings.";
+};
 window.toggleRepeatFields = (checked)=>{
   document.getElementById("repeat-fields").classList.toggle("hidden", !checked);
   document.getElementById("repeat-hint").classList.toggle("hidden", !checked);
@@ -1067,7 +1201,7 @@ window.submitTask = (id)=>{
   const caseSel = document.getElementById("f-caseId");
   const type = document.getElementById("f-type").value.trim() || PROCEDURE_TYPES[0];
   const existing = id ? state.tasks.find(x=>x.id===id) : null;
-  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", critical: window._tempKind==="deadline" && !!document.getElementById("f-critical")?.checked, notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null };
+  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null };
   ensureCustomProcedureType(type);
 
   const repeatOn = document.getElementById("f-repeat-on");
@@ -1112,7 +1246,7 @@ window.submitContinue = (origId)=>{
   const reason = document.getElementById("cont-reason").value.trim();
   const orig = state.tasks.find(x=>x.id===origId);
   if(!orig) return;
-  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", critical:orig.critical||false, notes:orig.notes, completed:false, googleEventId:null });
+  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", flag:orig.flag||"none", notes:orig.notes, completed:false, googleEventId:null });
   if(document.getElementById("cont-markdone").checked){
     coll("tasks").doc(origId).set({...stripId(orig), completed:true, postponeReason: reason || orig.postponeReason || null});
   } else if(reason){
@@ -1515,6 +1649,7 @@ function openSettingsModal(){
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <button class="btn-ghost" style="width:100%;margin-bottom:16px;" onclick="closeModal();openQuickReference(false)">${ICONS.info} Quick reference</button>
       <div class="field"><span class="field-label">Flag dates as "due soon" within</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <input class="input" id="s-alertdays" type="number" min="1" max="60" value="${state.alertDays}" style="width:80px;" />
@@ -1526,7 +1661,7 @@ function openSettingsModal(){
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
         ${state.googleConnected
-          ? `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically while you use the app.</div>`
+          ? `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically, with reminders (1 day + 1 hour before; 3 days too for Critical) handled by Google Calendar itself.</div>`
           : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Not connected. You can still add any date to Google Calendar manually with one tap — look for the calendar icon next to any date.</div>
              <button class="btn-ghost" onclick="connectGoogleCalendar()">Connect Google Calendar</button>`}
       </div>
@@ -1560,6 +1695,54 @@ function openSettingsModal(){
   </div>`;
 }
 window.saveAlertDays = ()=>{ state.alertDays = Math.max(1, Number(document.getElementById("s-alertdays").value)||1); saveSettings(); closeModal(); };
+window.openQuickReference = (isFirstTime)=>{
+  const legendTypes = [...PROCEDURE_TYPES];
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal wide" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${isFirstTime?'Welcome to Docket':'Quick Reference'}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Calendar icons</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          ${legendTypes.map(t=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 8px;"><span style="color:${colorForProcedure(t)};">${iconForProcedure(t)}</span> ${esc(t)}</span>`).join("")}
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Flags</div>
+        <div style="font-size:13px;line-height:1.7;">
+          <div><span class="badge" style="border-color:var(--critical);color:var(--critical);">CRITICAL</span> — a can't-miss date. Pinned to the top of Calendar no matter how far away.</div>
+          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">Heads-up</span> — a gentle nudge. Shows automatically as any date approaches (based on your Settings), or force it earlier with the FYI flag.</div>
+          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--overdue);color:var(--overdue);">Overdue</span> — passed and not yet marked done.</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Cases</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Link related cases to each other from the case form. Counsel and Criminal case types get their own simplified fields. Filter by court to see everything open at a specific courthouse.
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Checklist</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Link a checklist item to a specific date, or to "Next court hearing" so it automatically follows whichever hearing is soonest — even through postponements.
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <div class="section-label">Calendar navigation</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Swipe left/right to change months, or tap the month name to jump straight to any month.
+        </div>
+      </div>
+
+      ${isFirstTime ? `<button class="btn-primary" style="width:100%;margin-top:10px;" onclick="closeModal()">Get started</button>` : ""}
+    </div>
+  </div>`;
+};
 window.removeCustomType = (kind, value)=>{
   if(kind==="case"){ state.customCaseTypes = state.customCaseTypes.filter(t=>t!==value); }
   else { state.customProcedureTypes = state.customProcedureTypes.filter(t=>t!==value); }
