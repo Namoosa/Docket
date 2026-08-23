@@ -743,7 +743,8 @@ function taskRowHtml(t, caseItem, showDate){
     else if(isDeadline) statusBadge = `<span class="badge" style="border-color:var(--purple);color:var(--purple);">${countdownLabel}</span>`;
     else if(urgent) statusBadge = `<span class="badge" style="border-color:var(--brass);color:var(--brass);">${countdownLabel}</span>`;
   }
-  const prepItems = state.checklist.filter(c=>c.taskId===t.id);
+  const isNextHearingForCase = caseItem && t.type==="Hearing" && !t.completed && nextHearingForCase(caseItem.id)?.id===t.id;
+  const prepItems = state.checklist.filter(c=> c.taskId===t.id || (isNextHearingForCase && c.followNextHearing && c.caseId===caseItem.id));
   const prepDone = prepItems.filter(c=>c.done).length;
   const prepHtml = prepItems.length ? `
     <div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);">
@@ -846,12 +847,13 @@ function renderCases(){
 function caseCardHtml(c){
   const color = colorForCaseType(c.caseType);
   const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
-  const groupSize = (c.linkedCaseIds||[]).length;
+  const groupSize = (c.linkedCaseIds||[]).filter(lid=>state.cases.some(x=>x.id===lid)).length;
   return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
       <div style="min-width:0;">
-        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?'${ICONS.star} ':''}${esc(computeCaseTitle(c))}</div>
+        <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?(ICONS.star+' '):''}${esc(computeCaseTitle(c))}</div>
         ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;">${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` · ${esc(c.chamber)}`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` · ${esc(c.prosecutorInCharge)}`:""}</div>`:""}
+        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12px;color:var(--slate);font-weight:600;">${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${esc(c.courtNumber)}</div>`:""}
       </div>
       <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
@@ -876,14 +878,19 @@ function renderChecklist(){
       items.map(it=>{
         const c = casesById[it.caseId];
         const linkedTask = it.taskId ? tasksById[it.taskId] : null;
+        const followedHearing = (it.followNextHearing && it.caseId) ? nextHearingForCase(it.caseId) : null;
         const metaLine = linkedTask
           ? `${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : followedHearing
+          ? `Next hearing · ${fmtLong(followedHearing.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : it.followNextHearing
+          ? `Next hearing (none scheduled yet)${c?` · ${esc(computeCaseTitle(c))}`:""}`
           : (c ? esc(computeCaseTitle(c)) : "");
         return `<div class="checklist-row">
           <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
             <div style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</div>
-            ${metaLine?`<div class="task-meta">${linkedTask?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
+            ${metaLine?`<div class="task-meta">${(linkedTask||it.followNextHearing)?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
           </div>
           <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
         </div>`;
@@ -894,7 +901,8 @@ window.toggleChecklistDone = toggleChecklistDone;
 window.deleteChecklistItem = deleteChecklistItem;
 
 function openChecklistModal(existing){
-  const it = existing || {caseId:"", text:"", done:false, taskId:""};
+  const it = existing || {caseId:"", text:"", done:false, taskId:"", followNextHearing:false};
+  window._tempLinkMode = it.followNextHearing ? "hearing" : "date";
   const openTasksForCase = (caseId)=> state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
@@ -908,17 +916,30 @@ function openChecklistModal(existing){
         </select>
       </div>
       <div class="field" id="chk-task-field" style="${it.caseId?'':'display:none;'}">
-        <span class="field-label">Link to a specific date / hearing (optional)</span>
-        <select class="input" id="chk-task">
-          <option value="">Not tied to a specific date</option>
-          ${it.caseId ? openTasksForCase(it.caseId).map(t=>`<option value="${t.id}" ${it.taskId===t.id?'selected':''}>${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("") : ""}
-        </select>
-        <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Shows this item right alongside that date, and flags it urgent as the date approaches.</div>
+        <span class="field-label">Link to</span>
+        <div class="radio-row" id="chk-linkmode-row" style="margin-bottom:8px;">
+          <button type="button" class="radio-pill ${window._tempLinkMode==='date'?'active':''}" data-v="date" onclick="setChecklistLinkMode('date')">A specific date</button>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='hearing'?'active':''}" data-v="hearing" onclick="setChecklistLinkMode('hearing')">Next court hearing</button>
+        </div>
+        <div id="chk-date-picker" class="${window._tempLinkMode==='hearing'?'hidden':''}">
+          <select class="input" id="chk-task">
+            <option value="">Not tied to a specific date</option>
+            ${it.caseId ? openTasksForCase(it.caseId).map(t=>`<option value="${t.id}" ${it.taskId===t.id?'selected':''}>${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("") : ""}
+          </select>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Shows this item right alongside that date, and flags it urgent as the date approaches.</div>
+        </div>
+        <div id="chk-hearing-note" class="${window._tempLinkMode==='hearing'?'':'hidden'}" style="font-size:11.5px;color:var(--muted);">Automatically follows whichever Hearing is next for this case — if it gets postponed or continued, this item moves with it. No need to re-link.</div>
       </div>
       <button class="btn-primary" style="width:100%;" onclick="submitChecklist(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add item'}</button>
     </div>
   </div>`;
 }
+window.setChecklistLinkMode = (v)=>{
+  window._tempLinkMode = v;
+  document.querySelectorAll("#chk-linkmode-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
+  document.getElementById("chk-date-picker").classList.toggle("hidden", v==="hearing");
+  document.getElementById("chk-hearing-note").classList.toggle("hidden", v!=="hearing");
+};
 window.refreshChecklistTaskOptions = ()=>{
   const caseId = document.getElementById("chk-case").value;
   const field = document.getElementById("chk-task-field");
@@ -930,12 +951,24 @@ window.refreshChecklistTaskOptions = ()=>{
     openTasks.map(t=>`<option value="${t.id}">${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("");
 };
 window.openChecklistModal = openChecklistModal;
+function nextHearingForCase(caseId){
+  const tk = todayKey();
+  return state.tasks.filter(t=>t.caseId===caseId && !t.completed && t.type==="Hearing")
+    .sort((a,b)=>a.date.localeCompare(b.date))[0] || null;
+}
 window.submitChecklist = (id)=>{
   const text = document.getElementById("chk-text").value.trim();
   if(!text) return;
   const existing = id ? state.checklist.find(x=>x.id===id) : null;
+  const caseId = document.getElementById("chk-case").value || null;
+  const followNextHearing = caseId && window._tempLinkMode === "hearing";
   const taskSel = document.getElementById("chk-task");
-  const data = { text, caseId: document.getElementById("chk-case").value || null, taskId: taskSel ? (taskSel.value || null) : null, done: existing ? existing.done : false };
+  const data = {
+    text, caseId,
+    taskId: (followNextHearing || !taskSel) ? null : (taskSel.value || null),
+    followNextHearing: !!followNextHearing,
+    done: existing ? existing.done : false
+  };
   if(id) data.id = id;
   saveChecklistItem(data);
   closeModal();
@@ -1081,7 +1114,7 @@ window.submitContinue = (origId)=>{
 function openCaseModal(existingRaw){
   const existing = (existingRaw && existingRaw.id) ? existingRaw : null;
   const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
-  const c = existingRaw || {titleSource:"opponent", subject:"", parties:[], courtNumber:"", caseType:allCaseTypes[0], status:"Active", notes:"", documents:[], linkedCaseIds:[]};
+  const c = existingRaw || {titleSource:"opponent", subject:"", parties:[], courtNumber:"", caseType:allCaseTypes[0], status:"Active", notes:"", documents:[], linkedCaseIds:[], dateReceived: todayKey()};
   window._tempDocs = (c.documents||[]).slice();
   window._tempParties = (c.parties||[]).slice();
   window._tempLinked = (c.linkedCaseIds||[]).slice();
@@ -1089,47 +1122,67 @@ function openCaseModal(existingRaw){
   window._editingCaseId = existing ? existing.id : null;
   window._tempNoteLog = (c.noteLog || []).slice();
   window._tempAuthorityType = c.authorityType || "court";
+  const isCounsel = c.caseType === "Counsel";
+  const counselClient = (c.parties||[]).find(p=>p.role==="Client");
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
 
-      <div class="field"><span class="field-label">Identify this case by</span>
-        <div class="radio-row" id="title-source-row">
-          <button type="button" class="radio-pill ${window._tempTitleSource==='opponent'?'active':''}" data-v="opponent" onclick="setTitleSource('opponent')">Opponent name</button>
-          <button type="button" class="radio-pill ${window._tempTitleSource==='client'?'active':''}" data-v="client" onclick="setTitleSource('client')">Client name</button>
-          <button type="button" class="radio-pill ${window._tempTitleSource==='subject'?'active':''}" data-v="subject" onclick="setTitleSource('subject')">Title</button>
+      <div class="field"><span class="field-label">Case type</span><input class="input" id="c-type" list="case-type-list" value="${esc(c.caseType)}" oninput="onCaseTypeChange()" /><datalist id="case-type-list">${allCaseTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Choosing "Counsel" switches this form to a simpler advisory-only setup — no opponent, no court.</div>
+      </div>
+
+      <div id="counsel-fields" class="${isCounsel?'':'hidden'}">
+        <div class="field"><span class="field-label">Client</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="Client's full name" /></div>
+        <div class="field"><span class="field-label">Subject</span><input class="input" id="c-counsel-subject" value="${esc(c.subject)}" placeholder="e.g. Contract review for lease renewal" /></div>
+        <div class="field"><span class="field-label">Date received</span><input class="input" id="c-date-received" type="date" value="${c.dateReceived||todayKey()}" /></div>
+      </div>
+
+      <div id="standard-fields" class="${isCounsel?'hidden':''}">
+        <div class="field"><span class="field-label">Identify this case by</span>
+          <div class="radio-row" id="title-source-row">
+            <button type="button" class="radio-pill ${window._tempTitleSource==='opponent'?'active':''}" data-v="opponent" onclick="setTitleSource('opponent')">Opponent name</button>
+            <button type="button" class="radio-pill ${window._tempTitleSource==='client'?'active':''}" data-v="client" onclick="setTitleSource('client')">Client name</button>
+            <button type="button" class="radio-pill ${window._tempTitleSource==='subject'?'active':''}" data-v="subject" onclick="setTitleSource('subject')">Title</button>
+          </div>
         </div>
-      </div>
 
-      <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" /></div>
+        <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" /></div>
 
-      <div class="field">
-        <span class="field-label">Parties</span>
-        <div id="party-list"></div>
-        <button type="button" class="btn-ghost" onclick="addPartyRow()">+ Add party</button>
-        <div id="conflict-warning"></div>
-      </div>
-
-      <div class="field"><span class="field-label">Handling authority</span>
-        <div class="radio-row" id="authority-row">
-          <button type="button" class="radio-pill ${(c.authorityType||'court')==='court'?'active':''}" data-v="court" onclick="setAuthorityType('court')">Court</button>
-          <button type="button" class="radio-pill ${c.authorityType==='prosecution'?'active':''}" data-v="prosecution" onclick="setAuthorityType('prosecution')">Public Prosecution (investigation)</button>
+        <div class="field">
+          <span class="field-label">Parties</span>
+          <div id="party-list"></div>
+          <button type="button" class="btn-ghost" onclick="addPartyRow()">+ Add party</button>
+          <div id="conflict-warning"></div>
         </div>
+
+        <div class="field"><span class="field-label">Handling authority</span>
+          <div class="radio-row" id="authority-row">
+            <button type="button" class="radio-pill ${(c.authorityType||'court')==='court'?'active':''}" data-v="court" onclick="setAuthorityType('court')">Court</button>
+            <button type="button" class="radio-pill ${c.authorityType==='prosecution'?'active':''}" data-v="prosecution" onclick="setAuthorityType('prosecution')">Public Prosecution (investigation)</button>
+          </div>
+        </div>
+        <div class="field"><span class="field-label" id="c-courtname-label">Court</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="e.g. Tripoli Court of First Instance" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+        <div id="chamber-field" class="field ${(c.authorityType||'court')==='court'?'':'hidden'}"><span class="field-label">Chamber / Circuit</span><input class="input" id="c-chamber" value="${esc(c.chamber||'')}" placeholder="e.g. 3rd Circuit — الدائرة الثالثة" /></div>
+        <div id="prosecutor-field" class="field ${c.authorityType==='prosecution'?'':'hidden'}"><span class="field-label">Prosecutor in charge — وكيل النيابة المكلف</span><input class="input" id="c-prosecutor" value="${esc(c.prosecutorInCharge||'')}" placeholder="Name of the assigned deputy prosecutor" /></div>
       </div>
-      <div class="field"><span class="field-label" id="c-courtname-label">Court</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="e.g. Tripoli Court of First Instance" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
-      <div id="chamber-field" class="field ${(c.authorityType||'court')==='court'?'':'hidden'}"><span class="field-label">Chamber / Circuit</span><input class="input" id="c-chamber" value="${esc(c.chamber||'')}" placeholder="e.g. 3rd Circuit — الدائرة الثالثة" /></div>
-      <div id="prosecutor-field" class="field ${c.authorityType==='prosecution'?'':'hidden'}"><span class="field-label">Prosecutor in charge — وكيل النيابة المكلف</span><input class="input" id="c-prosecutor" value="${esc(c.prosecutorInCharge||'')}" placeholder="Name of the assigned deputy prosecutor" /></div>
+
       <div class="field"><span class="field-label">Case / file number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
-      <div class="field"><span class="field-label">Case type</span><input class="input" id="c-type" list="case-type-list" value="${esc(c.caseType)}" /><datalist id="case-type-list">${allCaseTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
       <div class="field"><span class="field-label">Status</span>
         <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
       </div>
       <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ${ICONS.star} Priority case — stand out in the list</label></div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
 
-      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${(window._tempDocs.length||window._tempLinked.length) ? (ICONS.chevron_down+' Documents & linked cases') : (ICONS.chevron_right+' Documents & linked cases (optional)')}</button>
-      <div id="advanced-fields" class="${(window._tempDocs.length||window._tempLinked.length)?'':'hidden'}">
+      ${state.cases.filter(x=>x.id!==(existing?existing.id:null)).length>0 ? `
+      <div class="field">
+        <span class="field-label">Link to other cases or counsel matters (same client / dispute)</span>
+        <div id="link-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface);"></div>
+      </div>` : ""}
+
+      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${window._tempDocs.length ? (ICONS.chevron_down+' Documents') : (ICONS.chevron_right+' Documents (optional)')}</button>
+      <div id="advanced-fields" class="${window._tempDocs.length?'':'hidden'}">
       <div class="field">
         <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
         <div id="doc-list"></div>
@@ -1139,12 +1192,6 @@ function openCaseModal(existingRaw){
           <button type="button" class="btn-ghost" onclick="addDocLink()">Add</button>
         </div>
       </div>
-
-      ${state.cases.filter(x=>x.id!==(existing?existing.id:null)).length>0 ? `
-      <div class="field">
-        <span class="field-label">Link to other cases (same client / dispute)</span>
-        <div id="link-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface);"></div>
-      </div>` : ""}
       </div>
 
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Create case'}</button>
@@ -1153,6 +1200,12 @@ function openCaseModal(existingRaw){
   renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts();
 }
 window.openCaseModal = openCaseModal;
+window.onCaseTypeChange = ()=>{
+  const val = document.getElementById("c-type").value.trim();
+  const isCounsel = val === "Counsel";
+  document.getElementById("counsel-fields").classList.toggle("hidden", !isCounsel);
+  document.getElementById("standard-fields").classList.toggle("hidden", isCounsel);
+};
 window.setTitleSource = (v)=>{ window._tempTitleSource=v; document.querySelectorAll("#title-source-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v)); };
 window.setAuthorityType = (v)=>{
   window._tempAuthorityType = v;
@@ -1167,7 +1220,7 @@ window.toggleCaseAdvanced = ()=>{
   const fields = document.getElementById("advanced-fields");
   const btn = document.getElementById("advanced-toggle-btn");
   const nowHidden = fields.classList.toggle("hidden");
-  btn.innerHTML = nowHidden ? (ICONS.chevron_right+" Documents & linked cases (optional)") : (ICONS.chevron_down+" Documents & linked cases");
+  btn.innerHTML = nowHidden ? (ICONS.chevron_right+" Documents (optional)") : (ICONS.chevron_down+" Documents");
 };
 
 function renderPartyList(){
@@ -1243,18 +1296,38 @@ window.toggleLinked = (id, checked)=>{
 window.submitCase = (id)=>{
   const caseType = document.getElementById("c-type").value.trim() || CASE_TYPES[0];
   ensureCustomCaseType(caseType);
-  const parties = window._tempParties.filter(p=>p.name.trim()).map(p=>({...p, name:p.name.trim()}));
-  const data = {
-    titleSource: window._tempTitleSource, subject: document.getElementById("c-subject").value.trim(),
-    parties, court: document.getElementById("c-courtname").value.trim(), courtNumber: document.getElementById("c-court").value.trim(),
-    authorityType: window._tempAuthorityType || "court",
-    chamber: document.getElementById("c-chamber") ? document.getElementById("c-chamber").value.trim() : "",
-    prosecutorInCharge: document.getElementById("c-prosecutor") ? document.getElementById("c-prosecutor").value.trim() : "",
-    caseType, status: document.getElementById("c-status").value, priority: !!document.getElementById("c-priority").checked,
-    notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs,
-    linkedCaseIds: window._tempLinked, noteLog: window._tempNoteLog || []
-  };
-  if(parties.length===0 && !data.subject){ alert("Add at least one party name or a subject so this case can be identified."); return; }
+  const isCounsel = caseType === "Counsel";
+
+  let data;
+  if(isCounsel){
+    const clientName = document.getElementById("c-counsel-client").value.trim();
+    const subject = document.getElementById("c-counsel-subject").value.trim();
+    if(!clientName){ alert("Add the client's name so this matter can be identified."); return; }
+    data = {
+      titleSource: "client",
+      subject,
+      parties: [{ id: uid(), role: "Client", name: clientName, phone:"", email:"" }],
+      court: "", courtNumber: document.getElementById("c-court").value.trim(),
+      authorityType: null, chamber: "", prosecutorInCharge: "",
+      dateReceived: document.getElementById("c-date-received").value || todayKey(),
+      caseType, status: document.getElementById("c-status").value, priority: !!document.getElementById("c-priority").checked,
+      notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs,
+      linkedCaseIds: window._tempLinked, noteLog: window._tempNoteLog || []
+    };
+  } else {
+    const parties = window._tempParties.filter(p=>p.name.trim()).map(p=>({...p, name:p.name.trim()}));
+    data = {
+      titleSource: window._tempTitleSource, subject: document.getElementById("c-subject").value.trim(),
+      parties, court: document.getElementById("c-courtname").value.trim(), courtNumber: document.getElementById("c-court").value.trim(),
+      authorityType: window._tempAuthorityType || "court",
+      chamber: document.getElementById("c-chamber") ? document.getElementById("c-chamber").value.trim() : "",
+      prosecutorInCharge: document.getElementById("c-prosecutor") ? document.getElementById("c-prosecutor").value.trim() : "",
+      caseType, status: document.getElementById("c-status").value, priority: !!document.getElementById("c-priority").checked,
+      notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs,
+      linkedCaseIds: window._tempLinked, noteLog: window._tempNoteLog || []
+    };
+    if(data.parties.length===0 && !data.subject){ alert("Add at least one party name or a subject so this case can be identified."); return; }
+  }
   if(id) data.id = id; else data.createdAt = Date.now();
 
   // sync reciprocal links: add this case to the linked cases' own linkedCaseIds too
@@ -1285,6 +1358,7 @@ function openCaseDetailModal(c){
         ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-left:4px;">Investigation</span>`:""}</div>`:""}
         ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.chamber)}</div>`:""}
         ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${esc(c.prosecutorInCharge)}</div>`:""}
+        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
           <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.file_pdf}</button>
