@@ -29,6 +29,18 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- ============================================================
+     GOOGLE OAUTH CLIENT ID — needed only for Calendar connection.
+     Get this from Google Cloud Console → APIs & Services → Credentials →
+     under "OAuth 2.0 Client IDs" → the entry usually named
+     "Web client (auto created by Google Service)" → copy its Client ID
+     (ends in .apps.googleusercontent.com).
+============================================================= -->
+<script>
+  window.GOOGLE_OAUTH_CLIENT_ID = "702066124462-bl1cp7bi4e1viddm4a03695migjucu80.apps.googleusercontent.com";
+</script>
+
 <style>
   :root{
     --ink:#20242C; --paper:#ECE7DA; --panel:#FBF9F3; --navy:#22344A; --navy-dark:#182234;
@@ -146,7 +158,7 @@
     <div class="field"><span class="field-label">Password</span><input class="input" id="auth-password" type="password" autocomplete="current-password" /></div>
     <button class="btn-primary" id="auth-submit" style="width:100%;">Sign in</button>
     <div id="auth-error"></div>
-    <div style="font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5;">This account is private to you — only you can see the cases and dates stored here. Signing in with Google also lets Docket sync hearing dates to your real Google Calendar.</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5;">This account is private to you — only you can see the cases and dates stored here. You can connect Google Calendar separately, any time, from Settings — with any login method.</div>
   </div>
 </div>
 
@@ -255,7 +267,7 @@ const WD = ["S","M","T","W","T","F","S"];
 
 /* ================= STATE ================= */
 let state = {
-  user:null, googleAccessToken:null, googleConnected:false,
+  user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false,
   cases:[], tasks:[], checklist:[],
   customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false,
   view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
@@ -267,6 +279,18 @@ function todayKey(){ return dateKey(new Date()); }
 function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function parseKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
 function addDays(k,n){ const d=parseKey(k); d.setDate(d.getDate()+n); return dateKey(d); }
+function googleCalendarAddLink(task, caseItem){
+  const title = (caseItem ? computeCaseTitle(caseItem) + " — " : "") + task.title;
+  const start = task.date.replace(/-/g,"");
+  const end = addDays(task.date,1).replace(/-/g,"");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: title,
+    dates: `${start}/${end}`,
+    details: task.notes || ""
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
 function daysBetween(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000); }
 function fmtLong(k){ const d=parseKey(k); return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
 function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36); }
@@ -308,19 +332,14 @@ async function googleSignIn(){
   const errEl = document.getElementById("auth-error");
   if(errEl) errEl.textContent = "";
   const provider = new firebase.auth.GoogleAuthProvider();
-  provider.addScope("https://www.googleapis.com/auth/calendar.events");
-  provider.setCustomParameters({ prompt: "consent" });
+  // Login only — no calendar scope bundled in here anymore. Calendar
+  // connection is a fully separate step (see connectGoogleCalendar below)
+  // using Google's own token-only library, independent of this login flow.
   function reportError(msg){
     if(errEl) errEl.textContent = msg;
-    showToast(msg); // works everywhere, unlike errEl which only exists on the sign-in screen
+    showToast(msg);
   }
   try{
-    // Popup-based sign-in is unreliable here: Chrome's default
-    // Cross-Origin-Opener-Policy isolates the popup window, which breaks
-    // Firebase's ability to track it and can silently drop the result even
-    // when you complete sign-in correctly. The proper server-side fix (a
-    // custom COOP header) isn't available on GitHub Pages, so redirect
-    // (a full-page handoff, no child window involved) is the reliable path.
     await auth.signInWithRedirect(provider);
   }catch(e){ reportError(e.message); }
 }
@@ -383,11 +402,12 @@ function attachListeners(uidVal){
     state.customCaseTypes = d.customCaseTypes || [];
     state.customProcedureTypes = d.customProcedureTypes || [];
     state.onboardDismissed = !!d.onboardDismissed;
+    state.calendarEverConnected = !!d.calendarEverConnected;
     render();
   });
 }
 function saveSettings(){
-  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed });
+  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected });
 }
 function stripId(t){ const {id, ...rest}=t; return rest; }
 
@@ -464,25 +484,45 @@ async function deleteFromGoogleCalendar(eventId){
   if(!state.googleAccessToken || !eventId) return;
   try{ await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, { method:"DELETE", headers:{ "Authorization":"Bearer "+state.googleAccessToken } }); }catch(e){}
 }
-window.reconnectGoogle = async ()=>{ await googleSignIn(); };
-window.linkGoogleCalendar = async ()=>{
-  const errBox = document.getElementById("link-google-error");
-  if(errBox) errBox.textContent = "";
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.addScope("https://www.googleapis.com/auth/calendar.events");
-  provider.setCustomParameters({ prompt: "consent" });
-  try{
-    // linkWithRedirect adds Google to the SAME account you're already signed
-    // into — unlike signing out and back in, this can never create a second,
-    // disconnected account under the same email. Using redirect (not popup)
-    // for the same Chrome COOP reason as the main sign-in flow.
-    await auth.currentUser.linkWithRedirect(provider);
-  }catch(e){
-    if(errBox) errBox.textContent = e.code==="auth/credential-already-in-use"
-      ? "This Google account is already linked to a different Docket login. Sign in with that account instead."
-      : e.message;
+let gisTokenClient = null;
+function getGisTokenClient(){
+  if(gisTokenClient) return gisTokenClient;
+  if(!window.google || !window.google.accounts || !window.google.accounts.oauth2){
+    showToast("Google's sign-in library hasn't finished loading yet — try again in a moment.");
+    return null;
   }
+  gisTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: window.GOOGLE_OAUTH_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/calendar.events",
+    callback: (tokenResponse)=>{
+      if(tokenResponse && tokenResponse.access_token){
+        state.googleAccessToken = tokenResponse.access_token;
+        state.googleConnected = true;
+        state.calendarEverConnected = true;
+        saveSettings();
+        showToast("Google Calendar connected.");
+        render();
+      } else {
+        showToast("Google didn't grant calendar access this time — please try again.");
+      }
+    },
+    error_callback: (err)=>{
+      if(err && err.type==="popup_closed") return; // user just changed their mind, no need to alarm them
+      showToast("Couldn't connect Google Calendar: " + (err && err.type ? err.type : "unknown error"));
+    }
+  });
+  return gisTokenClient;
+}
+// Connecting Google Calendar is now fully independent of how you signed
+// into Docket (email/password or Google) — this uses Google's own
+// token-only library (Google Identity Services), not Firebase's
+// popup/redirect sign-in, which sidesteps both problems we hit with those:
+// Chrome's popup-isolation policy, and getRedirectResult() unreliability.
+window.connectGoogleCalendar = ()=>{
+  const client = getGisTokenClient();
+  if(client) client.requestAccessToken();
 };
+window.reconnectGoogle = window.connectGoogleCalendar;
 function showToast(message){
   const el = document.createElement("div");
   el.className = "app-toast";
@@ -605,8 +645,7 @@ window.dismissBanner = dismissBanner;
 
 function renderReconnectBanner(){
   const wrap = document.getElementById("reconnect-banner-wrap");
-  const isGoogleUser = state.user && state.user.providerData.some(p=>p.providerId==="google.com");
-  if(isGoogleUser && !state.googleConnected){
+  if(state.calendarEverConnected && !state.googleConnected){
     wrap.innerHTML = `<div class="install-banner" style="border-left-color:var(--brick);margin-top:10px;">
       <span>${ICONS.calendar_days}</span>
       <div style="flex:1;">Google Calendar sync needs to be reconnected (this happens periodically for security). Your dates are still safe — this only affects calendar syncing.</div>
@@ -696,7 +735,8 @@ function taskRowHtml(t, caseItem, showDate){
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="task-title-icon" style="color:${color};">${icon}</span>
         <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
-        ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="Open in Google Calendar" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:""}
+        ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="Open in Google Calendar" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:
+          `<a href="${esc(googleCalendarAddLink(t, caseItem))}" target="_blank" onclick="event.stopPropagation()" title="Add to Google Calendar" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>`}
         ${statusBadge}
       </div>
       <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
@@ -1308,7 +1348,6 @@ window.confirmDeleteCase = (id)=>{
 window.deleteCaseDoc = deleteCaseDoc;
 
 function openSettingsModal(){
-  const isGoogleUser = state.user && state.user.providerData.some(p=>p.providerId==="google.com");
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1323,12 +1362,10 @@ function openSettingsModal(){
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
-        ${isGoogleUser ?
-          (state.googleConnected ? `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically while you use the app.</div>`
-          : `<div style="font-size:13px;color:var(--brick);margin-bottom:8px;">Not connected right now.</div><button class="btn-ghost" onclick="reconnectGoogle()">Connect Google Calendar</button>`)
-          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Add Google Calendar sync to this account — no need to sign out.</div>
-             <button class="btn-ghost" id="link-google-btn" onclick="linkGoogleCalendar()">Connect Google Calendar</button>
-             <div id="link-google-error" style="color:#B23A32;font-size:12px;margin-top:6px;"></div>`}
+        ${state.googleConnected
+          ? `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically while you use the app.</div>`
+          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Not connected. You can still add any date to Google Calendar manually with one tap — look for the calendar icon next to any date.</div>
+             <button class="btn-ghost" onclick="connectGoogleCalendar()">Connect Google Calendar</button>`}
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
