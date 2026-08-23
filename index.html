@@ -309,10 +309,15 @@ async function googleSignIn(forceConsent){
   if(errEl) errEl.textContent = "";
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.addScope("https://www.googleapis.com/auth/calendar.events");
-  // Only force the full consent screen the first time (or when explicitly asked) —
-  // once granted, Google will typically skip straight past it on renewal,
-  // making "Reconnect" noticeably faster for repeat use.
-  if(forceConsent !== false) provider.setCustomParameters({ prompt: "consent" });
+  // Always force the consent screen. Omitting it sometimes causes Google to
+  // skip straight past account selection WITHOUT including a fresh access
+  // token in the response at all — a real failure mode we hit in testing,
+  // so the "lighter reconnect" shortcut isn't safe to rely on.
+  provider.setCustomParameters({ prompt: "consent" });
+  function reportError(msg){
+    if(errEl) errEl.textContent = msg;
+    showToast(msg); // works everywhere, unlike errEl which only exists on the sign-in screen
+  }
   try{
     // Try the popup method first — this works reliably on most desktop
     // browsers with default privacy settings, and doesn't depend on the
@@ -324,6 +329,8 @@ async function googleSignIn(forceConsent){
       state.googleAccessToken = credential.accessToken;
       state.googleConnected = true;
       if(state.user) render();
+    } else {
+      reportError("Google didn't grant calendar access this time — please try Reconnect again.");
     }
   }catch(e){
     const popupFailed = e && ["auth/popup-blocked","auth/cancelled-popup-request","auth/popup-closed-by-user","auth/operation-not-supported-in-this-environment"].includes(e.code);
@@ -331,9 +338,9 @@ async function googleSignIn(forceConsent){
       // Mobile browsers and installed home-screen apps often block popups —
       // fall back to a full-page redirect, which works better there.
       try{ await auth.signInWithRedirect(provider); }
-      catch(e2){ if(errEl) errEl.textContent = e2.message; }
+      catch(e2){ reportError(e2.message); }
     } else {
-      if(errEl) errEl.textContent = e.message;
+      reportError(e.message);
     }
   }
 }
@@ -346,11 +353,14 @@ auth.getRedirectResult().then(result=>{
       state.googleAccessToken = credential.accessToken;
       state.googleConnected = true;
       render();
+    } else if(result.user){
+      showToast("Google didn't grant calendar access this time — please try Reconnect again.");
     }
   }
 }).catch(e=>{
   const errEl = document.getElementById("auth-error");
   if(errEl) errEl.textContent = e.message;
+  showToast(e.message);
   console.error("Google redirect sign-in error:", e);
 });
 document.getElementById("google-signin-btn").onclick = googleSignIn;
@@ -359,12 +369,21 @@ document.getElementById("signout-btn").onclick = ()=> { state.googleAccessToken=
 auth.onAuthStateChanged(user=>{
   if(user){
     state.user = user;
-    state.googleConnected = user.providerData.some(p=>p.providerId==="google.com") && !!state.googleAccessToken;
+    // Only compute this fresh if we don't already know we're connected —
+    // this listener can re-fire after a successful token grab (e.g. when
+    // Firestore's own listeners re-attach), and blindly recomputing here
+    // using a possibly-stale read of googleAccessToken can silently
+    // overwrite a real, just-completed connection back to "disconnected."
+    if(!state.googleConnected){
+      state.googleConnected = user.providerData.some(p=>p.providerId==="google.com") && !!state.googleAccessToken;
+    }
     document.getElementById("auth-screen").classList.add("hidden");
     document.getElementById("app-shell").classList.remove("hidden");
     attachListeners(user.uid);
   } else {
     state.user = null;
+    state.googleAccessToken = null;
+    state.googleConnected = false;
     document.getElementById("auth-screen").classList.remove("hidden");
     document.getElementById("app-shell").classList.add("hidden");
     if(unsubCases) unsubCases(); if(unsubTasks) unsubTasks(); if(unsubChecklist) unsubChecklist(); if(unsubSettings) unsubSettings();
@@ -464,7 +483,7 @@ async function deleteFromGoogleCalendar(eventId){
   if(!state.googleAccessToken || !eventId) return;
   try{ await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, { method:"DELETE", headers:{ "Authorization":"Bearer "+state.googleAccessToken } }); }catch(e){}
 }
-window.reconnectGoogle = async ()=>{ await googleSignIn(false); render(); };
+window.reconnectGoogle = async ()=>{ await googleSignIn(); render(); };
 window.linkGoogleCalendar = async ()=>{
   const btn = document.getElementById("link-google-btn");
   const errBox = document.getElementById("link-google-error");
