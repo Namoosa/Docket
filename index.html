@@ -587,7 +587,7 @@ window.printCaseHistory = (c)=>{
 
   document.getElementById("print-area").innerHTML = `
     <h1>${esc(computeCaseTitle(c))}</h1>
-    <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.authorityType==="court"&&c.chamber?(" · "+esc(c.chamber)):""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?(" · Prosecutor: "+esc(c.prosecutorInCharge)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}</div>
+    <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.authorityType==="court"&&c.chamber?(" · "+esc(c.chamber)):""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?(" · Prosecutor: "+esc(c.prosecutorInCharge)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}${c.partialNumber?(" · Partial "+esc(c.partialNumber)):""}${c.generalNumber?(" · General "+esc(c.generalNumber)):""}</div>
 
     ${(c.parties&&c.parties.length)?`<div class="p-section">
       <div class="p-section-title">Parties</div>
@@ -685,10 +685,13 @@ function renderCalendar(upcoming){
     const items = tasksByDate[key] || [];
     const isToday = key===tk, isSel = key===state.selectedDay;
     const hasOverdue = items.some(t=>!t.completed && daysBetween(tk,key)<0);
-    const dots = items.slice(0,3).map(t=>`<div class="dot" style="background:${t.completed?'#B9B29A':colorForProcedure(t.type)};"></div>`).join("");
+    const activeItems = items.filter(t=>!t.completed);
+    const barColor = activeItems.length===0 ? null : (activeItems.some(t=>t.critical) ? "var(--brick)" : colorForProcedure(activeItems[0].type));
+    const eventBar = items.length ? `<div style="width:70%;height:4px;border-radius:2px;background:${activeItems.length?barColor:'#B9B29A'};margin-top:1px;"></div>` : "";
+    const countBadge = items.length>1 ? `<span style="font-size:8.5px;color:var(--muted);font-weight:700;line-height:1;margin-top:1px;">${items.length}</span>` : "";
     cells += `<button class="cal-day ${isToday?'today':''} ${isSel?'selected':''}" onclick="selectDay('${key}')">
       <span style="font-size:12.5px;font-weight:${isToday?700:500};color:${isToday?'var(--brass)':'var(--ink)'};">${d}</span>
-      <div style="display:flex;gap:2px;">${dots}</div>
+      ${eventBar}${countBadge}
       ${hasOverdue?'<div class="overdue-mark"></div>':''}
     </button>`;
   }
@@ -792,7 +795,7 @@ function renderCases(){
     if(!q) return true;
     const title = computeCaseTitle(c).toLowerCase();
     const partyMatch = (c.parties||[]).some(p=>p.name.toLowerCase().includes(q));
-    return title.includes(q) || (c.courtNumber||"").toLowerCase().includes(q) || (c.court||"").toLowerCase().includes(q) || (c.subject||"").toLowerCase().includes(q) || partyMatch;
+    return title.includes(q) || (c.courtNumber||"").toLowerCase().includes(q) || (c.court||"").toLowerCase().includes(q) || (c.subject||"").toLowerCase().includes(q) || (c.partialNumber||"").toLowerCase().includes(q) || (c.generalNumber||"").toLowerCase().includes(q) || partyMatch;
   }).sort((a,b)=> (b.priority?1:0)-(a.priority?1:0) || (b.createdAt||0)-(a.createdAt||0));
 
   const closedCount = state.cases.filter(c=>c.status==="Closed").length;
@@ -854,6 +857,7 @@ function caseCardHtml(c){
         <div class="serif" style="font-size:16px;color:var(--navy-dark);margin-bottom:2px;">${c.priority?(ICONS.star+' '):''}${esc(computeCaseTitle(c))}</div>
         ${c.court?`<div style="font-size:12px;color:var(--slate);font-weight:600;">${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` · ${esc(c.chamber)}`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` · ${esc(c.prosecutorInCharge)}`:""}</div>`:""}
         ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12px;color:var(--slate);font-weight:600;">${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}</div>`:""}
+        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${c.partialNumber?esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"Gen. "+esc(c.generalNumber):""}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:11.5px;color:var(--muted);">${esc(c.courtNumber)}</div>`:""}
       </div>
       <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
@@ -879,6 +883,9 @@ function renderChecklist(){
         const c = casesById[it.caseId];
         const linkedTask = it.taskId ? tasksById[it.taskId] : null;
         const followedHearing = (it.followNextHearing && it.caseId) ? nextHearingForCase(it.caseId) : null;
+        const effectiveTask = linkedTask || followedHearing;
+        const rowColor = effectiveTask ? (effectiveTask.critical ? "var(--brick)" : colorForProcedure(effectiveTask.type)) : (c ? colorForCaseType(c.caseType) : "var(--line)");
+        const rowIcon = effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : "");
         const metaLine = linkedTask
           ? `${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
           : followedHearing
@@ -886,10 +893,13 @@ function renderChecklist(){
           : it.followNextHearing
           ? `Next hearing (none scheduled yet)${c?` · ${esc(computeCaseTitle(c))}`:""}`
           : (c ? esc(computeCaseTitle(c)) : "");
-        return `<div class="checklist-row">
+        return `<div class="checklist-row" style="border-left:4px solid ${it.done?'var(--line)':rowColor};">
           <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
-            <div style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${rowIcon&&!it.done?`<span style="color:${rowColor};flex-shrink:0;">${rowIcon}</span>`:""}
+              <span style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
+            </div>
             ${metaLine?`<div class="task-meta">${(linkedTask||it.followNextHearing)?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
           </div>
           <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
@@ -1129,8 +1139,12 @@ function openCaseModal(existingRaw){
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
 
-      <div class="field"><span class="field-label">Case type</span><input class="input" id="c-type" list="case-type-list" value="${esc(c.caseType)}" oninput="onCaseTypeChange()" /><datalist id="case-type-list">${allCaseTypes.map(x=>`<option value="${esc(x)}">`).join("")}</datalist>
-        <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Choosing "Counsel" switches this form to a simpler advisory-only setup — no opponent, no court.</div>
+      <div class="field"><span class="field-label">Case type</span>
+        <select class="input" id="c-type-select" onchange="onCaseTypeSelectChange()">
+          ${allCaseTypes.map(x=>`<option value="${esc(x)}" ${c.caseType===x?'selected':''}>${esc(x)}</option>`).join("")}
+          <option value="__other__" ${!allCaseTypes.includes(c.caseType)?'selected':''}>+ Custom type…</option>
+        </select>
+        <input class="input ${!allCaseTypes.includes(c.caseType)?'':'hidden'}" id="c-type-custom" placeholder="Type a custom case type" value="${!allCaseTypes.includes(c.caseType)?esc(c.caseType):''}" style="margin-top:6px;" oninput="onCaseTypeChange()" />
       </div>
 
       <div id="counsel-fields" class="${isCounsel?'':'hidden'}">
@@ -1168,7 +1182,11 @@ function openCaseModal(existingRaw){
         <div id="prosecutor-field" class="field ${c.authorityType==='prosecution'?'':'hidden'}"><span class="field-label">Prosecutor in charge — وكيل النيابة المكلف</span><input class="input" id="c-prosecutor" value="${esc(c.prosecutorInCharge||'')}" placeholder="Name of the assigned deputy prosecutor" /></div>
       </div>
 
-      <div class="field"><span class="field-label">Case / file number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
+      <div id="generic-number-field" class="field ${c.caseType==="Criminal"?'hidden':''}"><span class="field-label">Case / file number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
+      <div id="criminal-number-fields" class="${c.caseType==="Criminal"?'':'hidden'}">
+        <div class="field"><span class="field-label">Partial number (with police department)</span><input class="input" id="c-partial-number" value="${esc(c.partialNumber||'')}" placeholder="e.g. 45/2026 — Central Police Station" /></div>
+        <div class="field"><span class="field-label">General number</span><input class="input" id="c-general-number" value="${esc(c.generalNumber||'')}" placeholder="e.g. 1145/2026" /></div>
+      </div>
       <div class="field"><span class="field-label">Status</span>
         <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
       </div>
@@ -1200,11 +1218,25 @@ function openCaseModal(existingRaw){
   renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts();
 }
 window.openCaseModal = openCaseModal;
+window.onCaseTypeSelectChange = ()=>{
+  const sel = document.getElementById("c-type-select");
+  const custom = document.getElementById("c-type-custom");
+  custom.classList.toggle("hidden", sel.value !== "__other__");
+  onCaseTypeChange();
+};
+function getCaseTypeValue(){
+  const sel = document.getElementById("c-type-select");
+  if(sel.value === "__other__") return document.getElementById("c-type-custom").value.trim();
+  return sel.value;
+}
 window.onCaseTypeChange = ()=>{
-  const val = document.getElementById("c-type").value.trim();
+  const val = getCaseTypeValue();
   const isCounsel = val === "Counsel";
+  const isCriminal = val === "Criminal";
   document.getElementById("counsel-fields").classList.toggle("hidden", !isCounsel);
   document.getElementById("standard-fields").classList.toggle("hidden", isCounsel);
+  document.getElementById("generic-number-field").classList.toggle("hidden", isCriminal);
+  document.getElementById("criminal-number-fields").classList.toggle("hidden", !isCriminal);
 };
 window.setTitleSource = (v)=>{ window._tempTitleSource=v; document.querySelectorAll("#title-source-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v)); };
 window.setAuthorityType = (v)=>{
@@ -1294,11 +1326,13 @@ window.toggleLinked = (id, checked)=>{
 };
 
 window.submitCase = (id)=>{
-  const caseType = document.getElementById("c-type").value.trim() || CASE_TYPES[0];
+  const caseType = getCaseTypeValue() || CASE_TYPES[0];
   ensureCustomCaseType(caseType);
   const isCounsel = caseType === "Counsel";
+  const isCriminal = caseType === "Criminal";
 
   let data;
+  if(!caseType){ alert("Choose or type a case type."); return; }
   if(isCounsel){
     const clientName = document.getElementById("c-counsel-client").value.trim();
     const subject = document.getElementById("c-counsel-subject").value.trim();
@@ -1318,7 +1352,10 @@ window.submitCase = (id)=>{
     const parties = window._tempParties.filter(p=>p.name.trim()).map(p=>({...p, name:p.name.trim()}));
     data = {
       titleSource: window._tempTitleSource, subject: document.getElementById("c-subject").value.trim(),
-      parties, court: document.getElementById("c-courtname").value.trim(), courtNumber: document.getElementById("c-court").value.trim(),
+      parties, court: document.getElementById("c-courtname").value.trim(),
+      courtNumber: isCriminal ? "" : document.getElementById("c-court").value.trim(),
+      partialNumber: isCriminal ? document.getElementById("c-partial-number").value.trim() : "",
+      generalNumber: isCriminal ? document.getElementById("c-general-number").value.trim() : "",
       authorityType: window._tempAuthorityType || "court",
       chamber: document.getElementById("c-chamber") ? document.getElementById("c-chamber").value.trim() : "",
       prosecutorInCharge: document.getElementById("c-prosecutor") ? document.getElementById("c-prosecutor").value.trim() : "",
@@ -1359,6 +1396,7 @@ function openCaseDetailModal(c){
         ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.chamber)}</div>`:""}
         ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${esc(c.prosecutorInCharge)}</div>`:""}
         ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}</div>`:""}
+        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${c.partialNumber?"Partial: "+esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"General: "+esc(c.generalNumber):""}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
           <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.file_pdf}</button>
