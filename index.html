@@ -215,6 +215,7 @@ const db = firebase.firestore();
 
 /* ================= CONSTANTS ================= */
 const PROCEDURE_TYPES = ["Hearing","Procedure"];
+const FOLLOWUP_CHIPS = ["Prepare memorandum","Notify party","Gather documents","Review with client"];
 const PROCEDURE_COLOR = {"Hearing":"#5F4B8B","Procedure":"#6F3091"};
 const ICONS = {
   xmark: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>`,
@@ -285,7 +286,7 @@ const WD = ["S","M","T","W","T","F","S"];
 let state = {
   user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false, hasSeenQuickRef:false,
   cases:[], tasks:[], checklist:[],
-  customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false,
+  customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false, checklistTemplates:{},
   view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
   selectedDay: todayKey(), search:"", filterType:"All", filterStatus:"All", filterCourt:"All",
 };
@@ -440,6 +441,7 @@ function attachListeners(uidVal){
     state.alertDays = d.alertDays ?? 7;
     state.customCaseTypes = d.customCaseTypes || [];
     state.customProcedureTypes = d.customProcedureTypes || [];
+    state.checklistTemplates = d.checklistTemplates || {};
     state.onboardDismissed = !!d.onboardDismissed;
     state.calendarEverConnected = !!d.calendarEverConnected;
     const wasUnset = !state.hasSeenQuickRef && !d.hasSeenQuickRef;
@@ -452,7 +454,7 @@ function attachListeners(uidVal){
   });
 }
 function saveSettings(){
-  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef });
+  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef, checklistTemplates: state.checklistTemplates });
 }
 function stripId(t){ const {id, ...rest}=t; return rest; }
 
@@ -482,6 +484,7 @@ async function saveTask(data){
       coll("tasks").doc(docId).set({...payload, googleEventId: result.id, googleEventLink: result.link || null});
     }
   }
+  return docId;
 }
 function deleteTaskDoc(id){
   const t = state.tasks.find(x=>x.id===id);
@@ -719,10 +722,13 @@ function render(){
   const overdueItems = upcoming.filter(t=>t.delta<0);
   state._headsUpItems = headsUpItems;
   state._overdueItems = overdueItems;
+  const staleCases = state.cases.filter(c=> c.status==="Active" && !state.tasks.some(t=>t.caseId===c.id && !t.completed));
+  state._staleCases = staleCases;
 
   const badges = document.getElementById("header-badges");
   badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;">${overdueItems.length} overdue</button>`:"") +
-                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${headsUpItems.length} due soon</button>`:"");
+                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${headsUpItems.length} due soon</button>`:"") +
+                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;">${staleCases.length} no upcoming dates</button>`:"");
   renderBadgeMenu();
 
   renderInstallBanner();
@@ -739,14 +745,17 @@ function renderBadgeMenu(){
   if(!wrap) return;
   if(!openBadgeMenu){ wrap.innerHTML=""; return; }
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
-  const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : (state._headsUpItems||[]);
-  const title = openBadgeMenu==="overdue" ? "Overdue" : "Due soon";
+  const isStale = openBadgeMenu==="stale";
+  const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : isStale ? (state._staleCases||[]) : (state._headsUpItems||[]);
+  const title = openBadgeMenu==="overdue" ? "Overdue" : isStale ? "No upcoming dates" : "Due soon";
   wrap.innerHTML = `<div style="position:absolute;right:16px;top:64px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
       <span class="section-label" style="margin-bottom:0;">${title} (${items.length})</span>
       <button onclick="toggleBadgeMenu('${openBadgeMenu}')" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
     </div>
-    ${items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${taskRowHtml(t, casesById[t.caseId], true)}</div>`).join("")}
+    ${isStale
+      ? items.map(c=>`<div onclick="toggleBadgeMenu('stale');openCaseDetail('${c.id}')" style="cursor:pointer;">${caseCardHtml(c)}</div>`).join("")
+      : items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${taskRowHtml(t, casesById[t.caseId], true)}</div>`).join("")}
   </div>`;
 }
 function renderInstallBanner(){
@@ -1297,7 +1306,35 @@ window.submitTask = (id)=>{
   closeModal();
 };
 
+function followUpChipsHtml(){
+  return FOLLOWUP_CHIPS.map(f=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;${window._tempFollowUps.includes(f)?'border-color:var(--navy);color:var(--navy);font-weight:700;':''}" onclick="toggleFollowUp('${f.replace(/'/g,"&apos;")}')">${esc(f)}</button>`).join("");
+}
+function followUpSelectedHtml(){
+  if(!window._tempFollowUps.length) return `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Not every postponement needs follow-up work — leave blank if there's nothing to prep.</div>`;
+  return `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">${window._tempFollowUps.map(f=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(f)} <button onclick="removeFollowUp('${f.replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}</div>`;
+}
+window.toggleFollowUp = (f)=>{
+  const idx = window._tempFollowUps.indexOf(f);
+  if(idx>=0) window._tempFollowUps.splice(idx,1); else window._tempFollowUps.push(f);
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
+window.addCustomFollowUp = ()=>{
+  const input = document.getElementById("cont-followup-custom");
+  const v = input.value.trim();
+  if(!v) return;
+  if(!window._tempFollowUps.includes(v)) window._tempFollowUps.push(v);
+  input.value = "";
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
+window.removeFollowUp = (f)=>{
+  window._tempFollowUps = window._tempFollowUps.filter(x=>x!==f);
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
 function openContinueModal(t){
+  window._tempFollowUps = [];
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1311,6 +1348,14 @@ function openContinueModal(t){
       </div>
       <div class="field"><span class="field-label">Next session date</span><input class="input" id="cont-date" type="date" value="${addDays(t.date,14)}" /></div>
       <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;"><input type="checkbox" id="cont-markdone" checked /> Mark the original date as completed</label></div>
+      <div class="field"><span class="field-label">Follow-up action (optional)</span>
+        <div id="followup-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">${followUpChipsHtml()}</div>
+        <div style="display:flex;gap:6px;">
+          <input class="input" id="cont-followup-custom" placeholder="Or type a custom follow-up and tap Add" />
+          <button class="btn-ghost" onclick="addCustomFollowUp()">Add</button>
+        </div>
+        <div id="followup-selected">${followUpSelectedHtml()}</div>
+      </div>
       <button class="btn-primary" style="width:100%;" onclick="submitContinue('${t.id}')">Schedule next session</button>
     </div>
   </div>`;
@@ -1323,7 +1368,14 @@ window.submitContinue = (origId)=>{
   const reason = document.getElementById("cont-reason").value.trim();
   const orig = state.tasks.find(x=>x.id===origId);
   if(!orig) return;
-  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", flag:orig.flag||"none", notes:orig.notes, completed:false, googleEventId:null });
+  const followUps = (window._tempFollowUps||[]).slice();
+  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", flag:orig.flag||"none", notes:orig.notes, completed:false, googleEventId:null }).then((newTaskId)=>{
+    if(!followUps.length) return;
+    const useFollowHearing = orig.type==="Hearing" && !!orig.caseId;
+    followUps.forEach(text=>{
+      saveChecklistItem({ caseId: orig.caseId||"", text, done:false, taskId: useFollowHearing?"":(newTaskId||""), followNextHearing: useFollowHearing, dueDate:null });
+    });
+  });
   if(document.getElementById("cont-markdone").checked){
     coll("tasks").doc(origId).set({...stripId(orig), completed:true, postponeReason: reason || orig.postponeReason || null});
   } else if(reason){
@@ -1576,11 +1628,12 @@ window.submitCase = (id)=>{
     };
     if(data.parties.length===0 && !data.subject){ alert("Add at least one party name or a subject so this case can be identified."); return; }
   }
+  const isNewCase = !id;
   if(id) data.id = id; else data.createdAt = Date.now();
 
   // sync reciprocal links: add this case to the linked cases' own linkedCaseIds too
   const finalId = id || uid();
-  saveCase(data).then(()=>{
+  saveCase(data).then((ref)=>{
     const myId = id || finalId;
     window._tempLinked.forEach(otherId=>{
       const other = state.cases.find(x=>x.id===otherId);
@@ -1588,6 +1641,13 @@ window.submitCase = (id)=>{
         coll("cases").doc(otherId).set({...stripId(other), linkedCaseIds:[...(other.linkedCaseIds||[]), myId]});
       }
     });
+    if(isNewCase){
+      const newCaseId = ref && ref.id ? ref.id : myId;
+      const template = state.checklistTemplates[caseType] || [];
+      template.forEach(text=>{
+        saveChecklistItem({ caseId: newCaseId, text, done:false, taskId:"", followNextHearing:false, dueDate:null });
+      });
+    }
   });
   closeModal();
 };
@@ -1624,9 +1684,9 @@ function openCaseDetailModal(c){
       ${(c.parties&&c.parties.length) ? `<div style="margin-bottom:16px;"><div class="section-label" style="font-size:11px;">Parties</div>
         ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
           <div><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>
-          ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;margin-top:2px;">
-            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${esc(p.phone)}</a>`:""}
-            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${esc(p.email)}</a>`:""}
+          ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;flex-wrap:wrap;margin-top:2px;align-items:center;">
+            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${esc(p.phone)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','call')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log call</button>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${esc(p.email)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','email')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log email</button>`:""}
           </div>` : ""}
         </div>`).join("")}</div>` : ""}
 
@@ -1704,6 +1764,16 @@ window.deleteLogEntry = (caseId, logId)=>{
     openCaseDetailModal({...c, noteLog:newLog});
   });
 };
+window.logPartyContact = (caseId, partyName, kind)=>{
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const text = kind==="call" ? `Called ${partyName}` : `Emailed ${partyName}`;
+  const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text }];
+  coll("cases").doc(caseId).set({...stripId(c), noteLog: newLog}).then(()=>{
+    showToast("Logged to Case Log");
+    openCaseDetailModal({...c, noteLog: newLog});
+  });
+};
 window.duplicateCase = (c)=>{
   closeModal();
   const copy = { ...c, id:null, createdAt:null, courtNumber:"", linkedCaseIds:[c.id], documents:[] };
@@ -1722,6 +1792,8 @@ window.confirmDeleteCase = (id)=>{
 window.deleteCaseDoc = deleteCaseDoc;
 
 function openSettingsModal(){
+  const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
+  if(!window._tempTemplateType || !allCaseTypes.includes(window._tempTemplateType)) window._tempTemplateType = allCaseTypes[0];
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1762,6 +1834,16 @@ function openSettingsModal(){
         </div>
         `}
         <div style="font-size:11px;color:var(--muted);margin-top:6px;">Removing a type only hides it from future suggestions — cases already using it are unaffected.</div>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Starting checklist by case type</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new case of a type below starts with these checklist items already added — one per line.</div>
+        <select class="input" id="tmpl-type-select" onchange="onTemplateTypeChange()">
+          ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${window._tempTemplateType===t?'selected':''}>${esc(t)}</option>`).join("")}
+        </select>
+        <textarea class="input" id="tmpl-items" rows="4" placeholder="e.g.&#10;Review case file&#10;Confirm client contact" style="margin-top:6px;resize:vertical;">${esc((state.checklistTemplates[window._tempTemplateType]||[]).join("\n"))}</textarea>
+        <button class="btn-ghost" style="margin-top:6px;" onclick="saveChecklistTemplate()">Save template for this type</button>
       </div>
 
       <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
@@ -1832,6 +1914,19 @@ window.removeCustomType = (kind, value)=>{
   if(kind==="case"){ state.customCaseTypes = state.customCaseTypes.filter(t=>t!==value); }
   else { state.customProcedureTypes = state.customProcedureTypes.filter(t=>t!==value); }
   saveSettings();
+  openSettingsModal();
+};
+window.onTemplateTypeChange = ()=>{
+  window._tempTemplateType = document.getElementById("tmpl-type-select").value;
+  openSettingsModal();
+};
+window.saveChecklistTemplate = ()=>{
+  const type = window._tempTemplateType;
+  const lines = document.getElementById("tmpl-items").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(lines.length){ state.checklistTemplates = {...state.checklistTemplates, [type]: lines}; }
+  else { const {[type]:_, ...rest} = state.checklistTemplates; state.checklistTemplates = rest; }
+  saveSettings();
+  showToast(`Template saved for ${type}`);
   openSettingsModal();
 };
 window.exportData = ()=>{
