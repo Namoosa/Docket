@@ -92,6 +92,7 @@
   .cal-day.has-critical{box-shadow:inset 0 0 0 2px var(--critical);}
   .dot{width:5px;height:5px;border-radius:3px;}
   .overdue-mark{position:absolute;top:2px;right:3px;width:6px;height:6px;border-radius:3px;background:#B23A32;}
+  .critical-mark{position:absolute;top:2px;left:3px;width:6px;height:6px;border-radius:3px;background:var(--critical);}
   .cal-icon svg{width:12.5px !important;height:12.5px !important;vertical-align:middle !important;}
   .section-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
   .task-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
@@ -131,14 +132,20 @@
   @media print{
     body *{visibility:hidden;}
     #print-area, #print-area *{visibility:visible;}
-    #print-area{display:block !important;position:absolute;top:0;left:0;width:100%;padding:20px;color:#000;}
-    #print-area h1{font-family:'Source Serif 4',serif;font-size:22px;margin-bottom:4px;}
-    #print-area .p-sub{color:#555;font-size:13px;margin-bottom:18px;}
-    #print-area .p-section{margin-bottom:20px;}
-    #print-area .p-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#555;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px;}
-    #print-area .p-item{padding:6px 0;border-bottom:1px solid #eee;font-size:13.5px;}
-    #print-area .p-item .p-meta{color:#666;font-size:12px;margin-top:2px;}
+    #print-area{display:block !important;position:absolute;top:0;left:0;width:100%;padding:0;color:#000;font-family:'Source Serif 4',serif;}
+    #print-area .letterhead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2px solid #1B211B;padding-bottom:12px;margin-bottom:20px;}
+    #print-area .letterhead-name{font-family:'Source Serif 4',serif;font-size:19px;font-weight:600;color:#1B211B;}
+    #print-area .letterhead-meta{font-family:'Inter',sans-serif;font-size:11px;color:#555;margin-top:3px;line-height:1.5;}
+    #print-area .letterhead-date{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#666;text-align:right;white-space:nowrap;}
+    #print-area h1{font-family:'Source Serif 4',serif;font-size:20px;margin-bottom:4px;}
+    #print-area .p-sub{font-family:'Inter',sans-serif;color:#555;font-size:12.5px;margin-bottom:18px;}
+    #print-area .p-section{margin-bottom:20px;page-break-inside:avoid;}
+    #print-area .p-section-title{font-family:'Inter',sans-serif;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:#555;font-weight:600;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px;}
+    #print-area .p-item{font-family:'Inter',sans-serif;padding:6px 0;border-bottom:1px solid #eee;font-size:13px;page-break-inside:avoid;}
+    #print-area .p-item .p-meta{color:#666;font-size:11.5px;margin-top:2px;}
+    #print-area .print-footer{margin-top:28px;padding-top:10px;border-top:1px solid #ccc;font-family:'Inter',sans-serif;font-size:10px;color:#888;}
   }
+  @page{ margin: 0.7in; }
 </style>
 </head>
 <body>
@@ -215,6 +222,16 @@ const db = firebase.firestore();
 
 /* ================= CONSTANTS ================= */
 const PROCEDURE_TYPES = ["Hearing","Procedure"];
+const FOLLOWUP_CHIPS = ["Notify party","Gather documents","Review with client"];
+// The two periods the Miqat Ledger research could confirm against the statute text
+// and published Supreme Court rulings (Art. 301/311 for appeal; Art. 83 for the
+// civil summons-to-hearing gap). Deliberately NOT pre-loading opposition/cassation/
+// retrial — the Ledger flags those as unverified, so guessing a number would be
+// actively unhelpful. The user adds those themselves once they confirm a figure.
+const DEFAULT_DEADLINE_PRESETS = [
+  { name:"Appeal — 30 days from notification", days:30 },
+  { name:"Summons → hearing, civil — min. 8 days", days:8 }
+];
 const PROCEDURE_COLOR = {"Hearing":"#5F4B8B","Procedure":"#6F3091"};
 const ICONS = {
   xmark: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>`,
@@ -285,7 +302,7 @@ const WD = ["S","M","T","W","T","F","S"];
 let state = {
   user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false, hasSeenQuickRef:false,
   cases:[], tasks:[], checklist:[],
-  customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false,
+  customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false, checklistTemplates:{}, hearingPrepDefaults:[], deadlinePresets:[], letterhead:{name:"",subtitle:"",contact:""},
   view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
   selectedDay: todayKey(), search:"", filterType:"All", filterStatus:"All", filterCourt:"All",
 };
@@ -295,6 +312,25 @@ function todayKey(){ return dateKey(new Date()); }
 function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function parseKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
 function addDays(k,n){ const d=parseKey(k); d.setDate(d.getDate()+n); return dateKey(d); }
+// Implements Libya's Code of Civil & Commercial Procedure, Art. 16 & 19 (per the
+// Miqat Ledger research): the triggering day itself (service/notification) is never
+// counted — the count starts the next day and runs to the close of the Nth day.
+// A holiday landing on the LAST day pushes the deadline to the next working day.
+// The Libyan work week is Sunday-Thursday, so both Friday and Saturday are
+// non-working — the Ledger's cited ruling only pushed a Friday to a Saturday,
+// which reads like a single-day-weekend era; today's two-day weekend means a
+// deadline landing on either day pushes through to the next Sunday. Distance
+// days (Art. 17) are added on top before counting, same as the ordinary period.
+function calcStatutoryDeadline(startKey, days, distanceDays){
+  const total = Number(days||0) + Number(distanceDays||0);
+  let d = parseKey(addDays(startKey, total));
+  let pushedForHoliday = false;
+  while(d.getDay()===5 || d.getDay()===6){ // Friday or Saturday
+    d.setDate(d.getDate()+1);
+    pushedForHoliday = true;
+  }
+  return { date: dateKey(d), pushedForHoliday, totalDays: total };
+}
 function googleCalendarAddLink(task, caseItem){
   const title = (caseItem ? computeCaseTitle(caseItem) + " — " : "") + task.title;
   const start = task.date.replace(/-/g,"");
@@ -440,6 +476,10 @@ function attachListeners(uidVal){
     state.alertDays = d.alertDays ?? 7;
     state.customCaseTypes = d.customCaseTypes || [];
     state.customProcedureTypes = d.customProcedureTypes || [];
+    state.checklistTemplates = d.checklistTemplates || {};
+    state.hearingPrepDefaults = d.hearingPrepDefaults || [];
+    state.deadlinePresets = d.deadlinePresets || DEFAULT_DEADLINE_PRESETS.slice();
+    state.letterhead = d.letterhead || {name:"",subtitle:"",contact:""};
     state.onboardDismissed = !!d.onboardDismissed;
     state.calendarEverConnected = !!d.calendarEverConnected;
     const wasUnset = !state.hasSeenQuickRef && !d.hasSeenQuickRef;
@@ -452,7 +492,7 @@ function attachListeners(uidVal){
   });
 }
 function saveSettings(){
-  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef });
+  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef, checklistTemplates: state.checklistTemplates, hearingPrepDefaults: state.hearingPrepDefaults, deadlinePresets: state.deadlinePresets, letterhead: state.letterhead });
 }
 function stripId(t){ const {id, ...rest}=t; return rest; }
 
@@ -482,6 +522,7 @@ async function saveTask(data){
       coll("tasks").doc(docId).set({...payload, googleEventId: result.id, googleEventLink: result.link || null});
     }
   }
+  return docId;
 }
 function deleteTaskDoc(id){
   const t = state.tasks.find(x=>x.id===id);
@@ -579,6 +620,9 @@ function getGisTokenClient(){
         saveSettings();
         showToast("Google Calendar connected.");
         render();
+        if(state.tasks.filter(t=>!t.completed && !t.googleEventId).length > 0){
+          syncAllUnsynced(true);
+        }
       } else {
         showToast("Google didn't grant calendar access this time — please try again.");
       }
@@ -599,11 +643,11 @@ window.connectGoogleCalendar = ()=>{
   const client = getGisTokenClient();
   if(client) client.requestAccessToken();
 };
-window.syncAllUnsynced = async ()=>{
-  if(!state.googleConnected || !state.googleAccessToken){ showToast("Connect Google Calendar first."); return; }
+window.syncAllUnsynced = async (silent)=>{
+  if(!state.googleConnected || !state.googleAccessToken){ if(!silent) showToast("Connect Google Calendar first."); return; }
   const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId);
-  if(unsynced.length===0){ showToast("Nothing to sync — you're all caught up."); return; }
-  showToast(`Syncing ${unsynced.length} date${unsynced.length===1?'':'s'}…`);
+  if(unsynced.length===0){ if(!silent) showToast("Nothing to sync — you're all caught up."); return; }
+  if(!silent) showToast(`Syncing ${unsynced.length} date${unsynced.length===1?'':'s'}…`);
   let successCount = 0;
   for(const t of unsynced){
     const caseItem = state.cases.find(c=>c.id===t.caseId);
@@ -614,8 +658,8 @@ window.syncAllUnsynced = async ()=>{
       successCount++;
     }
   }
-  showToast(`Synced ${successCount} of ${unsynced.length} date${unsynced.length===1?'':'s'}.`);
-  closeModal();
+  showToast(silent ? `Caught up ${successCount} date${successCount===1?'':'s'} that synced while disconnected.` : `Synced ${successCount} of ${unsynced.length} date${unsynced.length===1?'':'s'}.`);
+  if(!silent) closeModal();
 };
 window.reconnectGoogle = window.connectGoogleCalendar;
 function showToast(message){
@@ -633,15 +677,28 @@ document.getElementById("tab-cases").onclick = ()=>{ state.view="cases"; render(
 document.getElementById("tab-checklist").onclick = ()=>{ state.view="checklist"; render(); };
 document.getElementById("settings-btn").onclick = ()=> openSettingsModal();
 document.getElementById("print-btn").onclick = ()=> printTodaysDocket();
+function printLetterheadHtml(){
+  const lh = state.letterhead || {};
+  if(!lh.name && !lh.subtitle && !lh.contact) return "";
+  const meta = [lh.subtitle, lh.contact].filter(Boolean).join(" · ");
+  return `<div class="letterhead">
+    <div><div class="letterhead-name">${esc(lh.name||"")}</div>${meta?`<div class="letterhead-meta">${esc(meta)}</div>`:""}</div>
+    <div class="letterhead-date">${fmtLong(todayKey())}</div>
+  </div>`;
+}
+function printFooterHtml(){
+  return `<div class="print-footer">Printed from Docket — ${fmtLong(todayKey())}</div>`;
+}
 function printTodaysDocket(){
   const tk = todayKey();
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
   const dueToday = state.tasks.filter(t=>!t.completed && t.date===tk).sort((a,b)=>(a.kind==="deadline")-(b.kind==="deadline"));
   const overdue = state.tasks.filter(t=>!t.completed && t.date<tk).sort((a,b)=>a.date.localeCompare(b.date));
   const openChecklist = state.checklist.filter(x=>!x.done);
-  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?"${ICONS.hourglass_half} ":"${ICONS.calendar_days} "}${esc(t.title)}</strong> — ${esc(t.type)}
+  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?ICONS.hourglass_half:ICONS.calendar_days} ${esc(t.title)}</strong> — ${esc(t.type)}
     <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):"No case linked"}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}${t.date!==tk?` · ${fmtLong(t.date)}`:""}</div></div>`;
   document.getElementById("print-area").innerHTML = `
+    ${printLetterheadHtml()}
     <h1>${ICONS.scale_balanced} Docket — Today</h1>
     <div class="p-sub">${fmtLong(tk)}</div>
     <div class="p-section">
@@ -652,6 +709,7 @@ function printTodaysDocket(){
     ${openChecklist.length>0?`<div class="p-section"><div class="p-section-title">Open checklist items</div>
       ${openChecklist.map(it=>`<div class="p-item">${ICONS.square} ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
     </div>`:""}
+    ${printFooterHtml()}
   `;
   window.print();
 }
@@ -670,6 +728,7 @@ window.printCaseHistory = (c)=>{
   };
 
   document.getElementById("print-area").innerHTML = `
+    ${printLetterheadHtml()}
     <h1>${esc(computeCaseTitle(c))}</h1>
     <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.authorityType==="court"&&c.chamber?(" · "+esc(c.chamber)):""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?(" · Prosecutor: "+esc(c.prosecutorInCharge)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}${c.partialNumber?(" · Partial "+esc(c.partialNumber)):""}${c.generalNumber?(" · General "+esc(c.generalNumber)):""}</div>
 
@@ -696,7 +755,7 @@ window.printCaseHistory = (c)=>{
       ${c.documents.map(d=>`<div class="p-item">${esc(d.label)} — ${esc(d.url)}</div>`).join("")}
     </div>`:""}
 
-    <div class="p-sub" style="margin-top:20px;">Exported ${fmtLong(todayKey())}</div>
+    ${printFooterHtml()}
   `;
   window.print();
 };
@@ -707,6 +766,24 @@ document.getElementById("fab-btn").onclick = ()=>{
 };
 
 /* ================= RENDER ================= */
+// A Hearing that passed uncompleted and was never run through Continue Session
+// means the lawyer never got a new date logged — surface that as a checklist
+// item automatically rather than letting it sit silently in "Overdue". Guarded
+// two ways against duplicates: an in-memory set for same-session re-renders
+// (Firestore round-trips aren't instant), and a check against state.checklist
+// for anything that survives a reload.
+window._autoOverdueHandled = window._autoOverdueHandled || new Set();
+function checkOverdueHearings(overdueItems){
+  overdueItems.filter(t=>t.type==="Hearing" && t.caseId).forEach(t=>{
+    if(window._autoOverdueHandled.has(t.id)) return;
+    const already = state.checklist.some(x=>x.taskId===t.id && x.text.indexOf("Get the next hearing date")===0);
+    window._autoOverdueHandled.add(t.id);
+    if(already) return;
+    const caseItem = state.cases.find(c=>c.id===t.caseId);
+    const label = caseItem ? computeCaseTitle(caseItem) : "";
+    saveChecklistItem({ caseId:t.caseId, text:`Get the next hearing date — ${label}`, done:false, taskId:t.id, followNextHearing:false, dueDate:null });
+  });
+}
 function render(){
   ["calendar","cases","checklist"].forEach(v=>{
     document.getElementById("tab-"+v).classList.toggle("active", state.view===v);
@@ -719,10 +796,14 @@ function render(){
   const overdueItems = upcoming.filter(t=>t.delta<0);
   state._headsUpItems = headsUpItems;
   state._overdueItems = overdueItems;
+  checkOverdueHearings(overdueItems);
+  const staleCases = state.cases.filter(c=> c.status==="Active" && !state.tasks.some(t=>t.caseId===c.id && !t.completed));
+  state._staleCases = staleCases;
 
   const badges = document.getElementById("header-badges");
   badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;">${overdueItems.length} overdue</button>`:"") +
-                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${headsUpItems.length} due soon</button>`:"");
+                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${headsUpItems.length} due soon</button>`:"") +
+                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;">${staleCases.length} no upcoming dates</button>`:"");
   renderBadgeMenu();
 
   renderInstallBanner();
@@ -739,14 +820,17 @@ function renderBadgeMenu(){
   if(!wrap) return;
   if(!openBadgeMenu){ wrap.innerHTML=""; return; }
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
-  const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : (state._headsUpItems||[]);
-  const title = openBadgeMenu==="overdue" ? "Overdue" : "Due soon";
+  const isStale = openBadgeMenu==="stale";
+  const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : isStale ? (state._staleCases||[]) : (state._headsUpItems||[]);
+  const title = openBadgeMenu==="overdue" ? "Overdue" : isStale ? "No upcoming dates" : "Due soon";
   wrap.innerHTML = `<div style="position:absolute;right:16px;top:64px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
       <span class="section-label" style="margin-bottom:0;">${title} (${items.length})</span>
       <button onclick="toggleBadgeMenu('${openBadgeMenu}')" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
     </div>
-    ${items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${taskRowHtml(t, casesById[t.caseId], true)}</div>`).join("")}
+    ${isStale
+      ? items.map(c=>`<div onclick="toggleBadgeMenu('stale');openCaseDetail('${c.id}')" style="cursor:pointer;">${caseCardHtml(c)}</div>`).join("")
+      : items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${taskRowHtml(t, casesById[t.caseId], true)}</div>`).join("")}
   </div>`;
 }
 function renderInstallBanner(){
@@ -806,14 +890,52 @@ function renderCalendar(upcoming){
       <span style="font-size:12.5px;font-weight:${isToday?700:500};color:${isToday?'var(--brass)':'var(--ink)'};">${d}</span>
       <div style="display:flex;align-items:center;justify-content:center;gap:2px;min-height:12px;">${iconsHtml}${allDoneMark}${moreLabel}</div>
       ${hasOverdue?'<div class="overdue-mark"></div>':''}
+      ${hasCritical?'<div class="critical-mark"></div>':''}
     </button>`;
   }
 
   const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
   const tk2 = todayKey();
   const criticalItems = state.tasks.filter(t=>t.flag==="critical" && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const todaysHearings = state.tasks.filter(t=>t.type==="Hearing" && t.date===tk && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)}));
+  const tomorrowKey = addDays(tk,1);
+  const showTomorrow = new Date().getHours() >= 14;
+  const tomorrowsHearings = showTomorrow ? state.tasks.filter(t=>t.type==="Hearing" && t.date===tomorrowKey && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)})) : [];
 
   document.getElementById("view-calendar").innerHTML = `
+    ${todaysHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:2px solid var(--navy);border-radius:10px;padding:12px 14px;">
+      <div class="section-label" style="color:var(--navy-dark);margin-bottom:8px;">${ICONS.gavel} Today in court</div>
+      ${todaysHearings.map(t=>{
+        const caseItem = casesById[t.caseId];
+        const latestLog = (caseItem && caseItem.noteLog && caseItem.noteLog.length) ? caseItem.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date))[0] : null;
+        const chamberLine = (caseItem && caseItem.authorityType==="court" && caseItem.chamber) ? esc(caseItem.chamber) : "";
+        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? `Prosecutor: ${esc(caseItem.prosecutorInCharge)}` : "";
+        const hasExtra = !!(chamberLine || prosecutorLine || (caseItem && caseItem.notes) || latestLog);
+        return `${taskRowHtml(t, caseItem, false)}
+          ${hasExtra ? `<div style="margin:-6px 0 10px 4px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;">
+            ${chamberLine?`<div style="color:var(--muted);margin-bottom:4px;">${chamberLine}</div>`:""}
+            ${prosecutorLine?`<div style="color:var(--muted);margin-bottom:4px;">${prosecutorLine}</div>`:""}
+            ${caseItem&&caseItem.notes?`<div style="margin-bottom:${latestLog?'6px':'0'};"><strong>Case notes:</strong> ${esc(caseItem.notes)}</div>`:""}
+            ${latestLog?`<div><strong>Last log (${fmtLong(latestLog.date)}):</strong> ${esc(latestLog.text)}</div>`:""}
+          </div>` : ""}`;
+      }).join("")}
+    </div>` : `<div style="margin-bottom:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:9px;">
+      <span style="color:var(--sage);">${ICONS.check}</span>
+      <div style="font-size:13px;color:var(--ink);">Nothing in court today — relax.</div>
+    </div>`}
+    ${tomorrowsHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:1.5px solid var(--slate);border-radius:10px;padding:12px 14px;">
+      <div class="section-label" style="color:var(--slate);margin-bottom:8px;">${ICONS.gavel} Tomorrow in court</div>
+      ${tomorrowsHearings.map(t=>{
+        const caseItem = casesById[t.caseId];
+        const chamberLine = (caseItem && caseItem.authorityType==="court" && caseItem.chamber) ? esc(caseItem.chamber) : "";
+        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? `Prosecutor: ${esc(caseItem.prosecutorInCharge)}` : "";
+        return `${taskRowHtml(t, caseItem, false)}
+          ${(chamberLine||prosecutorLine) ? `<div style="margin:-6px 0 10px 4px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;">
+            ${chamberLine?`<div style="color:var(--muted);">${chamberLine}</div>`:""}
+            ${prosecutorLine?`<div style="color:var(--muted);">${prosecutorLine}</div>`:""}
+          </div>` : ""}`;
+      }).join("")}
+    </div>` : ""}
     ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
       <div class="section-label" style="color:var(--brick);margin-bottom:8px;">${ICONS.triangle_exclamation} Critical deadlines</div>
       ${criticalItems.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
@@ -870,7 +992,7 @@ function taskRowHtml(t, caseItem, showDate){
   let statusBadge = "";
   if(overdue){ statusBadge = `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${isDeadline?'Missed deadline':'Overdue'}</span>`; }
   else if(!t.completed && typeof t.delta==="number"){
-    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--critical);color:var(--critical);background:#F6E8EC;">CRITICAL · ${countdownLabel}</span>`;
+    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--critical);color:#fff;background:var(--critical);">CRITICAL · ${countdownLabel}</span>`;
     else if(headsUp) statusBadge = `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${countdownLabel} · heads-up</span>`;
   }
   const isNextHearingForCase = caseItem && t.type==="Hearing" && !t.completed && nextHearingForCase(caseItem.id)?.id===t.id;
@@ -885,7 +1007,7 @@ function taskRowHtml(t, caseItem, showDate){
           <span style="font-size:12.5px;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
         </div>`).join("")}
     </div>` : "";
-  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${color};${isCritical?'border-width:5px;':''}">
+  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${color};${isCritical?'border-width:5px;background:#FBEAE8;':''}">
     <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?ICONS.check:''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -1007,6 +1129,16 @@ function renderCases(){
   const tc = document.getElementById("toggle-closed");
   if(tc) tc.onchange = e=>{ state.hideClosed = e.target.checked; render(); };
 }
+function daysSinceActivity(c){
+  const dates = [c.createdAt ? new Date(c.createdAt).toISOString().slice(0,10) : null];
+  (c.noteLog||[]).forEach(l => dates.push(l.date));
+  state.tasks.filter(t=>t.caseId===c.id).forEach(t => { if(t.createdAt) dates.push(new Date(t.createdAt).toISOString().slice(0,10)); });
+  state.checklist.filter(x=>x.caseId===c.id).forEach(it => { if(it.createdAt) dates.push(new Date(it.createdAt).toISOString().slice(0,10)); });
+  const valid = dates.filter(Boolean);
+  if(valid.length===0) return null;
+  const mostRecent = valid.sort().reverse()[0];
+  return daysBetween(mostRecent, todayKey());
+}
 function caseCardHtml(c){
   const color = colorForCaseType(c.caseType);
   const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
@@ -1018,11 +1150,14 @@ function caseCardHtml(c){
     : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"Gen. "+esc(c.generalNumber):""}`
     : c.courtNumber ? esc(c.courtNumber) : "";
 
+  const activityDays = c.status!=="Closed" ? daysSinceActivity(c) : null;
+
   const metaPieces = [
     `<span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span> ${esc(c.caseType)}`,
     locationPiece,
     (c.documents&&c.documents.length) ? `${ICONS.link} ${c.documents.length}` : "",
-    groupSize>0 ? `${ICONS.link} linked (${groupSize})` : ""
+    groupSize>0 ? `${ICONS.link} linked (${groupSize})` : "",
+    activityDays!==null ? `${activityDays}d since activity` : ""
   ].filter(Boolean);
 
   return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
@@ -1086,10 +1221,11 @@ function renderChecklist(){
 window.toggleChecklistDone = toggleChecklistDone;
 window.deleteChecklistItem = deleteChecklistItem;
 
-function openChecklistModal(existing){
-  const it = existing || {caseId:"", text:"", done:false, taskId:"", followNextHearing:false};
-  window._tempLinkMode = it.followNextHearing ? "hearing" : (it.dueDate ? "deadline" : "date");
-  const openTasksForCase = (caseId)=> state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
+function openChecklistModal(existingRaw){
+  const existing = (existingRaw && existingRaw.id) ? existingRaw : null;
+  const it = existing || {caseId:"", text:"", done:false, taskId:"", followNextHearing:false, ...(existingRaw||{})};
+  window._tempLinkMode = it.followNextHearing ? "hearing" : "date";
+  window._tempDateSubMode = it.dueDate ? "pick" : "none";
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1104,21 +1240,19 @@ function openChecklistModal(existing){
       <div class="field" id="chk-task-field" style="${it.caseId?'':'display:none;'}">
         <span class="field-label">Link to</span>
         <div class="radio-row" id="chk-linkmode-row" style="margin-bottom:8px;">
-          <button type="button" class="radio-pill ${window._tempLinkMode==='date'?'active':''}" data-v="date" onclick="setChecklistLinkMode('date')">A specific date</button>
-          <button type="button" class="radio-pill ${window._tempLinkMode==='hearing'?'active':''}" data-v="hearing" onclick="setChecklistLinkMode('hearing')">Next court hearing</button>
-          <button type="button" class="radio-pill ${window._tempLinkMode==='deadline'?'active':''}" data-v="deadline" onclick="setChecklistLinkMode('deadline')">Set a deadline</button>
-        </div>
-        <div id="chk-date-picker" class="${window._tempLinkMode==='date'?'':'hidden'}">
-          <select class="input" id="chk-task">
-            <option value="">Not tied to a specific date</option>
-            ${it.caseId ? openTasksForCase(it.caseId).map(t=>`<option value="${t.id}" ${it.taskId===t.id?'selected':''}>${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("") : ""}
-          </select>
-          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before that date. Flags it urgent as it approaches.</div>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='hearing'?'active':''}" data-v="hearing" onclick="setChecklistLinkMode('hearing')">Next hearing</button>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='date'?'active':''}" data-v="date" onclick="setChecklistLinkMode('date')">Date</button>
         </div>
         <div id="chk-hearing-note" class="${window._tempLinkMode==='hearing'?'':'hidden'}" style="font-size:11.5px;color:var(--muted);">Means: finish this before whichever Hearing is next for this case. If it gets postponed, this moves with it — no need to re-link.</div>
-        <div id="chk-deadline-picker" class="${window._tempLinkMode==='deadline'?'':'hidden'}">
-          <input class="input" id="chk-due-date" type="date" value="${it.dueDate||''}" />
-          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before this date — for when there's no hearing or existing date to tie it to.</div>
+        <div id="chk-date-sub" class="${window._tempLinkMode==='date'?'':'hidden'}">
+          <div class="radio-row" id="chk-datesub-row" style="margin-bottom:8px;">
+            <button type="button" class="radio-pill ${window._tempDateSubMode==='none'?'active':''}" data-v="none" onclick="setChecklistDateSubMode('none')">No specific date</button>
+            <button type="button" class="radio-pill ${window._tempDateSubMode==='pick'?'active':''}" data-v="pick" onclick="setChecklistDateSubMode('pick')">Pick a date</button>
+          </div>
+          <div id="chk-deadline-picker" class="${window._tempDateSubMode==='pick'?'':'hidden'}">
+            <input class="input" id="chk-due-date" type="date" value="${it.dueDate||''}" />
+            <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before this date.</div>
+          </div>
         </div>
       </div>
       <button class="btn-primary" style="width:100%;" onclick="submitChecklist(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add item'}</button>
@@ -1128,19 +1262,18 @@ function openChecklistModal(existing){
 window.setChecklistLinkMode = (v)=>{
   window._tempLinkMode = v;
   document.querySelectorAll("#chk-linkmode-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
-  document.getElementById("chk-date-picker").classList.toggle("hidden", v!=="date");
   document.getElementById("chk-hearing-note").classList.toggle("hidden", v!=="hearing");
-  document.getElementById("chk-deadline-picker").classList.toggle("hidden", v!=="deadline");
+  document.getElementById("chk-date-sub").classList.toggle("hidden", v!=="date");
+};
+window.setChecklistDateSubMode = (v)=>{
+  window._tempDateSubMode = v;
+  document.querySelectorAll("#chk-datesub-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
+  document.getElementById("chk-deadline-picker").classList.toggle("hidden", v!=="pick");
 };
 window.refreshChecklistTaskOptions = ()=>{
   const caseId = document.getElementById("chk-case").value;
   const field = document.getElementById("chk-task-field");
-  const select = document.getElementById("chk-task");
-  if(!caseId){ field.style.display="none"; select.innerHTML = `<option value="">Not tied to a specific date</option>`; return; }
-  field.style.display = "";
-  const openTasks = state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
-  select.innerHTML = `<option value="">Not tied to a specific date</option>` +
-    openTasks.map(t=>`<option value="${t.id}">${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("");
+  field.style.display = caseId ? "" : "none";
 };
 window.openChecklistModal = openChecklistModal;
 function nextHearingForCase(caseId){
@@ -1153,16 +1286,21 @@ window.submitChecklist = (id)=>{
   if(!text) return;
   const existing = id ? state.checklist.find(x=>x.id===id) : null;
   const caseId = document.getElementById("chk-case").value || null;
-  const mode = window._tempLinkMode;
-  const followNextHearing = !!(caseId && mode === "hearing");
-  const isDeadlineMode = mode === "deadline";
-  const taskSel = document.getElementById("chk-task");
+  // "Next hearing" only means anything with a case attached; the Date/no-date
+  // choice below covers both no-case items and case items with no live hearing.
+  const mode = caseId ? window._tempLinkMode : "date";
+  const followNextHearing = mode === "hearing";
+  const wantsDate = mode === "date" && window._tempDateSubMode === "pick";
   const dueDateInput = document.getElementById("chk-due-date");
   const data = {
     text, caseId,
-    taskId: (mode==="date" && taskSel) ? (taskSel.value || null) : null,
+    // taskId is now system-managed only (auto hearing-prep defaults, auto
+    // "get the next hearing date" reminders) — this modal no longer exposes a
+    // way to link to one specific existing date, so just preserve whatever
+    // was already there rather than letting an incidental edit clear it.
+    taskId: existing ? (existing.taskId || null) : null,
     followNextHearing,
-    dueDate: (isDeadlineMode && dueDateInput && dueDateInput.value) ? dueDateInput.value : null,
+    dueDate: (wantsDate && dueDateInput && dueDateInput.value) ? dueDateInput.value : null,
     done: existing ? existing.done : false
   };
   if(id) data.id = id;
@@ -1174,9 +1312,10 @@ window.submitChecklist = (id)=>{
 function closeModal(){ document.getElementById("modal-root").innerHTML=""; }
 window.closeModal = closeModal;
 
-function openTaskModal(existing){
+function openTaskModal(existingRaw){
+  const existing = (existingRaw && existingRaw.id) ? existingRaw : null;
   const allProcTypes = PROCEDURE_TYPES;
-  const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allProcTypes[0], notes:"", completed:false, kind:"event"};
+  const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allProcTypes[0], notes:"", completed:false, kind:"event", ...(existingRaw||{})};
   window._tempKind = t.kind || "event";
   window._tempProcType = PROCEDURE_TYPES.includes(t.type) ? t.type : PROCEDURE_TYPES[0];
   window._tempFlag = t.flag || "none";
@@ -1277,8 +1416,9 @@ window.submitTask = (id)=>{
   if(!title || !date) return;
   const caseSel = document.getElementById("f-caseId");
   const type = window._tempProcType || PROCEDURE_TYPES[0];
+  const kind = window._tempKind||"event";
   const existing = id ? state.tasks.find(x=>x.id===id) : null;
-  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null };
+  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind, flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null, createdAt: existing?(existing.createdAt||Date.now()):Date.now() };
   // Procedure type is now fixed to Hearing/Procedure — no custom-type registration needed.
 
   const repeatOn = document.getElementById("f-repeat-on");
@@ -1292,17 +1432,53 @@ window.submitTask = (id)=>{
   } else {
     const data = { ...baseData, title, date };
     if(id) data.id = id;
-    saveTask(data);
+    const savePromise = saveTask(data);
+    if(!existing && type==="Hearing" && kind==="event" && state.hearingPrepDefaults.length>0){
+      savePromise.then(newTaskId=>{
+        state.hearingPrepDefaults.forEach(text=>{
+          saveChecklistItem({ text, caseId: data.caseId, taskId: newTaskId, followNextHearing:false, dueDate:null, done:false });
+        });
+      });
+    }
   }
   closeModal();
 };
 
+function followUpChipsHtml(){
+  return FOLLOWUP_CHIPS.map(f=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;${window._tempFollowUps.includes(f)?'border-color:var(--navy);color:var(--navy);font-weight:700;':''}" onclick="toggleFollowUp('${f.replace(/'/g,"&apos;")}')">${esc(f)}</button>`).join("");
+}
+function followUpSelectedHtml(){
+  if(!window._tempFollowUps.length) return `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Not every postponement needs follow-up work — leave blank if there's nothing to prep.</div>`;
+  return `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">${window._tempFollowUps.map(f=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(f)} <button onclick="removeFollowUp('${f.replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}</div>`;
+}
+window.toggleFollowUp = (f)=>{
+  const idx = window._tempFollowUps.indexOf(f);
+  if(idx>=0) window._tempFollowUps.splice(idx,1); else window._tempFollowUps.push(f);
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
+window.addCustomFollowUp = ()=>{
+  const input = document.getElementById("cont-followup-custom");
+  const v = input.value.trim();
+  if(!v) return;
+  if(!window._tempFollowUps.includes(v)) window._tempFollowUps.push(v);
+  input.value = "";
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
+window.removeFollowUp = (f)=>{
+  window._tempFollowUps = window._tempFollowUps.filter(x=>x!==f);
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
 function openContinueModal(t){
+  window._tempFollowUps = [];
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${ICONS.rotate} Continue Session</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Schedules the next session for "${esc(t.title)}" on a new date.</div>
+      ${(t.type==="Hearing" && t.caseId) ? `<div style="font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:14px;">${ICONS.square_check} A "Prepare memorandum" checklist item is added automatically, linked to the next hearing.</div>` : ""}
       <div class="field"><span class="field-label">Reason for postponement (optional)</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
           ${["Judge unavailable","Opposing counsel requested","Missing documents","Party absent","Court backlog"].map(r=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;" onclick="fillReason('${r}')">${r}</button>`).join("")}
@@ -1311,6 +1487,14 @@ function openContinueModal(t){
       </div>
       <div class="field"><span class="field-label">Next session date</span><input class="input" id="cont-date" type="date" value="${addDays(t.date,14)}" /></div>
       <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;"><input type="checkbox" id="cont-markdone" checked /> Mark the original date as completed</label></div>
+      <div class="field"><span class="field-label">Follow-up action (optional)</span>
+        <div id="followup-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">${followUpChipsHtml()}</div>
+        <div style="display:flex;gap:6px;">
+          <input class="input" id="cont-followup-custom" placeholder="Or type a custom follow-up and tap Add" />
+          <button class="btn-ghost" onclick="addCustomFollowUp()">Add</button>
+        </div>
+        <div id="followup-selected">${followUpSelectedHtml()}</div>
+      </div>
       <button class="btn-primary" style="width:100%;" onclick="submitContinue('${t.id}')">Schedule next session</button>
     </div>
   </div>`;
@@ -1323,7 +1507,30 @@ window.submitContinue = (origId)=>{
   const reason = document.getElementById("cont-reason").value.trim();
   const orig = state.tasks.find(x=>x.id===origId);
   if(!orig) return;
-  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", flag:orig.flag||"none", notes:orig.notes, completed:false, googleEventId:null });
+  const followUps = (window._tempFollowUps||[]).slice();
+  const isHearing = orig.type==="Hearing" && !!orig.caseId;
+  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", flag:orig.flag||"none", notes:orig.notes, completed:false, googleEventId:null }).then((newTaskId)=>{
+    // Every hearing postponement automatically gets a "Prepare memorandum" checklist
+    // item, linked via followNextHearing so its deadline always tracks whichever
+    // hearing is next — including through further postponements. Skip creating a
+    // second one if an unfinished memorandum item for this case is already open.
+    if(isHearing){
+      const alreadyOpen = state.checklist.some(x=>x.caseId===orig.caseId && x.followNextHearing && x.text==="Prepare memorandum" && !x.done);
+      if(!alreadyOpen){
+        saveChecklistItem({ caseId: orig.caseId, text:"Prepare memorandum", done:false, taskId:"", followNextHearing:true, dueDate:null });
+      }
+    }
+    if(!followUps.length) return;
+    const useFollowHearing = isHearing;
+    followUps.forEach(text=>{
+      saveChecklistItem({ caseId: orig.caseId||"", text, done:false, taskId: useFollowHearing?"":(newTaskId||""), followNextHearing: useFollowHearing, dueDate:null });
+    });
+  });
+  // If this hearing had already gone overdue un-logged and picked up its automatic
+  // "Get the next hearing date" checklist item, logging it here via Continue Session
+  // resolves that reminder — it's served its purpose.
+  const staleReminder = state.checklist.find(x=>x.taskId===origId && x.text.indexOf("Get the next hearing date")===0 && !x.done);
+  if(staleReminder){ coll("checklist").doc(staleReminder.id).set({...stripId(staleReminder), done:true}); }
   if(document.getElementById("cont-markdone").checked){
     coll("tasks").doc(origId).set({...stripId(orig), completed:true, postponeReason: reason || orig.postponeReason || null});
   } else if(reason){
@@ -1343,6 +1550,7 @@ function openCaseModal(existingRaw){
   window._editingCaseId = existing ? existing.id : null;
   window._tempNoteLog = (c.noteLog || []).slice();
   window._tempAuthorityType = c.authorityType || "court";
+  window._tempCaseHearingType = PROCEDURE_TYPES[0];
   const isCounsel = c.caseType === "Counsel";
   const counselClient = (c.parties||[]).find(p=>p.role==="Client");
   document.getElementById("modal-root").innerHTML = `
@@ -1358,8 +1566,10 @@ function openCaseModal(existingRaw){
         <input class="input ${!allCaseTypes.includes(c.caseType)?'':'hidden'}" id="c-type-custom" placeholder="Type a custom case type" value="${!allCaseTypes.includes(c.caseType)?esc(c.caseType):''}" style="margin-top:6px;" oninput="onCaseTypeChange()" />
       </div>
 
+      <div id="duplicate-warning"></div>
+
       <div id="counsel-fields" class="${isCounsel?'':'hidden'}">
-        <div class="field"><span class="field-label">Client</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="Client's full name" /></div>
+        <div class="field"><span class="field-label">Client</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="Client's full name" oninput="checkDuplicateCase()" /></div>
         <div class="field"><span class="field-label">Subject</span><input class="input" id="c-counsel-subject" value="${esc(c.subject)}" placeholder="e.g. Contract review for lease renewal" /></div>
         <div class="field"><span class="field-label">Date received</span><input class="input" id="c-date-received" type="date" value="${c.dateReceived||todayKey()}" /></div>
       </div>
@@ -1373,7 +1583,7 @@ function openCaseModal(existingRaw){
           </div>
         </div>
 
-        <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" /></div>
+        <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" oninput="checkDuplicateCase()" /></div>
 
         <div class="field">
           <span class="field-label">Parties</span>
@@ -1423,12 +1633,37 @@ function openCaseModal(existingRaw){
       </div>
       </div>
 
+      ${(!existing && !isCounsel) ? `
+      <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);">
+          <input type="checkbox" id="c-add-hearing-on" onchange="toggleCaseHearingFields(this.checked)" /> ${ICONS.calendar_days} Add a hearing date now
+        </label>
+        <div id="case-hearing-fields" class="hidden" style="margin-top:10px;">
+          <div class="field"><span class="field-label">Title (optional)</span><input class="input" id="c-hearing-title" placeholder="e.g. First hearing session" /></div>
+          <div class="field"><span class="field-label">Date</span><input class="input" id="c-hearing-date" type="date" value="${todayKey()}" /></div>
+          <div class="field">
+            <span class="field-label">Procedure type</span>
+            <div class="radio-row" id="c-hearing-type-row">
+              ${PROCEDURE_TYPES.map(pt=>`<button type="button" class="radio-pill ${pt===PROCEDURE_TYPES[0]?'active':''}" data-v="${esc(pt)}" onclick="setCaseHearingType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+            </div>
+          </div>
+        </div>
+      </div>` : ""}
+
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Create case'}</button>
     </div>
   </div>`;
-  renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts();
+  renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts(); checkDuplicateCase();
 }
 window.openCaseModal = openCaseModal;
+window.toggleCaseHearingFields = (checked)=>{
+  const el = document.getElementById("case-hearing-fields");
+  if(el) el.classList.toggle("hidden", !checked);
+};
+window.setCaseHearingType = (v)=>{
+  window._tempCaseHearingType = v;
+  document.querySelectorAll("#c-hearing-type-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
+};
 window.onCaseTypeSelectChange = ()=>{
   const sel = document.getElementById("c-type-select");
   const custom = document.getElementById("c-type-custom");
@@ -1482,7 +1717,45 @@ function renderPartyList(){
 }
 window.addPartyRow = ()=>{ window._tempParties.push({id:uid(), role:"Client", name:"", phone:"", email:""}); renderPartyList(); };
 window.removePartyRow = (i)=>{ window._tempParties.splice(i,1); renderPartyList(); checkConflicts(); };
-window.updatePartyField = (i,field,v)=>{ window._tempParties[i][field]=v; if(field==="name"||field==="role") checkConflicts(); };
+window.updatePartyField = (i,field,v)=>{
+  window._tempParties[i][field]=v;
+  if(field==="name"||field==="role") checkConflicts();
+  if((field==="name"||field==="role") && window._tempParties[i].role==="Client") checkDuplicateCase();
+};
+function checkDuplicateCase(){
+  const el = document.getElementById("duplicate-warning");
+  if(!el) return;
+  if(window._editingCaseId){ el.innerHTML=""; return; }
+  const candidates = [];
+  const subjectEl = document.getElementById("c-subject");
+  if(subjectEl && subjectEl.value.trim()) candidates.push(subjectEl.value.trim());
+  const counselEl = document.getElementById("c-counsel-client");
+  if(counselEl && counselEl.value.trim()) candidates.push(counselEl.value.trim());
+  (window._tempParties||[]).filter(p=>p.role==="Client" && p.name && p.name.trim()).forEach(p=> candidates.push(p.name.trim()));
+
+  const matches = [];
+  candidates.forEach(cand=>{
+    const cLower = cand.toLowerCase();
+    if(cLower.length<3) return;
+    state.cases.forEach(c=>{
+      if(window._tempLinked.includes(c.id)) return;
+      if(matches.some(m=>m.id===c.id)) return;
+      const tLower = computeCaseTitle(c).toLowerCase();
+      if(tLower.includes(cLower) || cLower.includes(tLower)) matches.push(c);
+    });
+  });
+  el.innerHTML = matches.length ? matches.map(c=>`
+    <div style="margin-top:8px;background:var(--surface);border:1px solid var(--slate);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--slate);line-height:1.5;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>${ICONS.info} This looks similar to <strong>${esc(computeCaseTitle(c))}</strong> — is this the same matter?</span>
+      <button type="button" class="btn-ghost" style="font-size:11px;padding:4px 8px;flex-shrink:0;" onclick="linkDuplicateCase('${c.id}')">Link instead?</button>
+    </div>`).join("") : "";
+}
+window.linkDuplicateCase = (id)=>{
+  if(!window._tempLinked.includes(id)) window._tempLinked.push(id);
+  renderLinkList(window._editingCaseId);
+  checkDuplicateCase();
+  showToast("Linked to that case — you can unlink later from the case form.");
+};
 function checkConflicts(){
   const el = document.getElementById("conflict-warning");
   if(!el) return;
@@ -1576,11 +1849,23 @@ window.submitCase = (id)=>{
     };
     if(data.parties.length===0 && !data.subject){ alert("Add at least one party name or a subject so this case can be identified."); return; }
   }
+  const isNewCase = !id;
   if(id) data.id = id; else data.createdAt = Date.now();
+
+  // Capture the optional "add a hearing date now" fields BEFORE closeModal() wipes
+  // the DOM — this whole block runs inside saveCase().then(), which resolves after
+  // the modal is already closed, so any document.getElementById() in there would
+  // return null. Read the values now, use the captured copies later.
+  const hearingOnEl = document.getElementById("c-add-hearing-on");
+  const hearingData = (isNewCase && hearingOnEl && hearingOnEl.checked) ? {
+    title: document.getElementById("c-hearing-title").value.trim(),
+    date: document.getElementById("c-hearing-date").value,
+    type: window._tempCaseHearingType || PROCEDURE_TYPES[0]
+  } : null;
 
   // sync reciprocal links: add this case to the linked cases' own linkedCaseIds too
   const finalId = id || uid();
-  saveCase(data).then(()=>{
+  saveCase(data).then((ref)=>{
     const myId = id || finalId;
     window._tempLinked.forEach(otherId=>{
       const other = state.cases.find(x=>x.id===otherId);
@@ -1588,6 +1873,16 @@ window.submitCase = (id)=>{
         coll("cases").doc(otherId).set({...stripId(other), linkedCaseIds:[...(other.linkedCaseIds||[]), myId]});
       }
     });
+    if(isNewCase){
+      const newCaseId = ref && ref.id ? ref.id : myId;
+      const template = state.checklistTemplates[caseType] || [];
+      template.forEach(text=>{
+        saveChecklistItem({ caseId: newCaseId, text, done:false, taskId:"", followNextHearing:false, dueDate:null });
+      });
+      if(hearingData && hearingData.date){
+        saveTask({ caseId: newCaseId, title: hearingData.title || hearingData.type, date: hearingData.date, type: hearingData.type, kind:"event", flag:"none", notes:"", completed:false, googleEventId:null, createdAt: Date.now() });
+      }
+    }
   });
   closeModal();
 };
@@ -1624,9 +1919,9 @@ function openCaseDetailModal(c){
       ${(c.parties&&c.parties.length) ? `<div style="margin-bottom:16px;"><div class="section-label" style="font-size:11px;">Parties</div>
         ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
           <div><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>
-          ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;margin-top:2px;">
-            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${esc(p.phone)}</a>`:""}
-            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${esc(p.email)}</a>`:""}
+          ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;flex-wrap:wrap;margin-top:2px;align-items:center;">
+            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${esc(p.phone)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','call')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log call</button>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${esc(p.email)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','email')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log email</button>`:""}
           </div>` : ""}
         </div>`).join("")}</div>` : ""}
 
@@ -1704,6 +1999,16 @@ window.deleteLogEntry = (caseId, logId)=>{
     openCaseDetailModal({...c, noteLog:newLog});
   });
 };
+window.logPartyContact = (caseId, partyName, kind)=>{
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const text = kind==="call" ? `Called ${partyName}` : `Emailed ${partyName}`;
+  const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text }];
+  coll("cases").doc(caseId).set({...stripId(c), noteLog: newLog}).then(()=>{
+    showToast("Logged to Case Log");
+    openCaseDetailModal({...c, noteLog: newLog});
+  });
+};
 window.duplicateCase = (c)=>{
   closeModal();
   const copy = { ...c, id:null, createdAt:null, courtNumber:"", linkedCaseIds:[c.id], documents:[] };
@@ -1722,6 +2027,8 @@ window.confirmDeleteCase = (id)=>{
 window.deleteCaseDoc = deleteCaseDoc;
 
 function openSettingsModal(){
+  const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
+  if(!window._tempTemplateType || !allCaseTypes.includes(window._tempTemplateType)) window._tempTemplateType = allCaseTypes[0];
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1736,6 +2043,15 @@ function openSettingsModal(){
       <button class="btn-primary" onclick="saveAlertDays()">Save</button>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Letterhead — for printed reports</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Shown at the top of anything you print (Today's docket, case history). Leave blank to skip it.</div>
+        <div class="field"><input class="input" id="s-lh-name" placeholder="Your name or firm name" value="${esc(state.letterhead.name||'')}" /></div>
+        <div class="field"><input class="input" id="s-lh-subtitle" placeholder="e.g. Attorney at Law · Bar No. 1234" value="${esc(state.letterhead.subtitle||'')}" /></div>
+        <div class="field"><input class="input" id="s-lh-contact" placeholder="Phone, email, or office address" value="${esc(state.letterhead.contact||'')}" /></div>
+        <button class="btn-primary" onclick="saveLetterhead()">Save letterhead</button>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
         <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
         ${state.googleConnected
           ? (()=>{
@@ -1746,6 +2062,11 @@ function openSettingsModal(){
             })()
           : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Not connected. Dates added while disconnected won't sync automatically — you can still add any of them to Google Calendar manually with one tap (look for the calendar icon next to any date), or reconnect and use "Sync unsynced dates" below.</div>
              <button class="btn-ghost" onclick="connectGoogleCalendar()">Connect Google Calendar</button>`}
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Tools</div>
+        <button class="btn-ghost" onclick="openDeadlineCalcModal()">${ICONS.hourglass_half} Statutory deadline calculator</button>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
@@ -1764,6 +2085,30 @@ function openSettingsModal(){
         <div style="font-size:11px;color:var(--muted);margin-top:6px;">Removing a type only hides it from future suggestions — cases already using it are unaffected.</div>
       </div>
 
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Starting checklist by case type</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new case of a type below starts with these checklist items already added — one per line.</div>
+        <select class="input" id="tmpl-type-select" onchange="onTemplateTypeChange()">
+          ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${window._tempTemplateType===t?'selected':''}>${esc(t)}</option>`).join("")}
+        </select>
+        <textarea class="input" id="tmpl-items" rows="4" placeholder="e.g.&#10;Review case file&#10;Confirm client contact" style="margin-top:6px;resize:vertical;">${esc((state.checklistTemplates[window._tempTemplateType]||[]).join("\n"))}</textarea>
+        <button class="btn-ghost" style="margin-top:6px;" onclick="saveChecklistTemplate()">Save template for this type</button>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Default hearing-prep checklist</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new Hearing you schedule automatically gets these checklist items attached.</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <input class="input" id="hearing-prep-input" placeholder="e.g. Confirm client will attend" />
+          <button class="btn-ghost" onclick="addHearingPrepDefault()">Add</button>
+        </div>
+        ${state.hearingPrepDefaults.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">None yet — add a standard prep step above and it'll be attached to every new Hearing automatically.</div>` : `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${state.hearingPrepDefaults.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeHearingPrepDefault('${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
+        </div>
+        `}
+      </div>
+
       <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
         ${state.cases.length} case${state.cases.length===1?"":"s"} · ${state.tasks.length} date${state.tasks.length===1?"":"s"} · ${state.checklist.length} checklist item${state.checklist.length===1?"":"s"}.<br/><br/>
         Signed in as ${esc(state.user.email)}. Your data is private to this account and syncs automatically across every device you sign in on.
@@ -1772,6 +2117,15 @@ function openSettingsModal(){
   </div>`;
 }
 window.saveAlertDays = ()=>{ state.alertDays = Math.max(1, Number(document.getElementById("s-alertdays").value)||1); saveSettings(); closeModal(); };
+window.saveLetterhead = ()=>{
+  state.letterhead = {
+    name: document.getElementById("s-lh-name").value.trim(),
+    subtitle: document.getElementById("s-lh-subtitle").value.trim(),
+    contact: document.getElementById("s-lh-contact").value.trim()
+  };
+  saveSettings();
+  showToast("Letterhead saved.");
+};
 window.openQuickReference = (isFirstTime)=>{
   const legendTypes = [...PROCEDURE_TYPES];
   document.getElementById("modal-root").innerHTML = `
@@ -1834,6 +2188,133 @@ window.removeCustomType = (kind, value)=>{
   saveSettings();
   openSettingsModal();
 };
+window.onTemplateTypeChange = ()=>{
+  window._tempTemplateType = document.getElementById("tmpl-type-select").value;
+  openSettingsModal();
+};
+window.saveChecklistTemplate = ()=>{
+  const type = window._tempTemplateType;
+  const lines = document.getElementById("tmpl-items").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(lines.length){ state.checklistTemplates = {...state.checklistTemplates, [type]: lines}; }
+  else { const {[type]:_, ...rest} = state.checklistTemplates; state.checklistTemplates = rest; }
+  saveSettings();
+  showToast(`Template saved for ${type}`);
+  openSettingsModal();
+};
+window.addHearingPrepDefault = ()=>{
+  const input = document.getElementById("hearing-prep-input");
+  const v = input.value.trim();
+  if(!v) return;
+  if(!state.hearingPrepDefaults.includes(v)) state.hearingPrepDefaults.push(v);
+  saveSettings();
+  openSettingsModal();
+};
+window.removeHearingPrepDefault = (value)=>{
+  state.hearingPrepDefaults = state.hearingPrepDefaults.filter(t=>t!==value);
+  saveSettings();
+  openSettingsModal();
+};
+
+/* ================= STATUTORY DEADLINE CALCULATOR ================= */
+window.openDeadlineCalcModal = ()=>{
+  window._tempDeadlineResult = null;
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${ICONS.hourglass_half} Statutory Deadline Calculator</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Counts the way Libya's Code of Civil &amp; Commercial Procedure does (Art. 16 &amp; 19): the start date itself isn't counted, and if the final day lands on the weekend (Friday or Saturday) it extends to the next working day. General reference, not legal advice — confirm any live deadline before relying on it.</div>
+
+      <div class="field"><span class="field-label">Start date — notification / service / triggering event</span><input class="input" id="dc-start" type="date" value="${todayKey()}" onchange="clearDeadlineResult()" /></div>
+
+      <div class="field"><span class="field-label">Deadline type</span>
+        <select class="input" id="dc-preset" onchange="applyDeadlinePreset()">
+          <option value="">Custom — type the number of days</option>
+          ${state.deadlinePresets.map((p,i)=>`<option value="${i}">${esc(p.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field"><span class="field-label">Number of days</span><input class="input" id="dc-days" type="number" min="1" value="${state.deadlinePresets[0]?state.deadlinePresets[0].days:30}" onchange="clearDeadlineResult()" /></div>
+      <div class="field"><span class="field-label">Distance to court, km — optional</span><input class="input" id="dc-km" type="number" min="0" placeholder="Adds 1 day per 25km, capped at 8" onchange="clearDeadlineResult()" /></div>
+
+      ${state.cases.length>0 ? `<div class="field"><span class="field-label">Link to a case — optional</span>
+        <select class="input" id="dc-case">
+          <option value="">No case</option>
+          ${state.cases.map(c=>`<option value="${c.id}">${esc(computeCaseTitle(c))}</option>`).join("")}
+        </select>
+      </div>` : ""}
+
+      <button type="button" class="btn-primary" style="width:100%;" onclick="computeDeadline()">Calculate</button>
+      <div id="dc-result" style="margin-top:14px;"></div>
+
+      <div style="border-top:1px solid var(--line);margin-top:18px;padding-top:14px;">
+        <div class="section-label">Your saved deadline types</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+          ${state.deadlinePresets.length===0 ? `<div style="font-size:12px;color:var(--muted);">None saved.</div>` :
+            state.deadlinePresets.map((p,i)=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(p.name)} (${p.days}d) <button onclick="removeDeadlinePreset(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input class="input" id="dc-new-name" placeholder="Name it, e.g. Opposition" style="flex:1;" />
+          <input class="input" id="dc-new-days" type="number" min="1" placeholder="Days" style="width:78px;" />
+          <button class="btn-ghost" onclick="addDeadlinePreset()">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+};
+window.clearDeadlineResult = ()=>{ const el = document.getElementById("dc-result"); if(el) el.innerHTML = ""; window._tempDeadlineResult = null; };
+window.applyDeadlinePreset = ()=>{
+  const sel = document.getElementById("dc-preset");
+  if(sel.value==="") return;
+  const p = state.deadlinePresets[Number(sel.value)];
+  if(p) document.getElementById("dc-days").value = p.days;
+  clearDeadlineResult();
+};
+window.addDeadlinePreset = ()=>{
+  const name = document.getElementById("dc-new-name").value.trim();
+  const days = Number(document.getElementById("dc-new-days").value);
+  if(!name || !days) return;
+  state.deadlinePresets = [...state.deadlinePresets, {name, days}];
+  saveSettings();
+  openDeadlineCalcModal();
+};
+window.removeDeadlinePreset = (i)=>{
+  state.deadlinePresets = state.deadlinePresets.filter((_,idx)=>idx!==i);
+  saveSettings();
+  openDeadlineCalcModal();
+};
+window.computeDeadline = ()=>{
+  const start = document.getElementById("dc-start").value;
+  const days = Number(document.getElementById("dc-days").value)||0;
+  const km = Number(document.getElementById("dc-km").value)||0;
+  const resultEl = document.getElementById("dc-result");
+  if(!start || days<=0){ resultEl.innerHTML = `<div style="color:var(--brick);font-size:13px;">Enter a start date and a number of days.</div>`; return; }
+  const distanceDays = km>0 ? Math.min(8, Math.ceil(km/25)) : 0;
+  const calc = calcStatutoryDeadline(start, days, distanceDays);
+  window._tempDeadlineResult = calc;
+  const caseSel = document.getElementById("dc-case");
+  resultEl.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px;">Last day to act</div>
+      <div class="serif" style="font-size:19px;color:var(--navy-dark);">${fmtLong(calc.date)}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;">
+        ${days} day${days===1?'':'s'}${distanceDays?` + ${distanceDays} distance day${distanceDays===1?'':'s'}`:''} from ${fmtLong(start)} — start date excluded from the count.
+        ${calc.pushedForHoliday ? `<br/>Falls on the weekend — extended to the next working day (Sunday) per Article 19.` : ''}
+      </div>
+    </div>
+    ${(caseSel && caseSel.value) ? `<button type="button" class="btn-ghost" style="width:100%;margin-top:10px;" onclick="saveDeadlineAsTask()">${ICONS.calendar_days} Save as a deadline for this case</button>` : ""}
+  `;
+};
+window.saveDeadlineAsTask = ()=>{
+  if(!window._tempDeadlineResult) return;
+  const caseSel = document.getElementById("dc-case");
+  const caseId = caseSel ? caseSel.value : "";
+  if(!caseId) return;
+  const presetSel = document.getElementById("dc-preset");
+  const presetName = (presetSel && presetSel.value!=="") ? state.deadlinePresets[Number(presetSel.value)].name : "Statutory deadline";
+  saveTask({ caseId, title: presetName, date: window._tempDeadlineResult.date, type:"Procedure", kind:"deadline", flag:"none", notes:"", completed:false, googleEventId:null, createdAt: Date.now() });
+  showToast("Deadline saved to the case.");
+  closeModal();
+};
+
 window.exportData = ()=>{
   const payload = { exportedAt: new Date().toISOString(), cases: state.cases, tasks: state.tasks, checklist: state.checklist };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
