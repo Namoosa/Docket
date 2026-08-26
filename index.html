@@ -824,8 +824,26 @@ function renderCalendar(upcoming){
   const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
   const tk2 = todayKey();
   const criticalItems = state.tasks.filter(t=>t.flag==="critical" && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const todaysHearings = state.tasks.filter(t=>t.type==="Hearing" && t.date===tk && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)}));
 
   document.getElementById("view-calendar").innerHTML = `
+    ${todaysHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:2px solid var(--navy);border-radius:10px;padding:12px 14px;">
+      <div class="section-label" style="color:var(--navy-dark);margin-bottom:8px;">${ICONS.gavel} Today in court</div>
+      ${todaysHearings.map(t=>{
+        const caseItem = casesById[t.caseId];
+        const latestLog = (caseItem && caseItem.noteLog && caseItem.noteLog.length) ? caseItem.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date))[0] : null;
+        const chamberLine = (caseItem && caseItem.authorityType==="court" && caseItem.chamber) ? esc(caseItem.chamber) : "";
+        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? `Prosecutor: ${esc(caseItem.prosecutorInCharge)}` : "";
+        const hasExtra = !!(chamberLine || prosecutorLine || (caseItem && caseItem.notes) || latestLog);
+        return `${taskRowHtml(t, caseItem, false)}
+          ${hasExtra ? `<div style="margin:-6px 0 10px 4px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;">
+            ${chamberLine?`<div style="color:var(--muted);margin-bottom:4px;">${chamberLine}</div>`:""}
+            ${prosecutorLine?`<div style="color:var(--muted);margin-bottom:4px;">${prosecutorLine}</div>`:""}
+            ${caseItem&&caseItem.notes?`<div style="margin-bottom:${latestLog?'6px':'0'};"><strong>Case notes:</strong> ${esc(caseItem.notes)}</div>`:""}
+            ${latestLog?`<div><strong>Last log (${fmtLong(latestLog.date)}):</strong> ${esc(latestLog.text)}</div>`:""}
+          </div>` : ""}`;
+      }).join("")}
+    </div>` : ""}
     ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
       <div class="section-label" style="color:var(--brick);margin-bottom:8px;">${ICONS.triangle_exclamation} Critical deadlines</div>
       ${criticalItems.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
