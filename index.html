@@ -286,7 +286,7 @@ const WD = ["S","M","T","W","T","F","S"];
 let state = {
   user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false, hasSeenQuickRef:false,
   cases:[], tasks:[], checklist:[],
-  customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false, checklistTemplates:{},
+  customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false, checklistTemplates:{}, hearingPrepDefaults:[],
   view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
   selectedDay: todayKey(), search:"", filterType:"All", filterStatus:"All", filterCourt:"All",
 };
@@ -442,6 +442,7 @@ function attachListeners(uidVal){
     state.customCaseTypes = d.customCaseTypes || [];
     state.customProcedureTypes = d.customProcedureTypes || [];
     state.checklistTemplates = d.checklistTemplates || {};
+    state.hearingPrepDefaults = d.hearingPrepDefaults || [];
     state.onboardDismissed = !!d.onboardDismissed;
     state.calendarEverConnected = !!d.calendarEverConnected;
     const wasUnset = !state.hasSeenQuickRef && !d.hasSeenQuickRef;
@@ -454,7 +455,7 @@ function attachListeners(uidVal){
   });
 }
 function saveSettings(){
-  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef, checklistTemplates: state.checklistTemplates });
+  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef, checklistTemplates: state.checklistTemplates, hearingPrepDefaults: state.hearingPrepDefaults });
 }
 function stripId(t){ const {id, ...rest}=t; return rest; }
 
@@ -1320,8 +1321,9 @@ window.submitTask = (id)=>{
   if(!title || !date) return;
   const caseSel = document.getElementById("f-caseId");
   const type = window._tempProcType || PROCEDURE_TYPES[0];
+  const kind = window._tempKind||"event";
   const existing = id ? state.tasks.find(x=>x.id===id) : null;
-  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null, createdAt: existing?(existing.createdAt||Date.now()):Date.now() };
+  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind, flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null, createdAt: existing?(existing.createdAt||Date.now()):Date.now() };
   // Procedure type is now fixed to Hearing/Procedure — no custom-type registration needed.
 
   const repeatOn = document.getElementById("f-repeat-on");
@@ -1335,7 +1337,14 @@ window.submitTask = (id)=>{
   } else {
     const data = { ...baseData, title, date };
     if(id) data.id = id;
-    saveTask(data);
+    const savePromise = saveTask(data);
+    if(!existing && type==="Hearing" && kind==="event" && state.hearingPrepDefaults.length>0){
+      savePromise.then(newTaskId=>{
+        state.hearingPrepDefaults.forEach(text=>{
+          saveChecklistItem({ text, caseId: data.caseId, taskId: newTaskId, followNextHearing:false, dueDate:null, done:false });
+        });
+      });
+    }
   }
   closeModal();
 };
@@ -1920,6 +1929,20 @@ function openSettingsModal(){
         <button class="btn-ghost" style="margin-top:6px;" onclick="saveChecklistTemplate()">Save template for this type</button>
       </div>
 
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Default hearing-prep checklist</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new Hearing you schedule automatically gets these checklist items attached.</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <input class="input" id="hearing-prep-input" placeholder="e.g. Confirm client will attend" />
+          <button class="btn-ghost" onclick="addHearingPrepDefault()">Add</button>
+        </div>
+        ${state.hearingPrepDefaults.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">None yet — add a standard prep step above and it'll be attached to every new Hearing automatically.</div>` : `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${state.hearingPrepDefaults.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeHearingPrepDefault('${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
+        </div>
+        `}
+      </div>
+
       <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
         ${state.cases.length} case${state.cases.length===1?"":"s"} · ${state.tasks.length} date${state.tasks.length===1?"":"s"} · ${state.checklist.length} checklist item${state.checklist.length===1?"":"s"}.<br/><br/>
         Signed in as ${esc(state.user.email)}. Your data is private to this account and syncs automatically across every device you sign in on.
@@ -2001,6 +2024,19 @@ window.saveChecklistTemplate = ()=>{
   else { const {[type]:_, ...rest} = state.checklistTemplates; state.checklistTemplates = rest; }
   saveSettings();
   showToast(`Template saved for ${type}`);
+  openSettingsModal();
+};
+window.addHearingPrepDefault = ()=>{
+  const input = document.getElementById("hearing-prep-input");
+  const v = input.value.trim();
+  if(!v) return;
+  if(!state.hearingPrepDefaults.includes(v)) state.hearingPrepDefaults.push(v);
+  saveSettings();
+  openSettingsModal();
+};
+window.removeHearingPrepDefault = (value)=>{
+  state.hearingPrepDefaults = state.hearingPrepDefaults.filter(t=>t!==value);
+  saveSettings();
   openSettingsModal();
 };
 window.exportData = ()=>{
