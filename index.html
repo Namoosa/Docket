@@ -1444,8 +1444,10 @@ function openCaseModal(existingRaw){
         <input class="input ${!allCaseTypes.includes(c.caseType)?'':'hidden'}" id="c-type-custom" placeholder="Type a custom case type" value="${!allCaseTypes.includes(c.caseType)?esc(c.caseType):''}" style="margin-top:6px;" oninput="onCaseTypeChange()" />
       </div>
 
+      <div id="duplicate-warning"></div>
+
       <div id="counsel-fields" class="${isCounsel?'':'hidden'}">
-        <div class="field"><span class="field-label">Client</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="Client's full name" /></div>
+        <div class="field"><span class="field-label">Client</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="Client's full name" oninput="checkDuplicateCase()" /></div>
         <div class="field"><span class="field-label">Subject</span><input class="input" id="c-counsel-subject" value="${esc(c.subject)}" placeholder="e.g. Contract review for lease renewal" /></div>
         <div class="field"><span class="field-label">Date received</span><input class="input" id="c-date-received" type="date" value="${c.dateReceived||todayKey()}" /></div>
       </div>
@@ -1459,7 +1461,7 @@ function openCaseModal(existingRaw){
           </div>
         </div>
 
-        <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" /></div>
+        <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" oninput="checkDuplicateCase()" /></div>
 
         <div class="field">
           <span class="field-label">Parties</span>
@@ -1512,7 +1514,7 @@ function openCaseModal(existingRaw){
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Create case'}</button>
     </div>
   </div>`;
-  renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts();
+  renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts(); checkDuplicateCase();
 }
 window.openCaseModal = openCaseModal;
 window.onCaseTypeSelectChange = ()=>{
@@ -1568,7 +1570,45 @@ function renderPartyList(){
 }
 window.addPartyRow = ()=>{ window._tempParties.push({id:uid(), role:"Client", name:"", phone:"", email:""}); renderPartyList(); };
 window.removePartyRow = (i)=>{ window._tempParties.splice(i,1); renderPartyList(); checkConflicts(); };
-window.updatePartyField = (i,field,v)=>{ window._tempParties[i][field]=v; if(field==="name"||field==="role") checkConflicts(); };
+window.updatePartyField = (i,field,v)=>{
+  window._tempParties[i][field]=v;
+  if(field==="name"||field==="role") checkConflicts();
+  if((field==="name"||field==="role") && window._tempParties[i].role==="Client") checkDuplicateCase();
+};
+function checkDuplicateCase(){
+  const el = document.getElementById("duplicate-warning");
+  if(!el) return;
+  if(window._editingCaseId){ el.innerHTML=""; return; }
+  const candidates = [];
+  const subjectEl = document.getElementById("c-subject");
+  if(subjectEl && subjectEl.value.trim()) candidates.push(subjectEl.value.trim());
+  const counselEl = document.getElementById("c-counsel-client");
+  if(counselEl && counselEl.value.trim()) candidates.push(counselEl.value.trim());
+  (window._tempParties||[]).filter(p=>p.role==="Client" && p.name && p.name.trim()).forEach(p=> candidates.push(p.name.trim()));
+
+  const matches = [];
+  candidates.forEach(cand=>{
+    const cLower = cand.toLowerCase();
+    if(cLower.length<3) return;
+    state.cases.forEach(c=>{
+      if(window._tempLinked.includes(c.id)) return;
+      if(matches.some(m=>m.id===c.id)) return;
+      const tLower = computeCaseTitle(c).toLowerCase();
+      if(tLower.includes(cLower) || cLower.includes(tLower)) matches.push(c);
+    });
+  });
+  el.innerHTML = matches.length ? matches.map(c=>`
+    <div style="margin-top:8px;background:var(--surface);border:1px solid var(--slate);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--slate);line-height:1.5;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>${ICONS.info} This looks similar to <strong>${esc(computeCaseTitle(c))}</strong> — is this the same matter?</span>
+      <button type="button" class="btn-ghost" style="font-size:11px;padding:4px 8px;flex-shrink:0;" onclick="linkDuplicateCase('${c.id}')">Link instead?</button>
+    </div>`).join("") : "";
+}
+window.linkDuplicateCase = (id)=>{
+  if(!window._tempLinked.includes(id)) window._tempLinked.push(id);
+  renderLinkList(window._editingCaseId);
+  checkDuplicateCase();
+  showToast("Linked to that case — you can unlink later from the case form.");
+};
 function checkConflicts(){
   const el = document.getElementById("conflict-warning");
   if(!el) return;
