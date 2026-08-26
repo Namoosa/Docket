@@ -582,6 +582,9 @@ function getGisTokenClient(){
         saveSettings();
         showToast("Google Calendar connected.");
         render();
+        if(state.tasks.filter(t=>!t.completed && !t.googleEventId).length > 0){
+          syncAllUnsynced(true);
+        }
       } else {
         showToast("Google didn't grant calendar access this time — please try again.");
       }
@@ -602,11 +605,11 @@ window.connectGoogleCalendar = ()=>{
   const client = getGisTokenClient();
   if(client) client.requestAccessToken();
 };
-window.syncAllUnsynced = async ()=>{
-  if(!state.googleConnected || !state.googleAccessToken){ showToast("Connect Google Calendar first."); return; }
+window.syncAllUnsynced = async (silent)=>{
+  if(!state.googleConnected || !state.googleAccessToken){ if(!silent) showToast("Connect Google Calendar first."); return; }
   const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId);
-  if(unsynced.length===0){ showToast("Nothing to sync — you're all caught up."); return; }
-  showToast(`Syncing ${unsynced.length} date${unsynced.length===1?'':'s'}…`);
+  if(unsynced.length===0){ if(!silent) showToast("Nothing to sync — you're all caught up."); return; }
+  if(!silent) showToast(`Syncing ${unsynced.length} date${unsynced.length===1?'':'s'}…`);
   let successCount = 0;
   for(const t of unsynced){
     const caseItem = state.cases.find(c=>c.id===t.caseId);
@@ -617,8 +620,8 @@ window.syncAllUnsynced = async ()=>{
       successCount++;
     }
   }
-  showToast(`Synced ${successCount} of ${unsynced.length} date${unsynced.length===1?'':'s'}.`);
-  closeModal();
+  showToast(silent ? `Caught up ${successCount} date${successCount===1?'':'s'} that synced while disconnected.` : `Synced ${successCount} of ${unsynced.length} date${unsynced.length===1?'':'s'}.`);
+  if(!silent) closeModal();
 };
 window.reconnectGoogle = window.connectGoogleCalendar;
 function showToast(message){
@@ -1016,6 +1019,16 @@ function renderCases(){
   const tc = document.getElementById("toggle-closed");
   if(tc) tc.onchange = e=>{ state.hideClosed = e.target.checked; render(); };
 }
+function daysSinceActivity(c){
+  const dates = [c.createdAt ? new Date(c.createdAt).toISOString().slice(0,10) : null];
+  (c.noteLog||[]).forEach(l => dates.push(l.date));
+  state.tasks.filter(t=>t.caseId===c.id).forEach(t => { if(t.createdAt) dates.push(new Date(t.createdAt).toISOString().slice(0,10)); });
+  state.checklist.filter(x=>x.caseId===c.id).forEach(it => { if(it.createdAt) dates.push(new Date(it.createdAt).toISOString().slice(0,10)); });
+  const valid = dates.filter(Boolean);
+  if(valid.length===0) return null;
+  const mostRecent = valid.sort().reverse()[0];
+  return daysBetween(mostRecent, todayKey());
+}
 function caseCardHtml(c){
   const color = colorForCaseType(c.caseType);
   const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
@@ -1027,11 +1040,14 @@ function caseCardHtml(c){
     : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"Gen. "+esc(c.generalNumber):""}`
     : c.courtNumber ? esc(c.courtNumber) : "";
 
+  const activityDays = c.status!=="Closed" ? daysSinceActivity(c) : null;
+
   const metaPieces = [
     `<span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span> ${esc(c.caseType)}`,
     locationPiece,
     (c.documents&&c.documents.length) ? `${ICONS.link} ${c.documents.length}` : "",
-    groupSize>0 ? `${ICONS.link} linked (${groupSize})` : ""
+    groupSize>0 ? `${ICONS.link} linked (${groupSize})` : "",
+    activityDays!==null ? `${activityDays}d since activity` : ""
   ].filter(Boolean);
 
   return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
@@ -1287,7 +1303,7 @@ window.submitTask = (id)=>{
   const caseSel = document.getElementById("f-caseId");
   const type = window._tempProcType || PROCEDURE_TYPES[0];
   const existing = id ? state.tasks.find(x=>x.id===id) : null;
-  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null };
+  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind: window._tempKind||"event", flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null, createdAt: existing?(existing.createdAt||Date.now()):Date.now() };
   // Procedure type is now fixed to Hearing/Procedure — no custom-type registration needed.
 
   const repeatOn = document.getElementById("f-repeat-on");
