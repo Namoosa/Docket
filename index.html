@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 
 
 <script>
@@ -51,6 +51,9 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; min-height:100vh; padding-bottom:90px;}
+  html[lang="ar"] body{font-family:'IBM Plex Sans Arabic',sans-serif;}
+  html[lang="ar"] .serif{font-family:'Amiri',serif;}
+  html[lang="ar"] .mono{font-family:'IBM Plex Sans Arabic',monospace;}
   ::-webkit-scrollbar{width:8px;height:8px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
   button{font-family:inherit; cursor:pointer;}
   input,select,textarea{font-family:inherit; outline:none;}
@@ -91,8 +94,8 @@
   .cal-day.selected{border:2px solid var(--navy); background:#DFE3E8;}
   .cal-day.has-critical{box-shadow:inset 0 0 0 2px var(--critical);}
   .dot{width:5px;height:5px;border-radius:3px;}
-  .overdue-mark{position:absolute;top:2px;right:3px;width:6px;height:6px;border-radius:3px;background:#B23A32;}
-  .critical-mark{position:absolute;top:2px;left:3px;width:6px;height:6px;border-radius:3px;background:var(--critical);}
+  .overdue-mark{position:absolute;top:2px;inset-inline-end:3px;width:6px;height:6px;border-radius:3px;background:#B23A32;}
+  .critical-mark{position:absolute;top:2px;inset-inline-start:3px;width:6px;height:6px;border-radius:3px;background:var(--critical);}
   .cal-icon svg{width:12.5px !important;height:12.5px !important;vertical-align:middle !important;}
   .section-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
   .task-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
@@ -100,17 +103,17 @@
   .task-check{background:none;border:1.5px solid var(--line);border-radius:5px;width:23px;height:23px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .task-title{font-size:13.5px;font-weight:600;}
   .task-meta{font-size:12px;color:var(--muted);margin-top:2px;}
-  .case-card{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:9px;}
+  .case-card{width:100%;text-align:start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:9px;}
   .search-wrap{position:relative;margin-bottom:10px;}
-  .search-wrap input{padding-left:32px;}
-  .fab{position:fixed;right:20px;bottom:24px;width:56px;height:56px;border-radius:28px;background:var(--brass);color:var(--navy-dark);border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.28);font-size:26px;z-index:40;}
+  .search-wrap input{padding-inline-start:32px;}
+  .fab{position:fixed;inset-inline-end:20px;bottom:24px;width:56px;height:56px;border-radius:28px;background:var(--brass);color:var(--navy-dark);border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.28);font-size:26px;z-index:40;}
   .modal-bg{position:fixed;inset:0;background:rgba(24,20,14,.45);display:flex;align-items:flex-end;justify-content:center;z-index:100;}
   .modal{background:var(--paper);width:100%;max-width:460px;max-height:88vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:20px 20px 28px;}
   @media(min-width:640px){ .modal{border-radius:16px; margin-bottom:5vh;} }
   .modal.wide{max-width:640px;}
   .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
   .doc-link-row{display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:5px;}
-  .install-banner{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:8px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;font-size:13px;line-height:1.5;}
+  .install-banner{background:var(--panel);border:1px solid var(--line);border-inline-start:4px solid var(--brass);border-radius:8px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;font-size:13px;line-height:1.5;}
   .party-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
   .party-row select{flex:0 0 34%;}
   .link-check-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
@@ -122,7 +125,7 @@
   .checklist-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
   /* Icon sizing — inline SVGs, self-contained, no external font dependency */
   .icon-btn svg{width:18px;height:18px;}
-  .tab-btn svg{margin-right:3px;}
+  .tab-btn svg{margin-inline-end:3px;}
   .fab svg{width:22px;height:22px;}
   .brand svg{width:20px;height:20px;}
   .badge svg{width:12px;height:12px;vertical-align:-2px !important;}
@@ -136,7 +139,7 @@
     #print-area .letterhead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:2px solid #1B211B;padding-bottom:12px;margin-bottom:20px;}
     #print-area .letterhead-name{font-family:'Source Serif 4',serif;font-size:19px;font-weight:600;color:#1B211B;}
     #print-area .letterhead-meta{font-family:'Inter',sans-serif;font-size:11px;color:#555;margin-top:3px;line-height:1.5;}
-    #print-area .letterhead-date{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#666;text-align:right;white-space:nowrap;}
+    #print-area .letterhead-date{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#666;text-align:end;white-space:nowrap;}
     #print-area h1{font-family:'Source Serif 4',serif;font-size:20px;margin-bottom:4px;}
     #print-area .p-sub{font-family:'Inter',sans-serif;color:#555;font-size:12.5px;margin-bottom:18px;}
     #print-area .p-section{margin-bottom:20px;page-break-inside:avoid;}
@@ -187,6 +190,7 @@
       <div class="brand"><span style="color:var(--brass);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg></span> <span class="serif">Docket</span></div>
       <div style="display:flex;gap:8px;align-items:center;">
         <div id="header-badges" style="display:flex;gap:6px;"></div>
+        <button class="icon-btn" id="lang-toggle-btn" onclick="toggleLanguage()" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;font-weight:700;width:auto;padding:0 10px;" title="EN / عربي">AR</button>
         <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'/><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><rect x='6' y='14' width='12' height='8'/></svg></button>
         <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg></button>
         <button class="icon-btn" id="signout-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;">Out</button>
@@ -199,9 +203,9 @@
 
   <main>
     <div class="tabs">
-      <button class="tab-btn active" id="tab-calendar"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg> Calendar</button>
-      <button class="tab-btn" id="tab-cases"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/></svg> Cases</button>
-      <button class="tab-btn" id="tab-checklist"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='10' y1='6' x2='21' y2='6'/><line x1='10' y1='12' x2='21' y2='12'/><line x1='10' y1='18' x2='21' y2='18'/><polyline points='3 6 4 7 6 5'/><polyline points='3 12 4 13 6 11'/><polyline points='3 18 4 19 6 17'/></svg> Checklist</button>
+      <button class="tab-btn active" id="tab-calendar"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg> <span id="tab-calendar-label">Calendar</span></button>
+      <button class="tab-btn" id="tab-cases"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/></svg> <span id="tab-cases-label">Cases</span></button>
+      <button class="tab-btn" id="tab-checklist"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='10' y1='6' x2='21' y2='6'/><line x1='10' y1='12' x2='21' y2='12'/><line x1='10' y1='18' x2='21' y2='18'/><polyline points='3 6 4 7 6 5'/><polyline points='3 12 4 13 6 11'/><polyline points='3 18 4 19 6 17'/></svg> <span id="tab-checklist-label">Checklist</span></button>
     </div>
     <div id="view-calendar"></div>
     <div id="view-cases" class="hidden"></div>
@@ -286,7 +290,7 @@ const CASE_TYPE_COLOR = {"Criminal":"#744C2F","Civil":"#8B7C4B","Commercial":"#8
 const CASE_TYPE_ICON = {"Criminal":ICONS.handcuffs,"Civil":ICONS.scroll,"Commercial":ICONS.building,"Corporate":ICONS.building,"Family":ICONS.people_roof,"Labor":ICONS.helmet_safety,"Personal Status":ICONS.people_roof,"Real Estate":ICONS.house,"Administrative":ICONS.landmark,"Counsel":ICONS.comments};
 
 const PARTY_ROLES = ["Client","Opponent","Co-Defendant","Co-Plaintiff","Third Party","Other"];
-const STATUS_OPTIONS = ["Active","Pending","On Hold","Closed"];
+const STATUS_OPTIONS = ["Pending Partner Review","Pending Power of Attorney","Pending Documents","Active","On Hold","Closed"];
 const HASH_PALETTE = ["#9A3B33","#A6762E","#3D5871","#556B4F","#6B5B8C","#8A6E4B","#7B7566","#3D6B6B"];
 
 function hashColor(str){ let h=0; for(let i=0;i<str.length;i++){ h = str.charCodeAt(i) + ((h<<5)-h); } return HASH_PALETTE[Math.abs(h)%HASH_PALETTE.length]; }
@@ -296,10 +300,178 @@ function iconForProcedure(t){ return PROCEDURE_ICON[t] || ICONS.tag; }
 function iconForCaseType(t){ return CASE_TYPE_ICON[t] || ICONS.folder_open; }
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 const WD = ["S","M","T","W","T","F","S"];
+const WD_AR = ["ح","ن","ث","ر","خ","ج","س"];
+function monthName(m){ return state.lang==="ar" ? MONTHS_AR[m] : MONTHS[m]; }
+function weekdayLabel(i){ return state.lang==="ar" ? WD_AR[i] : WD[i]; }
+
+/* ================= i18n ================= */
+// Case type / status / procedure type are stored in Firestore as fixed English
+// values (caseType==="Criminal" etc. is compared throughout the app) — these
+// label maps translate them for DISPLAY only; the stored value never changes,
+// so switching language never breaks a filter, a comparison, or old data.
+const CASE_TYPE_LABELS = {
+  en:{Criminal:"Criminal",Civil:"Civil",Commercial:"Commercial",Corporate:"Corporate",Family:"Family",Labor:"Labor","Personal Status":"Personal Status","Real Estate":"Real Estate",Administrative:"Administrative",Counsel:"Counsel"},
+  ar:{Criminal:"جنائية",Civil:"مدنية",Commercial:"تجارية",Corporate:"شركات",Family:"أسرة",Labor:"عمالية","Personal Status":"أحوال شخصية","Real Estate":"عقارية",Administrative:"إدارية",Counsel:"استشارة"}
+};
+const STATUS_LABELS = {
+  en:{"Pending Partner Review":"Pending Partner Review","Pending Power of Attorney":"Pending Power of Attorney","Pending Documents":"Pending Documents",Active:"Active","On Hold":"On Hold",Closed:"Closed"},
+  ar:{"Pending Partner Review":"مراجعة الأستاذ","Pending Power of Attorney":"توكيل الموكل","Pending Documents":"تقديم مستندات",Active:"قيد العمل","On Hold":"معلقة",Closed:"مغلقة"}
+};
+const PROCEDURE_TYPE_LABELS = {
+  en:{Hearing:"Hearing",Procedure:"Procedure"},
+  ar:{Hearing:"جلسة",Procedure:"إجراء"}
+};
+function caseTypeLabel(v){ return (CASE_TYPE_LABELS[state.lang]&&CASE_TYPE_LABELS[state.lang][v]) || v; }
+function statusLabel(v){ return (STATUS_LABELS[state.lang]&&STATUS_LABELS[state.lang][v]) || v; }
+function procTypeLabel(v){ return (PROCEDURE_TYPE_LABELS[state.lang]&&PROCEDURE_TYPE_LABELS[state.lang][v]) || v; }
+
+const TRANSLATIONS = {
+  // App chrome
+  tab_calendar:{en:"Calendar",ar:"التقويم"}, tab_cases:{en:"Cases",ar:"القضايا"}, tab_checklist:{en:"Checklist",ar:"قائمة المهام"},
+  badge_overdue:{en:"{n} overdue",ar:"{n} متأخر"}, badge_due_soon:{en:"{n} due soon",ar:"{n} قريبًا"}, badge_no_upcoming:{en:"{n} no upcoming dates",ar:"{n} بلا مواعيد قادمة"},
+  // Calendar tab
+  today_in_court:{en:"Today in court",ar:"اليوم في المحكمة"}, tomorrow_in_court:{en:"Tomorrow in court",ar:"غدًا في المحكمة"},
+  nothing_in_court_today:{en:"Nothing in court today — relax.",ar:"لا جلسات اليوم — استرح."},
+  critical_deadlines:{en:"Critical deadlines",ar:"مواعيد مهمة"}, today_word:{en:"Today",ar:"اليوم"},
+  upcoming_word:{en:"Upcoming",ar:"القادمة"}, overdue_word:{en:"Overdue",ar:"متأخرة"},
+  nothing_scheduled_day:{en:"Nothing scheduled this day.",ar:"لا شيء مجدول لهذا اليوم."},
+  no_upcoming_tap:{en:"No upcoming dates. Tap + to add one.",ar:"لا مواعيد قادمة. اضغط + للإضافة."},
+  prep_for_this_date:{en:"Prep for this date",ar:"تحضير لهذا الموعد"},
+  prosecutor_line:{en:"Prosecutor: {name}",ar:"وكيل النيابة: {name}"},
+  case_notes_label:{en:"Case notes:",ar:"ملاحظات القضية:"},
+  last_log_label:{en:"Last log ({date}):",ar:"آخر تدوينة ({date}):"},
+  jump_to_month_title:{en:"Jump to a month",ar:"الانتقال إلى شهر"},
+  // Task row
+  overdue_badge:{en:"Overdue",ar:"متأخر"}, missed_deadline:{en:"Missed deadline",ar:"موعد فائت"},
+  critical_badge:{en:"CRITICAL",ar:"مهم"}, headsup_badge:{en:"heads-up",ar:"للعلم"},
+  deadline_suffix:{en:"(deadline)",ar:"(موعد نهائي)"}, postponed_prefix:{en:"Postponed:",ar:"أُجِّلت:"},
+  no_case_linked:{en:"No case linked",ar:"لا توجد قضية مرتبطة"},
+  // Cases tab
+  search_cases_placeholder:{en:"Search cases…",ar:"ابحث في القضايا…"}, filter_all:{en:"All",ar:"الكل"},
+  days_since_activity:{en:"{n}d since activity",ar:"نشاط قبل {n} يوم"}, priority_word:{en:"Priority",ar:"مستعجلة"},
+  no_cases_yet:{en:"No cases yet.",ar:"لا توجد قضايا بعد."}, tap_plus_add_case:{en:"Tap + to add your first case.",ar:"اضغط + لإضافة أول قضية."},
+  stale_no_upcoming:{en:"no upcoming dates",ar:"بلا مواعيد قادمة"},
+  // Checklist tab
+  no_checklist_items:{en:"Nothing on your checklist.",ar:"لا توجد عناصر في القائمة."},
+  general_no_case:{en:"General — no case",ar:"عام — بلا قضية"},
+  all_courts_filter:{en:"All courts / prosecution offices",ar:"كل المحاكم / مكاتب النيابة"},
+  all_case_types_filter:{en:"All case types",ar:"كل أنواع القضايا"},
+  all_statuses_filter:{en:"All statuses",ar:"كل الحالات"},
+  hide_closed_cases:{en:"Hide closed cases ({n} hidden)",ar:"إخفاء القضايا المغلقة ({n} مخفية)"},
+  at_court_open_items:{en:"At {court} — every open procedure & deadline",ar:"في {court} — كل الإجراءات والمواعيد المفتوحة"},
+  nothing_open_at_court:{en:"Nothing open at this court right now.",ar:"لا شيء مفتوح في هذه المحكمة حاليًا."},
+  no_matters_yet:{en:"No matters yet. Tap + to add your first case.",ar:"لا توجد قضايا بعد. اضغط + لإضافة أول قضية."},
+  gen_abbrev:{en:"Gen.",ar:"عام"}, linked_count:{en:"linked ({n})",ar:"مرتبطة ({n})"},
+  counsel_badge:{en:"Counsel",ar:"استشارة"},
+  next_hearing_label:{en:"Next: {date}",ar:"القادمة: {date}"},
+  ruling_issued_btn:{en:"Ruling issued — no further session",ar:"صدر الحكم — لا جلسة قادمة"},
+  ruling_confirm:{en:'Mark "{title}" as the final hearing and close this case?',ar:'وسم "{title}" كآخر جلسة وإغلاق هذه القضية؟'},
+  also_open_at_court:{en:"Also open at {court}",ar:"مفتوحة أيضًا في {court}"},
+  badge_due_soon_title:{en:"Due soon",ar:"قريبًا"},
+  no_checklist_items_tap:{en:"Nothing on your checklist. Tap + to add a task.",ar:"لا توجد عناصر في القائمة. اضغط + لإضافة مهمة."},
+  due_prefix:{en:"Due {date}",ar:"يستحق {date}"},
+  before_task_prefix:{en:"Before: {title}",ar:"قبل: {title}"},
+  before_next_hearing:{en:"Before next hearing",ar:"قبل الجلسة القادمة"},
+  none_scheduled_yet:{en:"(none scheduled yet)",ar:"(لم تُحدد بعد)"},
+  // Task form modal
+  new_procedure_date:{en:"New Procedure / Date",ar:"إجراء / موعد جديد"}, edit_procedure_date:{en:"Edit Procedure / Date",ar:"تعديل إجراء / موعد"},
+  this_is_a:{en:"This is a…",ar:"هذا…"}, scheduled_event:{en:"Scheduled event",ar:"حدث مجدول"}, deadline_word:{en:"Deadline",ar:"موعد نهائي"},
+  case_label:{en:"Case",ar:"القضية"}, no_case_standalone:{en:"No case (standalone)",ar:"بلا قضية (مستقل)"},
+  no_cases_add_first:{en:"No cases yet — this will be a standalone date, or add a case first from the Cases tab.",ar:"لا توجد قضايا بعد — سيكون هذا موعدًا مستقلاً، أو أضف قضية أولاً من تبويب القضايا."},
+  title_label:{en:"Title",ar:"العنوان"}, whats_due:{en:"What's due",ar:"المطلوب إنجازه"},
+  title_placeholder_task:{en:"e.g. First hearing session",ar:"مثال: الجلسة الأولى"},
+  date_label:{en:"Date",ar:"التاريخ"}, deadline_date_label:{en:"Deadline date",ar:"تاريخ الموعد النهائي"},
+  procedure_type_label:{en:"Procedure type",ar:"نوع الإجراء"},
+  flag_this_date:{en:"Flag this date",ar:"وسم هذا الموعد"}, flag_none:{en:"None",ar:"بلا"}, flag_fyi:{en:"FYI",ar:"للعلم"}, flag_critical:{en:"Critical",ar:"مهم"},
+  flag_hint_critical:{en:"A can't-miss date — pinned to the top of your Calendar no matter how far away it is.",ar:"موعد لا يجوز تفويته — يبقى مثبتًا أعلى التقويم مهما بعد."},
+  flag_hint_fyi:{en:"Not urgent — shows a quiet heads-up once it's within 7 days out.",ar:"غير عاجل — يظهر تنبيهًا هادئًا عند اقترابه خلال 7 أيام."},
+  flag_hint_none:{en:"No flag — this date only shows the normal due-soon heads-up close to its date, based on your Settings.",ar:"بلا وسم — يظهر هذا الموعد التنبيه المعتاد فقط عند اقترابه، وفق إعداداتك."},
+  notes_label:{en:"Notes",ar:"ملاحظات"},
+  repeat_this_session:{en:"Repeat this session",ar:"تكرار هذه الجلسة"},
+  weekly_word:{en:"Weekly",ar:"أسبوعيًا"}, every_2_weeks:{en:"Every 2 weeks",ar:"كل أسبوعين"}, every_3_weeks:{en:"Every 3 weeks",ar:"كل 3 أسابيع"}, every_4_weeks:{en:"Every 4 weeks",ar:"كل 4 أسابيع"},
+  repeat_hint:{en:"Creates this many sessions total, spaced at the interval above, each individually editable afterward.",ar:"ينشئ هذا العدد من الجلسات بالفاصل الزمني أعلاه، وكل واحدة قابلة للتعديل لاحقًا."},
+  continue_schedule_next:{en:"Continue — schedule the next session",ar:"متابعة — تحديد الجلسة القادمة"},
+  save_changes_btn:{en:"Save changes",ar:"حفظ التعديلات"}, add_to_docket_btn:{en:"Add to docket",ar:"إضافة إلى الدفتر"},
+  // Continue Session modal
+  continue_session_title:{en:"Continue Session",ar:"متابعة الجلسة"},
+  schedules_next_session:{en:'Schedules the next session for "{title}" on a new date.',ar:'يحدد الجلسة القادمة لـ "{title}" في موعد جديد.'},
+  auto_memo_note:{en:'A "Prepare memorandum" checklist item is added automatically, linked to the next hearing.',ar:'تُضاف مهمة "إعداد مذكرة" تلقائيًا إلى القائمة، مرتبطة بالجلسة القادمة.'},
+  reason_for_postponement:{en:"Reason for postponement (optional)",ar:"سبب التأجيل (اختياري)"},
+  reason_judge_unavailable:{en:"Judge unavailable",ar:"غياب القاضي"}, reason_opposing_counsel:{en:"Opposing counsel requested",ar:"بطلب من الخصم"},
+  reason_missing_documents:{en:"Missing documents",ar:"نقص مستندات"}, reason_party_absent:{en:"Party absent",ar:"غياب أحد الأطراف"}, reason_court_backlog:{en:"Court backlog",ar:"ازدحام قضائي"},
+  reason_placeholder:{en:"Tap a quick option above, or type your own",ar:"اختر خيارًا سريعًا أعلاه أو اكتب سببًا آخر"},
+  next_session_date:{en:"Next session date",ar:"تاريخ الجلسة القادمة"},
+  mark_original_completed:{en:"Mark the original date as completed",ar:"وسم الموعد الأصلي كمكتمل"},
+  followup_action_optional:{en:"Follow-up action (optional)",ar:"إجراء متابعة (اختياري)"},
+  followup_custom_placeholder:{en:"Or type a custom follow-up and tap Add",ar:"أو اكتب إجراء متابعة مخصصًا واضغط إضافة"},
+  add_word:{en:"Add",ar:"إضافة"},
+  followup_hint_empty:{en:"Not every postponement needs follow-up work — leave blank if there's nothing to prep.",ar:"ليس كل تأجيل يستلزم عملاً إضافيًا — اتركها فارغة إن لم يكن هناك ما يُحضَّر."},
+  schedule_next_session_btn:{en:"Schedule next session",ar:"تحديد الجلسة القادمة"},
+  followup_notify_party:{en:"Notify party",ar:"إخطار الطرف"}, followup_gather_documents:{en:"Gather documents",ar:"جمع المستندات"}, followup_review_client:{en:"Review with client",ar:"مراجعة مع الموكل"},
+  // Checklist modal
+  new_checklist_item:{en:"New Checklist Item",ar:"عنصر جديد في القائمة"}, edit_checklist_item:{en:"Edit Checklist Item",ar:"تعديل عنصر القائمة"},
+  task_label:{en:"Task",ar:"المهمة"}, task_placeholder:{en:"e.g. Prepare witness list",ar:"مثال: إعداد قائمة الشهود"},
+  link_to_case_optional:{en:"Link to a case (optional)",ar:"ربط بقضية (اختياري)"}, link_to_label:{en:"Link to",ar:"الربط بـ"},
+  next_hearing_word:{en:"Next hearing",ar:"الجلسة القادمة"}, date_word_link:{en:"Date",ar:"تاريخ"},
+  hearing_note:{en:"Means: finish this before whichever Hearing is next for this case. If it gets postponed, this moves with it — no need to re-link.",ar:"يعني: إنجاز هذا قبل أقرب جلسة للقضية. وإذا تأجلت الجلسة، ينتقل معها تلقائيًا دون إعادة ربط."},
+  no_specific_date:{en:"No specific date",ar:"بلا تاريخ محدد"}, pick_a_date:{en:"Pick a date",ar:"اختيار تاريخ"},
+  due_date_hint:{en:"Means: finish this before this date.",ar:"يعني: إنجاز هذا قبل هذا التاريخ."},
+  add_item_btn:{en:"Add item",ar:"إضافة عنصر"},
+  // Case form modal
+  new_case_title:{en:"New Case",ar:"قضية جديدة"}, edit_case_title:{en:"Edit Case",ar:"تعديل القضية"},
+  case_type_label:{en:"Case type",ar:"نوع القضية"}, custom_type_option:{en:"+ Custom type…",ar:"+ نوع مخصص…"}, custom_type_placeholder:{en:"Type a custom case type",ar:"اكتب نوع قضية مخصص"},
+  client_label:{en:"Client",ar:"الموكل"}, client_name_placeholder:{en:"Client's full name",ar:"الاسم الكامل للموكل"},
+  subject_label:{en:"Subject",ar:"الموضوع"}, subject_placeholder_counsel:{en:"e.g. Contract review for lease renewal",ar:"مثال: مراجعة عقد تجديد إيجار"},
+  date_received_label:{en:"Date received",ar:"تاريخ الاستلام"},
+  identify_case_by:{en:"Identify this case by",ar:"تحديد اسم القضية بواسطة"},
+  opponent_name_opt:{en:"Opponent name",ar:"اسم الخصم"}, client_name_opt:{en:"Client name",ar:"اسم الموكل"}, title_opt:{en:"Title",ar:"العنوان"},
+  title_used_as_case_name:{en:"(used as case name)",ar:"(يُستخدم كاسم القضية)"}, title_optional_suffix:{en:"(optional)",ar:"(اختياري)"},
+  subject_placeholder_general:{en:"e.g. Breach of lease agreement",ar:"مثال: إخلال بعقد الإيجار"},
+  parties_label:{en:"Parties",ar:"الأطراف"}, add_party_btn:{en:"+ Add party",ar:"+ إضافة طرف"},
+  handling_authority:{en:"Handling authority",ar:"الجهة المختصة"},
+  court_opt:{en:"Court",ar:"محكمة"}, prosecution_opt:{en:"Public Prosecution (investigation)",ar:"النيابة العامة (تحقيق)"},
+  court_label:{en:"Court",ar:"المحكمة"}, court_placeholder:{en:"e.g. Tripoli Court of First Instance",ar:"مثال: محكمة طرابلس الابتدائية"},
+  chamber_label:{en:"Chamber / Circuit",ar:"الدائرة"}, chamber_placeholder:{en:"e.g. 3rd Circuit — الدائرة الثالثة",ar:"مثال: الدائرة الثالثة"},
+  prosecutor_label:{en:"Prosecutor in charge",ar:"وكيل النيابة المختص"}, prosecutor_placeholder:{en:"Name of the assigned deputy prosecutor",ar:"اسم وكيل النيابة المكلف"},
+  case_file_number_label:{en:"Case / file number (optional, helps searching)",ar:"رقم القضية / الملف (اختياري، يساعد في البحث)"},
+  case_file_number_placeholder:{en:"e.g. 2026/1145",ar:"مثال: 1145/2026"},
+  partial_number_label:{en:"Partial number (with police department)",ar:"الرقم الجزئي (لدى إدارة الشرطة)"},
+  partial_number_placeholder:{en:"e.g. 45/2026 — Central Police Station",ar:"مثال: 45/2026 — مركز شرطة المركز"},
+  general_number_label:{en:"General number",ar:"الرقم العام"}, general_number_placeholder:{en:"e.g. 1145/2026",ar:"مثال: 1145/2026"},
+  status_label:{en:"Status",ar:"الحالة"},
+  priority_case_label:{en:"Priority case — stand out in the list",ar:"قضية مستعجلة — تبرز في القائمة"},
+  link_other_cases:{en:"Link to other cases or counsel matters (same client / dispute)",ar:"ربط بقضايا أو استشارات أخرى (نفس الموكل / النزاع)"},
+  documents_optional:{en:"Documents (optional)",ar:"المستندات (اختياري)"},
+  documents_label:{en:"Documents (paste a Google Drive / Dropbox link)",ar:"المستندات (الصق رابط Google Drive أو Dropbox)"},
+  label_placeholder:{en:"Label",ar:"التسمية"}, url_placeholder:{en:"https://drive.google.com/…",ar:"https://drive.google.com/…"},
+  add_hearing_now:{en:"Add a hearing date now",ar:"إضافة موعد جلسة الآن"},
+  create_case_btn:{en:"Create case",ar:"إنشاء القضية"},
+  // Case detail
+  case_file_title:{en:"Case File",ar:"ملف القضية"}, investigation_badge:{en:"Investigation",ar:"تحقيق"},
+  received_word:{en:"Received",ar:"استُلمت"},
+};
+function tr(key, vars){
+  const entry = TRANSLATIONS[key];
+  let str = entry ? (entry[state.lang] || entry.en || key) : key;
+  if(vars){ Object.keys(vars).forEach(k=>{ str = str.replace(`{${k}}`, vars[k]); }); }
+  return str;
+}
+function applyLanguageDir(){
+  document.documentElement.lang = state.lang;
+  document.documentElement.dir = state.lang==="ar" ? "rtl" : "ltr";
+}
+window.toggleLanguage = ()=>{
+  state.lang = state.lang==="ar" ? "en" : "ar";
+  applyLanguageDir();
+  saveSettings();
+  render();
+};
 
 /* ================= STATE ================= */
 let state = {
+  lang:"en",
   user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false, hasSeenQuickRef:false,
   cases:[], tasks:[], checklist:[],
   customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false, checklistTemplates:{}, hearingPrepDefaults:[], deadlinePresets:[], letterhead:{name:"",subtitle:"",contact:""},
@@ -347,6 +519,13 @@ function daysBetween(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000)
 function fmtLong(k){ const d=parseKey(k); return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
 function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36); }
 function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+// Wraps embedded dynamic text (case/court/party names, dates) in a bidi isolate.
+// Without this, Arabic case data sitting inline with Latin UI chrome text (or vice
+// versa) has no boundary for the browser's bidi algorithm, so the whole line's
+// visual order gets scrambled — including digits silently rendering as Arabic-Indic
+// glyphs even though the underlying character is a plain Western "0". <bdi> gives
+// each piece its own resolved direction without affecting anything around it.
+function bdi(s){ return `<bdi>${esc(s)}</bdi>`; }
 
 function uniqueCourts(){
   const set = new Set();
@@ -468,7 +647,7 @@ auth.onAuthStateChanged(user=>{
 /* ================= FIRESTORE SYNC ================= */
 function coll(name){ return db.collection("users").doc(state.user.uid).collection(name); }
 function attachListeners(uidVal){
-  unsubCases = db.collection("users").doc(uidVal).collection("cases").onSnapshot(snap=>{ state.cases = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
+  unsubCases = db.collection("users").doc(uidVal).collection("cases").onSnapshot(snap=>{ state.cases = snap.docs.map(d=>({id:d.id, ...d.data()})); migrateLegacyCaseStatuses(); render(); });
   unsubTasks = db.collection("users").doc(uidVal).collection("tasks").onSnapshot(snap=>{ state.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
   unsubChecklist = db.collection("users").doc(uidVal).collection("checklist").onSnapshot(snap=>{ state.checklist = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
   unsubSettings = db.collection("users").doc(uidVal).collection("meta").doc("settings").onSnapshot(snap=>{
@@ -480,6 +659,8 @@ function attachListeners(uidVal){
     state.hearingPrepDefaults = d.hearingPrepDefaults || [];
     state.deadlinePresets = d.deadlinePresets || DEFAULT_DEADLINE_PRESETS.slice();
     state.letterhead = d.letterhead || {name:"",subtitle:"",contact:""};
+    state.lang = d.lang || "en";
+    applyLanguageDir();
     state.onboardDismissed = !!d.onboardDismissed;
     state.calendarEverConnected = !!d.calendarEverConnected;
     const wasUnset = !state.hasSeenQuickRef && !d.hasSeenQuickRef;
@@ -492,13 +673,22 @@ function attachListeners(uidVal){
   });
 }
 function saveSettings(){
-  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef, checklistTemplates: state.checklistTemplates, hearingPrepDefaults: state.hearingPrepDefaults, deadlinePresets: state.deadlinePresets, letterhead: state.letterhead });
+  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef, checklistTemplates: state.checklistTemplates, hearingPrepDefaults: state.hearingPrepDefaults, deadlinePresets: state.deadlinePresets, letterhead: state.letterhead, lang: state.lang });
 }
 function stripId(t){ const {id, ...rest}=t; return rest; }
 
 function saveCase(data){
   if(data.id){ const {id, ...rest} = data; return coll("cases").doc(id).set(rest); }
   const {id, ...rest} = data; return coll("cases").add({...rest, createdAt: Date.now()});
+}
+// The generic "Pending" status was retired in favor of three specific workflow
+// stages. Any case still holding the old value gets moved to the earliest of the
+// three (Pending Partner Review) — a one-time, self-limiting migration: once a
+// case's status changes, it no longer matches "Pending" and this stops touching it.
+function migrateLegacyCaseStatuses(){
+  state.cases.filter(c=>c.status==="Pending").forEach(c=>{
+    coll("cases").doc(c.id).set({...stripId(c), status:"Pending Partner Review"});
+  });
 }
 function deleteCaseDoc(id){
   coll("cases").doc(id).delete();
@@ -784,7 +974,14 @@ function checkOverdueHearings(overdueItems){
     saveChecklistItem({ caseId:t.caseId, text:`Get the next hearing date — ${label}`, done:false, taskId:t.id, followNextHearing:false, dueDate:null });
   });
 }
+function syncStaticChrome(){
+  document.getElementById("tab-calendar-label").textContent = tr("tab_calendar");
+  document.getElementById("tab-cases-label").textContent = tr("tab_cases");
+  document.getElementById("tab-checklist-label").textContent = tr("tab_checklist");
+  document.getElementById("lang-toggle-btn").textContent = state.lang==="ar" ? "EN" : "AR";
+}
 function render(){
+  syncStaticChrome();
   ["calendar","cases","checklist"].forEach(v=>{
     document.getElementById("tab-"+v).classList.toggle("active", state.view===v);
     document.getElementById("view-"+v).classList.toggle("hidden", state.view!==v);
@@ -815,6 +1012,27 @@ function render(){
 
 let openBadgeMenu = null;
 window.toggleBadgeMenu = (which)=>{ openBadgeMenu = (openBadgeMenu===which) ? null : which; renderBadgeMenu(); };
+// Case name as the prominent top line (matches how the "no upcoming dates" menu
+// already reads via caseCardHtml) — the ordinary taskRowHtml puts the task title
+// first and buries the case name in small muted text, which makes this specific
+// menu hard to scan when what you actually want is "which CASE is due soon."
+function badgeMenuRowHtml(t, caseItem){
+  const delta = daysBetween(todayKey(), t.date);
+  const isOverdue = delta<0;
+  const color = t.flag==="critical" ? "var(--critical)" : (isOverdue ? "var(--overdue)" : colorForProcedure(t.type));
+  const badge = isOverdue
+    ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>`
+    : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${delta===0?tr('today_word'):delta+'d'} · ${tr('headsup_badge')}</span>`;
+  return `<div class="task-row" style="border-inline-start:4px solid ${color};">
+    <div style="flex:1;min-width:0;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="serif" style="font-size:14.5px;font-weight:600;color:var(--navy-dark);">${caseItem?bdi(computeCaseTitle(caseItem)):tr('no_case_linked')}</span>
+        ${badge}
+      </div>
+      <div class="task-meta">${iconForProcedure(t.type)} ${bdi(t.title)}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${bdi(caseItem.court)}`:""} · ${bdi(fmtLong(t.date))}</div>
+    </div>
+  </div>`;
+}
 function renderBadgeMenu(){
   const wrap = document.getElementById("badge-menu-wrap");
   if(!wrap) return;
@@ -822,15 +1040,15 @@ function renderBadgeMenu(){
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
   const isStale = openBadgeMenu==="stale";
   const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : isStale ? (state._staleCases||[]) : (state._headsUpItems||[]);
-  const title = openBadgeMenu==="overdue" ? "Overdue" : isStale ? "No upcoming dates" : "Due soon";
-  wrap.innerHTML = `<div style="position:absolute;right:16px;top:64px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
+  const title = openBadgeMenu==="overdue" ? tr('overdue_word') : isStale ? tr('stale_no_upcoming') : tr('badge_due_soon_title');
+  wrap.innerHTML = `<div style="position:absolute;inset-inline-end:16px;top:64px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
       <span class="section-label" style="margin-bottom:0;">${title} (${items.length})</span>
       <button onclick="toggleBadgeMenu('${openBadgeMenu}')" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
     </div>
     ${isStale
       ? items.map(c=>`<div onclick="toggleBadgeMenu('stale');openCaseDetail('${c.id}')" style="cursor:pointer;">${caseCardHtml(c)}</div>`).join("")
-      : items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${taskRowHtml(t, casesById[t.caseId], true)}</div>`).join("")}
+      : items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${badgeMenuRowHtml(t, casesById[t.caseId])}</div>`).join("")}
   </div>`;
 }
 function renderInstallBanner(){
@@ -848,7 +1066,7 @@ window.dismissBanner = dismissBanner;
 function renderReconnectBanner(){
   const wrap = document.getElementById("reconnect-banner-wrap");
   if(state.calendarEverConnected && !state.googleConnected){
-    wrap.innerHTML = `<div class="install-banner" style="border-left-color:var(--brick);margin-top:10px;">
+    wrap.innerHTML = `<div class="install-banner" style="border-inline-start-color:var(--brick);margin-top:10px;">
       <span>${ICONS.calendar_days}</span>
       <div style="flex:1;">Google Calendar sync needs to be reconnected (this happens periodically for security). Your dates are still safe — this only affects calendar syncing.</div>
       <button class="btn-ghost" onclick="reconnectGoogle()">Reconnect</button>
@@ -857,6 +1075,33 @@ function renderReconnectBanner(){
 }
 
 /* ---- CALENDAR VIEW ---- */
+// For each court represented among a set of hearings, find every OTHER open task
+// tied to any case at that same court — not just items literally due that day.
+// If you're already headed to a courthouse today, worth seeing everything else
+// open there while you're at it.
+function sameCourtOpenItems(hearingsList, casesById){
+  const courts = new Set();
+  const shownIds = new Set(hearingsList.map(t=>t.id));
+  hearingsList.forEach(t=>{ const c = casesById[t.caseId]; if(c && c.court) courts.add(c.court); });
+  const byCourt = {};
+  courts.forEach(court=>{
+    const items = state.tasks.filter(t=>{
+      if(shownIds.has(t.id) || t.completed) return false;
+      const c = casesById[t.caseId];
+      return c && c.court===court;
+    }).map(t=>({...t, delta:daysBetween(todayKey(),t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+    if(items.length) byCourt[court] = items;
+  });
+  return byCourt;
+}
+function sameCourtBlockHtml(byCourt, casesById){
+  return Object.keys(byCourt).map(court=>`
+    <div style="margin:8px 0 4px;">
+      <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">${tr('also_open_at_court',{court:bdi(court)})}</div>
+    </div>
+    ${byCourt[court].map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+  `).join("");
+}
 function renderCalendar(upcoming){
   const y = state.cursorY, m = state.cursorM;
   const tk = todayKey();
@@ -898,76 +1143,80 @@ function renderCalendar(upcoming){
   const tk2 = todayKey();
   const criticalItems = state.tasks.filter(t=>t.flag==="critical" && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
   const todaysHearings = state.tasks.filter(t=>t.type==="Hearing" && t.date===tk && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)}));
+  const todaySameCourtItems = sameCourtOpenItems(todaysHearings, casesById);
   const tomorrowKey = addDays(tk,1);
   const showTomorrow = new Date().getHours() >= 14;
   const tomorrowsHearings = showTomorrow ? state.tasks.filter(t=>t.type==="Hearing" && t.date===tomorrowKey && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)})) : [];
+  const tomorrowSameCourtItems = sameCourtOpenItems(tomorrowsHearings, casesById);
 
   document.getElementById("view-calendar").innerHTML = `
     ${todaysHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:2px solid var(--navy);border-radius:10px;padding:12px 14px;">
-      <div class="section-label" style="color:var(--navy-dark);margin-bottom:8px;">${ICONS.gavel} Today in court</div>
+      <div class="section-label" style="color:var(--navy-dark);margin-bottom:8px;">${ICONS.gavel} ${tr('today_in_court')}</div>
       ${todaysHearings.map(t=>{
         const caseItem = casesById[t.caseId];
         const latestLog = (caseItem && caseItem.noteLog && caseItem.noteLog.length) ? caseItem.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date))[0] : null;
         const chamberLine = (caseItem && caseItem.authorityType==="court" && caseItem.chamber) ? esc(caseItem.chamber) : "";
-        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? `Prosecutor: ${esc(caseItem.prosecutorInCharge)}` : "";
+        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? tr('prosecutor_line',{name:esc(caseItem.prosecutorInCharge)}) : "";
         const hasExtra = !!(chamberLine || prosecutorLine || (caseItem && caseItem.notes) || latestLog);
         return `${taskRowHtml(t, caseItem, false)}
           ${hasExtra ? `<div style="margin:-6px 0 10px 4px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;">
             ${chamberLine?`<div style="color:var(--muted);margin-bottom:4px;">${chamberLine}</div>`:""}
             ${prosecutorLine?`<div style="color:var(--muted);margin-bottom:4px;">${prosecutorLine}</div>`:""}
-            ${caseItem&&caseItem.notes?`<div style="margin-bottom:${latestLog?'6px':'0'};"><strong>Case notes:</strong> ${esc(caseItem.notes)}</div>`:""}
-            ${latestLog?`<div><strong>Last log (${fmtLong(latestLog.date)}):</strong> ${esc(latestLog.text)}</div>`:""}
+            ${caseItem&&caseItem.notes?`<div style="margin-bottom:${latestLog?'6px':'0'};"><strong>${tr('case_notes_label')}</strong> ${esc(caseItem.notes)}</div>`:""}
+            ${latestLog?`<div><strong>${tr('last_log_label',{date:fmtLong(latestLog.date)})}</strong> ${esc(latestLog.text)}</div>`:""}
           </div>` : ""}`;
       }).join("")}
+      ${sameCourtBlockHtml(todaySameCourtItems, casesById)}
     </div>` : `<div style="margin-bottom:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:9px;">
       <span style="color:var(--sage);">${ICONS.check}</span>
-      <div style="font-size:13px;color:var(--ink);">Nothing in court today — relax.</div>
+      <div style="font-size:13px;color:var(--ink);">${tr('nothing_in_court_today')}</div>
     </div>`}
     ${tomorrowsHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:1.5px solid var(--slate);border-radius:10px;padding:12px 14px;">
-      <div class="section-label" style="color:var(--slate);margin-bottom:8px;">${ICONS.gavel} Tomorrow in court</div>
+      <div class="section-label" style="color:var(--slate);margin-bottom:8px;">${ICONS.gavel} ${tr('tomorrow_in_court')}</div>
       ${tomorrowsHearings.map(t=>{
         const caseItem = casesById[t.caseId];
         const chamberLine = (caseItem && caseItem.authorityType==="court" && caseItem.chamber) ? esc(caseItem.chamber) : "";
-        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? `Prosecutor: ${esc(caseItem.prosecutorInCharge)}` : "";
+        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? tr('prosecutor_line',{name:esc(caseItem.prosecutorInCharge)}) : "";
         return `${taskRowHtml(t, caseItem, false)}
           ${(chamberLine||prosecutorLine) ? `<div style="margin:-6px 0 10px 4px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;">
             ${chamberLine?`<div style="color:var(--muted);">${chamberLine}</div>`:""}
             ${prosecutorLine?`<div style="color:var(--muted);">${prosecutorLine}</div>`:""}
           </div>` : ""}`;
       }).join("")}
+      ${sameCourtBlockHtml(tomorrowSameCourtItems, casesById)}
     </div>` : ""}
     ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
-      <div class="section-label" style="color:var(--brick);margin-bottom:8px;">${ICONS.triangle_exclamation} Critical deadlines</div>
+      <div class="section-label" style="color:var(--brick);margin-bottom:8px;">${ICONS.triangle_exclamation} ${tr('critical_deadlines')}</div>
       ${criticalItems.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
     </div>` : ""}
     <div class="cal-card">
       <div class="cal-header">
-        <button onclick="openMonthPicker()" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:4px;" title="Jump to a month">
-          <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
+        <button onclick="openMonthPicker()" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:4px;" title="${esc(tr('jump_to_month_title'))}">
+          <span class="serif" style="font-size:17px;color:var(--navy-dark);">${monthName(m)} ${y}</span>
           <span style="color:var(--muted);">${ICONS.chevron_down}</span>
         </button>
         <div style="display:flex;gap:6px;">
-          <button class="icon-btn" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;" onclick="gotoToday()">Today</button>
+          <button class="icon-btn" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;" onclick="gotoToday()">${tr('today_word')}</button>
           <button class="icon-btn" onclick="gotoMonth(-1)">${ICONS.chevron_left}</button>
           <button class="icon-btn" onclick="gotoMonth(1)">${ICONS.chevron_right}</button>
         </div>
       </div>
       <div id="cal-swipe-area">
-      <div class="cal-grid" style="margin-bottom:4px;">${WD.map(w=>`<div class="cal-wd">${w}</div>`).join("")}</div>
+      <div class="cal-grid" style="margin-bottom:4px;">${WD.map((w,wi)=>`<div class="cal-wd">${weekdayLabel(wi)}</div>`).join("")}</div>
       <div class="cal-grid">${cells}</div>
       </div>
     </div>
     <div style="margin-bottom:18px;">
-      <div class="section-label">${fmtLong(state.selectedDay)}${state.selectedDay===tk?' · Today':''}</div>
-      ${dayItems.length===0 ? `<div style="color:var(--muted);font-size:13.5px;padding:10px 2px;">Nothing scheduled this day.</div>` :
+      <div class="section-label">${fmtLong(state.selectedDay)}${state.selectedDay===tk?' · '+tr('today_word'):''}</div>
+      ${dayItems.length===0 ? `<div style="color:var(--muted);font-size:13.5px;padding:10px 2px;">${tr('nothing_scheduled_day')}</div>` :
         dayItems.map(t=>taskRowHtml(t, casesById[t.caseId], false)).join("")}
     </div>
     <div>
-      <div class="section-label">Upcoming</div>
+      <div class="section-label">${tr('upcoming_word')}</div>
       ${upcoming.filter(t=>t.delta>=0).slice(0,8).map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
-      ${upcoming.filter(t=>t.delta<0).length>0 ? `<div style="font-size:11.5px;color:#B23A32;font-weight:700;margin:6px 0;letter-spacing:.04em;text-transform:uppercase;">Overdue</div>` +
+      ${upcoming.filter(t=>t.delta<0).length>0 ? `<div style="font-size:11.5px;color:#B23A32;font-weight:700;margin:6px 0;letter-spacing:.04em;text-transform:uppercase;">${tr('overdue_word')}</div>` +
         upcoming.filter(t=>t.delta<0).map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("") : ""}
-      ${upcoming.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">No upcoming dates. Tap + to add one.</div>` : ""}
+      ${upcoming.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">${tr('no_upcoming_tap')}</div>` : ""}
     </div>
   `;
   attachSwipeHandler();
@@ -1007,18 +1256,18 @@ function taskRowHtml(t, caseItem, showDate){
           <span style="font-size:12.5px;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
         </div>`).join("")}
     </div>` : "";
-  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${color};${isCritical?'border-width:5px;background:#FBEAE8;':''}">
+  return `<div class="task-row ${overdue?'overdue':''}" style="border-inline-start:4px solid ${color};${isCritical?'border-inline-start-width:5px;background:#FBEAE8;':''}">
     <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?ICONS.check:''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="task-title-icon" style="color:${color};">${icon}</span>
-        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}${isDeadline?' <span style="font-size:11px;color:var(--muted);font-weight:500;">(deadline)</span>':''}</span>
+        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${bdi(t.title)}${isDeadline?` <span style="font-size:11px;color:var(--muted);font-weight:500;">${tr('deadline_suffix')}</span>`:''}</span>
         ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="Open in Google Calendar" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:
           `<a href="${esc(googleCalendarAddLink(t, caseItem))}" target="_blank" onclick="event.stopPropagation()" title="Add to Google Calendar" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>`}
         ${statusBadge}
       </div>
-      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
-      ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
+      <div class="task-meta">${caseItem?bdi(computeCaseTitle(caseItem)):tr('no_case_linked')}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${bdi(caseItem.court)}`:""}${showDate?` · ${bdi(fmtLong(t.date))}`:""}</div>
+      ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ ${tr('postponed_prefix')} ${bdi(t.postponeReason)}</div>`:""}
       ${prepHtml}
     </div>
     <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
@@ -1090,36 +1339,36 @@ function renderCases(){
     const tasksHere = state.tasks.filter(t=>caseIdsHere.has(t.caseId) && !t.completed)
       .map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
     courtBlock = `<div style="margin-bottom:18px;">
-      <div class="section-label">${ICONS.location_dot} At ${esc(state.filterCourt)} — every open procedure & deadline</div>
-      ${tasksHere.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">Nothing open at this court right now.</div>` :
+      <div class="section-label">${ICONS.location_dot} ${tr('at_court_open_items',{court:esc(state.filterCourt)})}</div>
+      ${tasksHere.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">${tr('nothing_open_at_court')}</div>` :
         tasksHere.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
     </div>`;
   }
 
   document.getElementById("view-cases").innerHTML = `
     <div class="search-wrap">
-      <span style="position:absolute;left:11px;top:11px;color:var(--muted);">${ICONS.magnifying_glass}</span>
-      <input class="input" id="search-input" placeholder="Search by name, title, court, or file number…" value="${esc(state.search)}" />
+      <span style="position:absolute;inset-inline-start:11px;top:11px;color:var(--muted);">${ICONS.magnifying_glass}</span>
+      <input class="input" id="search-input" placeholder="${esc(tr('search_cases_placeholder'))}" value="${esc(state.search)}" />
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;">
       <select class="input" id="filter-court" style="width:auto;font-size:12.5px;padding:7px 9px;">
-        <option value="All">All courts / prosecution offices</option>
+        <option value="All">${tr('all_courts_filter')}</option>
         ${courts.map(c=>`<option value="${esc(c)}" ${state.filterCourt===c?'selected':''}>${esc(c)}</option>`).join("")}
       </select>
       <select class="input" id="filter-type" style="width:auto;font-size:12.5px;padding:7px 9px;">
-        <option value="All">All case types</option>
-        ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${state.filterType===t?'selected':''}>${esc(t)}</option>`).join("")}
+        <option value="All">${tr('all_case_types_filter')}</option>
+        ${allCaseTypes.map(ty=>`<option value="${esc(ty)}" ${state.filterType===ty?'selected':''}>${esc(caseTypeLabel(ty))}</option>`).join("")}
       </select>
       <select class="input" id="filter-status" style="width:auto;font-size:12.5px;padding:7px 9px;">
-        <option value="All">All statuses</option>
-        ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${state.filterStatus===s?'selected':''}>${s}</option>`).join("")}
+        <option value="All">${tr('all_statuses_filter')}</option>
+        ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${state.filterStatus===s?'selected':''}>${esc(statusLabel(s))}</option>`).join("")}
       </select>
     </div>
     ${closedCount>0 ? `<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:12px;">
-      <input type="checkbox" id="toggle-closed" ${state.hideClosed===false?'':'checked'} /> Hide closed cases (${closedCount} hidden)
+      <input type="checkbox" id="toggle-closed" ${state.hideClosed===false?'':'checked'} /> ${tr('hide_closed_cases',{n:closedCount})}
     </label>` : ""}
     ${courtBlock}
-    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.scale_balanced}<br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
+    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.scale_balanced}<br/><div style="font-size:14px;margin-top:8px;">${tr('no_matters_yet')}</div></div>` :
       `<div>${filtered.map(c=>caseCardHtml(c)).join("")}</div>`}
   `;
   document.getElementById("search-input").oninput = e=>{ const pos=e.target.selectionStart; state.search=e.target.value; renderCases(); const el=document.getElementById("search-input"); el.focus(); el.setSelectionRange(pos,pos); };
@@ -1145,25 +1394,36 @@ function caseCardHtml(c){
   const groupSize = (c.linkedCaseIds||[]).filter(lid=>state.cases.some(x=>x.id===lid)).length;
 
   const locationPiece = c.court
-    ? `${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` (${esc(c.chamber)})`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` (${esc(c.prosecutorInCharge)})`:""}`
-    : (c.caseType==="Counsel"&&c.dateReceived) ? `${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}`
-    : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"Gen. "+esc(c.generalNumber):""}`
-    : c.courtNumber ? esc(c.courtNumber) : "";
+    ? `${ICONS.location_dot} ${bdi(c.court)}${c.authorityType==="court"&&c.chamber?` (${bdi(c.chamber)})`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` (${bdi(c.prosecutorInCharge)})`:""}`
+    : (c.caseType==="Counsel"&&c.dateReceived) ? `${ICONS.calendar_days} ${tr('received_word')} ${bdi(fmtLong(c.dateReceived))}`
+    : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?bdi(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?tr('gen_abbrev')+" "+bdi(c.generalNumber):""}`
+    : c.courtNumber ? bdi(c.courtNumber) : "";
 
   const activityDays = c.status!=="Closed" ? daysSinceActivity(c) : null;
+  const nextHearing = nextHearingForCase(c.id);
+  const hasCriticalOpen = state.tasks.some(t=>t.caseId===c.id && !t.completed && t.flag==="critical");
 
   const metaPieces = [
-    `<span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span> ${esc(c.caseType)}`,
+    `<span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span> ${esc(caseTypeLabel(c.caseType))}`,
     locationPiece,
+    nextHearing ? `${ICONS.gavel} ${tr('next_hearing_label',{date:bdi(fmtLong(nextHearing.date))})}` : "",
     (c.documents&&c.documents.length) ? `${ICONS.link} ${c.documents.length}` : "",
-    groupSize>0 ? `${ICONS.link} linked (${groupSize})` : "",
-    activityDays!==null ? `${activityDays}d since activity` : ""
+    groupSize>0 ? `${ICONS.link} ${tr('linked_count',{n:groupSize})}` : "",
+    activityDays!==null ? tr('days_since_activity',{n:activityDays}) : ""
   ].filter(Boolean);
 
-  return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
+  const cardStyle = hasCriticalOpen
+    ? 'border-color:var(--critical);border-width:1.5px;background:#FBEAE8;'
+    : c.priority ? 'border-color:var(--brass);border-width:1.5px;' : '';
+
+  return `<button class="case-card" style="${cardStyle}" onclick="openCaseDetail('${c.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-      <div class="serif" style="font-size:16px;color:var(--navy-dark);min-width:0;">${c.priority?(ICONS.star+' '):''}${esc(computeCaseTitle(c))}</div>
-      <span class="badge" style="border-color:${statusColor};color:${statusColor};flex-shrink:0;">${c.status}</span>
+      <div class="serif" style="font-size:16px;color:var(--navy-dark);min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${c.priority?ICONS.star:''}${hasCriticalOpen?`<span style="color:var(--critical);">${ICONS.triangle_exclamation}</span>`:''}
+        <span>${bdi(computeCaseTitle(c))}</span>
+        ${c.caseType==="Counsel"?`<span class="badge" style="border-color:${color};color:${color};font-weight:600;">${tr('counsel_badge')}</span>`:''}
+      </div>
+      <span class="badge" style="border-color:${statusColor};color:${statusColor};flex-shrink:0;">${esc(statusLabel(c.status))}</span>
     </div>
     <div style="font-size:12.5px;color:var(--muted);margin-top:5px;display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
       ${metaPieces.map((p,i)=>i===0?p:` · ${p}`).join("")}
@@ -1179,7 +1439,7 @@ function renderChecklist(){
   const tk = todayKey();
   const items = state.checklist.slice().sort((a,b)=> (a.done - b.done) || (b.createdAt||0)-(a.createdAt||0));
   document.getElementById("view-checklist").innerHTML = `
-    ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.list_check}<br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
+    ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.list_check}<br/><div style="font-size:14px;margin-top:8px;">${tr('no_checklist_items_tap')}</div></div>` :
       items.map(it=>{
         const c = casesById[it.caseId];
         const linkedTask = it.taskId ? tasksById[it.taskId] : null;
@@ -1192,23 +1452,23 @@ function renderChecklist(){
         const rowColor = isOverdue ? "var(--overdue)" : effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (hasOwnDeadline ? "var(--heads-up)" : (c ? colorForCaseType(c.caseType) : "var(--line)"));
         const rowIcon = hasOwnDeadline ? ICONS.hourglass_half : (effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : ""));
         const deadlineBadge = effectiveDate && !it.done
-          ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">Overdue</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?'Today':deltaDays+'d'}</span>`)
+          ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?tr('today_word'):deltaDays+'d'}</span>`)
           : "";
         const metaLine = hasOwnDeadline
-          ? `Due ${fmtLong(it.dueDate)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          ? `${tr('due_prefix',{date:bdi(fmtLong(it.dueDate))})}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
           : linkedTask
-          ? `Before: ${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          ? `${tr('before_task_prefix',{title:bdi(linkedTask.title)})} · ${bdi(fmtLong(linkedTask.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
           : followedHearing
-          ? `Before next hearing · ${fmtLong(followedHearing.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          ? `${tr('before_next_hearing')} · ${bdi(fmtLong(followedHearing.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
           : it.followNextHearing
-          ? `Before next hearing (none scheduled yet)${c?` · ${esc(computeCaseTitle(c))}`:""}`
-          : (c ? esc(computeCaseTitle(c)) : "");
-        return `<div class="checklist-row" style="border-left:4px solid ${it.done?'var(--line)':rowColor};">
+          ? `${tr('before_next_hearing')} ${tr('none_scheduled_yet')}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+          : (c ? bdi(computeCaseTitle(c)) : "");
+        return `<div class="checklist-row" style="border-inline-start:4px solid ${it.done?'var(--line)':rowColor};">
           <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
           <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               ${rowIcon&&!it.done?`<span style="color:${rowColor};flex-shrink:0;">${rowIcon}</span>`:""}
-              <span style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
+              <span style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${bdi(it.text)}</span>
               ${deadlineBadge}
             </div>
             ${metaLine?`<div class="task-meta">${(linkedTask||it.followNextHearing)?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
@@ -1373,7 +1633,9 @@ function openTaskModal(existingRaw){
         <div id="repeat-hint" class="hidden" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Creates this many sessions total, spaced at the interval above, each individually editable afterward.</div>
       </div>` : `
       <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
-        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>${ICONS.rotate} Continue — schedule the next session</button>
+        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>${ICONS.rotate} ${tr('continue_schedule_next')}</button>
+        ${t.type==="Hearing" ? `<button type="button" class="btn-ghost" style="width:100%;margin-top:8px;color:var(--sage);border-color:var(--sage);" onclick='markRulingIssued(${JSON.stringify(t).replace(/'/g,"&apos;")})'>${ICONS.square_check} ${tr('ruling_issued_btn')}</button>` : ""}
+        <div id="ruling-confirm-wrap"></div>
       </div>`}
 
       <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add to docket'}</button>
@@ -1538,11 +1800,32 @@ window.submitContinue = (origId)=>{
   }
   closeModal();
 };
-
+window.markRulingIssued = (t)=>{
+  const wrap = document.getElementById("ruling-confirm-wrap");
+  if(!wrap) return;
+  wrap.innerHTML = `
+    <div style="margin-top:10px;background:#E4EBDE;border:1px solid var(--sage);border-radius:8px;padding:12px;">
+      <div style="font-size:13px;margin-bottom:10px;">${ICONS.square_check} ${tr('ruling_confirm',{title:esc(t.title)})}</div>
+      <div style="display:flex;gap:8px;">
+        <button style="background:var(--sage);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px;" onclick='confirmRulingIssued(${JSON.stringify(t).replace(/'/g,"&apos;")})'>${tr('ruling_issued_btn')}</button>
+        <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>`;
+};
+window.confirmRulingIssued = (t)=>{
+  coll("tasks").doc(t.id).set({...stripId(t), completed:true});
+  const c = state.cases.find(x=>x.id===t.caseId);
+  if(c){
+    const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text: `Ruling issued — ${t.title}. Case closed.` }];
+    coll("cases").doc(c.id).set({...stripId(c), status:"Closed", noteLog:newLog});
+  }
+  showToast("Case closed.");
+  closeModal();
+};
 function openCaseModal(existingRaw){
   const existing = (existingRaw && existingRaw.id) ? existingRaw : null;
   const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
-  const c = existingRaw || {titleSource:"opponent", subject:"", parties:[], courtNumber:"", caseType:allCaseTypes[0], status:"Active", notes:"", documents:[], linkedCaseIds:[], dateReceived: todayKey()};
+  const c = existingRaw || {titleSource:"opponent", subject:"", parties:[], courtNumber:"", caseType:allCaseTypes[0], status:"Pending Partner Review", notes:"", documents:[], linkedCaseIds:[], dateReceived: todayKey()};
   window._tempDocs = (c.documents||[]).slice();
   window._tempParties = (c.parties||[]).slice();
   window._tempLinked = (c.linkedCaseIds||[]).slice();
@@ -1609,7 +1892,7 @@ function openCaseModal(existingRaw){
         <div class="field"><span class="field-label">General number</span><input class="input" id="c-general-number" value="${esc(c.generalNumber||'')}" placeholder="e.g. 1145/2026" /></div>
       </div>
       <div class="field"><span class="field-label">Status</span>
-        <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
+        <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${esc(statusLabel(s))}</option>`).join("")}</select>
       </div>
       <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ${ICONS.star} Priority case — stand out in the list</label></div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
@@ -1897,13 +2180,13 @@ function openCaseDetailModal(c){
     <div class="modal wide" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-        <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">${esc(computeCaseTitle(c))}</div>
-        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-left:4px;">Investigation</span>`:""}</div>`:""}
-        ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.chamber)}</div>`:""}
-        ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${esc(c.prosecutorInCharge)}</div>`:""}
-        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}</div>`:""}
-        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${c.partialNumber?"Partial: "+esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"General: "+esc(c.generalNumber):""}</div>`:""}
-        ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
+        <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">${bdi(computeCaseTitle(c))}</div>
+        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">${ICONS.location_dot} ${bdi(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-inline-start:4px;">Investigation</span>`:""}</div>`:""}
+        ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${bdi(c.chamber)}</div>`:""}
+        ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${bdi(c.prosecutorInCharge)}</div>`:""}
+        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} Received ${bdi(fmtLong(c.dateReceived))}</div>`:""}
+        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${c.partialNumber?"Partial: "+bdi(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"General: "+bdi(c.generalNumber):""}</div>`:""}
+        ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${bdi(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
           <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.file_pdf}</button>
           <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.clone}</button>
@@ -1913,15 +2196,15 @@ function openCaseDetailModal(c){
       </div>
       <div style="display:flex;gap:8px;margin:10px 0 16px;flex-wrap:wrap;">
         <span class="badge" style="border-color:${colorForCaseType(c.caseType)};color:${colorForCaseType(c.caseType)};">${iconForCaseType(c.caseType)} ${esc(c.caseType)}</span>
-        <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
+        <span class="badge" style="border-color:${statusColor};color:${statusColor};">${esc(statusLabel(c.status))}</span>
       </div>
 
       ${(c.parties&&c.parties.length) ? `<div style="margin-bottom:16px;"><div class="section-label" style="font-size:11px;">Parties</div>
         ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
-          <div><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>
+          <div><strong>${esc(p.role)}:</strong> ${bdi(p.name)}</div>
           ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;flex-wrap:wrap;margin-top:2px;align-items:center;">
-            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${esc(p.phone)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','call')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log call</button>`:""}
-            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${esc(p.email)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','email')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log email</button>`:""}
+            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${bdi(p.phone)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','call')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log call</button>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${bdi(p.email)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','email')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log email</button>`:""}
           </div>` : ""}
         </div>`).join("")}</div>` : ""}
 
