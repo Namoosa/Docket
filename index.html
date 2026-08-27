@@ -1236,23 +1236,24 @@ function renderReconnectBanner(){
 // tied to any case at that same court — not just items literally due that day.
 // If you're already headed to a courthouse today, worth seeing everything else
 // open there while you're at it.
+function normCourt(s){ return (s||"").trim().replace(/\s+/g," "); }
 function sameCourtOpenItems(hearingsList, casesById){
-  const courts = new Set();
+  const courts = new Map(); // normalized -> original display string
   const shownIds = new Set(hearingsList.map(t=>t.id));
-  hearingsList.forEach(t=>{ const c = casesById[t.caseId]; if(c && c.court) courts.add(c.court); });
+  hearingsList.forEach(t=>{ const c = casesById[t.caseId]; if(c && c.court && normCourt(c.court)) courts.set(normCourt(c.court), c.court); });
   const byCourt = {};
-  courts.forEach(court=>{
+  courts.forEach((displayCourt, normKey)=>{
     const tasks = state.tasks.filter(t=>{
       if(shownIds.has(t.id) || t.completed) return false;
       const c = casesById[t.caseId];
-      return c && c.court===court;
+      return c && normCourt(c.court)===normKey;
     }).map(t=>({...t, delta:daysBetween(todayKey(),t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
     const checklist = state.checklist.filter(x=>{
       if(x.done) return false;
       const c = casesById[x.caseId];
-      return c && c.court===court;
+      return c && normCourt(c.court)===normKey;
     });
-    if(tasks.length || checklist.length) byCourt[court] = { tasks, checklist };
+    if(tasks.length || checklist.length) byCourt[displayCourt] = { tasks, checklist };
   });
   return byCourt;
 }
@@ -2815,7 +2816,28 @@ window.exportData = ()=>{
   URL.revokeObjectURL(url);
 };
 
-if("serviceWorker" in navigator){ window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{})); }
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      reg.update();
+      reg.addEventListener("updatefound", ()=>{
+        const newWorker = reg.installing;
+        if(!newWorker) return;
+        newWorker.addEventListener("statechange", ()=>{
+          if(newWorker.state==="installed" && navigator.serviceWorker.controller){
+            newWorker.postMessage({type:"SKIP_WAITING"});
+          }
+        });
+      });
+    }).catch(()=>{});
+  });
+  let reloadedForUpdate = false;
+  navigator.serviceWorker.addEventListener("controllerchange", ()=>{
+    if(reloadedForUpdate) return;
+    reloadedForUpdate = true;
+    window.location.reload();
+  });
+}
 </script>
 </body>
 </html>
