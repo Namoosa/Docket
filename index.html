@@ -493,7 +493,7 @@ const TRANSLATIONS = {
   qr_checklist_section:{en:"Checklist",ar:"قائمة المهام"},
   qr_checklist_body:{en:'Link a checklist item to "Next hearing" so it automatically follows whichever hearing is soonest — even through postponements — or pick a specific date instead.',ar:'اربط عنصر القائمة بـ "الجلسة القادمة" ليتبع تلقائيًا أقرب جلسة — حتى مع التأجيلات — أو اختر تاريخًا محددًا بدلاً من ذلك.'},
   qr_today_section:{en:"Today & Tomorrow in court",ar:"اليوم وغدًا في المحكمة"},
-  qr_today_body:{en:"The Calendar tab opens with today's hearings and other court procedures front and center (anything due today that isn't a paperwork-only deadline), plus every other open task for any case at the same court — useful if you're already headed there. A Tomorrow card appears the same way starting at 2pm, to help you walk in prepared.",ar:"يفتح تبويب التقويم بجلسات اليوم وإجراءات المحكمة الأخرى في المقدمة (كل ما يستحق اليوم وليس مجرد موعد نهائي ورقي)، بالإضافة إلى كل مهمة مفتوحة أخرى لأي قضية في نفس المحكمة — مفيد إن كنت متجهًا إليها أصلاً. تظهر بطاقة الغد بنفس الطريقة ابتداءً من الساعة 2 ظهرًا، لتدخل جاهزًا."},
+  qr_today_body:{en:"The Calendar tab opens with today's hearings and other court procedures front and center (anything due today that isn't a paperwork-only deadline), plus every other open task and checklist item for any case at the same court — useful if you're already headed there. A Tomorrow card appears the same way starting at 2pm, to help you walk in prepared.",ar:"يفتح تبويب التقويم بجلسات اليوم وإجراءات المحكمة الأخرى في المقدمة (كل ما يستحق اليوم وليس مجرد موعد نهائي ورقي)، بالإضافة إلى كل مهمة وعنصر قائمة مفتوح آخر لأي قضية في نفس المحكمة — مفيد إن كنت متجهًا إليها أصلاً. تظهر بطاقة الغد بنفس الطريقة ابتداءً من الساعة 2 ظهرًا، لتدخل جاهزًا."},
   qr_deadline_calc_section:{en:"Statutory deadline calculator",ar:"حاسبة المواعيد القانونية"},
   qr_deadline_calc_body:{en:"Settings → Tools → Statutory deadline calculator. Enter a start date and a number of days and it counts the way Libyan procedural law does — start date excluded, and a final day landing on the weekend pushes to the next working day. Save your own frequently-used periods as presets.",ar:"الإعدادات ← الأدوات ← حاسبة المواعيد القانونية. أدخل تاريخ البداية وعدد الأيام، وتحسب الموعد وفق طريقة القانون الليبي — باستثناء تاريخ البداية، وإذا وقع اليوم الأخير في عطلة نهاية الأسبوع يُمدد إلى يوم العمل التالي. احفظ المدد التي تستخدمها كثيرًا كقوالب جاهزة."},
   qr_language_section:{en:"Language",ar:"اللغة"},
@@ -1242,21 +1242,28 @@ function sameCourtOpenItems(hearingsList, casesById){
   hearingsList.forEach(t=>{ const c = casesById[t.caseId]; if(c && c.court) courts.add(c.court); });
   const byCourt = {};
   courts.forEach(court=>{
-    const items = state.tasks.filter(t=>{
+    const tasks = state.tasks.filter(t=>{
       if(shownIds.has(t.id) || t.completed) return false;
       const c = casesById[t.caseId];
       return c && c.court===court;
     }).map(t=>({...t, delta:daysBetween(todayKey(),t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
-    if(items.length) byCourt[court] = items;
+    const checklist = state.checklist.filter(x=>{
+      if(x.done) return false;
+      const c = casesById[x.caseId];
+      return c && c.court===court;
+    });
+    if(tasks.length || checklist.length) byCourt[court] = { tasks, checklist };
   });
   return byCourt;
 }
 function sameCourtBlockHtml(byCourt, casesById){
+  const tasksById = {}; state.tasks.forEach(t=>tasksById[t.id]=t);
   return Object.keys(byCourt).map(court=>`
     <div style="margin:8px 0 4px;">
       <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">${tr('also_open_at_court',{court:bdi(court)})}</div>
     </div>
-    ${byCourt[court].map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+    ${byCourt[court].tasks.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+    ${byCourt[court].checklist.map(it=>checklistItemRowHtml(it, casesById, tasksById)).join("")}
   `).join("");
 }
 function renderCalendar(upcoming){
@@ -1595,49 +1602,50 @@ function caseCardHtml(c){
 window.openCaseDetail = (id)=> openCaseDetailModal(state.cases.find(c=>c.id===id));
 
 /* ---- CHECKLIST VIEW ---- */
+function checklistItemRowHtml(it, casesById, tasksById){
+  const tk = todayKey();
+  const c = casesById[it.caseId];
+  const linkedTask = it.taskId ? tasksById[it.taskId] : null;
+  const followedHearing = (it.followNextHearing && it.caseId) ? nextHearingForCase(it.caseId) : null;
+  const effectiveTask = linkedTask || followedHearing;
+  const effectiveDate = it.dueDate || (linkedTask ? linkedTask.date : null) || (followedHearing ? followedHearing.date : null);
+  const hasOwnDeadline = !!it.dueDate;
+  const deltaDays = effectiveDate ? daysBetween(tk, effectiveDate) : null;
+  const isOverdue = effectiveDate && deltaDays<0 && !it.done;
+  const rowColor = isOverdue ? "var(--overdue)" : effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (hasOwnDeadline ? "var(--heads-up)" : (c ? colorForCaseType(c.caseType) : "var(--line)"));
+  const rowIcon = hasOwnDeadline ? ICONS.hourglass_half : (effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : ""));
+  const deadlineBadge = effectiveDate && !it.done
+    ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?tr('today_word'):deltaDays+tr('day_abbrev')}</span>`)
+    : "";
+  const metaLine = hasOwnDeadline
+    ? `${tr('due_prefix',{date:bdi(fmtLong(it.dueDate))})}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+    : linkedTask
+    ? `${tr('before_task_prefix',{title:bdi(linkedTask.title)})} · ${bdi(fmtLong(linkedTask.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+    : followedHearing
+    ? `${tr('before_next_hearing')} · ${bdi(fmtLong(followedHearing.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+    : it.followNextHearing
+    ? `${tr('before_next_hearing')} ${tr('none_scheduled_yet')}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+    : (c ? bdi(computeCaseTitle(c)) : "");
+  return `<div class="checklist-row" style="border-inline-start:4px solid ${it.done?'var(--line)':rowColor};">
+    <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
+    <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${rowIcon&&!it.done?`<span style="color:${rowColor};flex-shrink:0;">${rowIcon}</span>`:""}
+        <span style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${bdi(it.text)}</span>
+        ${deadlineBadge}
+      </div>
+      ${metaLine?`<div class="task-meta">${(linkedTask||it.followNextHearing)?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
+    </div>
+    <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
+  </div>`;
+}
 function renderChecklist(){
   const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
   const tasksById = {}; state.tasks.forEach(t=>tasksById[t.id]=t);
-  const tk = todayKey();
   const items = state.checklist.slice().sort((a,b)=> (a.done - b.done) || (b.createdAt||0)-(a.createdAt||0));
   document.getElementById("view-checklist").innerHTML = `
     ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.list_check}<br/><div style="font-size:14px;margin-top:8px;">${tr('no_checklist_items_tap')}</div></div>` :
-      items.map(it=>{
-        const c = casesById[it.caseId];
-        const linkedTask = it.taskId ? tasksById[it.taskId] : null;
-        const followedHearing = (it.followNextHearing && it.caseId) ? nextHearingForCase(it.caseId) : null;
-        const effectiveTask = linkedTask || followedHearing;
-        const effectiveDate = it.dueDate || (linkedTask ? linkedTask.date : null) || (followedHearing ? followedHearing.date : null);
-        const hasOwnDeadline = !!it.dueDate;
-        const deltaDays = effectiveDate ? daysBetween(tk, effectiveDate) : null;
-        const isOverdue = effectiveDate && deltaDays<0 && !it.done;
-        const rowColor = isOverdue ? "var(--overdue)" : effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (hasOwnDeadline ? "var(--heads-up)" : (c ? colorForCaseType(c.caseType) : "var(--line)"));
-        const rowIcon = hasOwnDeadline ? ICONS.hourglass_half : (effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : ""));
-        const deadlineBadge = effectiveDate && !it.done
-          ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?tr('today_word'):deltaDays+tr('day_abbrev')}</span>`)
-          : "";
-        const metaLine = hasOwnDeadline
-          ? `${tr('due_prefix',{date:bdi(fmtLong(it.dueDate))})}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
-          : linkedTask
-          ? `${tr('before_task_prefix',{title:bdi(linkedTask.title)})} · ${bdi(fmtLong(linkedTask.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
-          : followedHearing
-          ? `${tr('before_next_hearing')} · ${bdi(fmtLong(followedHearing.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
-          : it.followNextHearing
-          ? `${tr('before_next_hearing')} ${tr('none_scheduled_yet')}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
-          : (c ? bdi(computeCaseTitle(c)) : "");
-        return `<div class="checklist-row" style="border-inline-start:4px solid ${it.done?'var(--line)':rowColor};">
-          <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
-          <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              ${rowIcon&&!it.done?`<span style="color:${rowColor};flex-shrink:0;">${rowIcon}</span>`:""}
-              <span style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${bdi(it.text)}</span>
-              ${deadlineBadge}
-            </div>
-            ${metaLine?`<div class="task-meta">${(linkedTask||it.followNextHearing)?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
-          </div>
-          <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
-        </div>`;
-      }).join("")}
+      items.map(it=>checklistItemRowHtml(it, casesById, tasksById)).join("")}
   `;
 }
 window.toggleChecklistDone = toggleChecklistDone;
