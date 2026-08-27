@@ -493,7 +493,7 @@ const TRANSLATIONS = {
   qr_checklist_section:{en:"Checklist",ar:"قائمة المهام"},
   qr_checklist_body:{en:'Link a checklist item to "Next hearing" so it automatically follows whichever hearing is soonest — even through postponements — or pick a specific date instead.',ar:'اربط عنصر القائمة بـ "الجلسة القادمة" ليتبع تلقائيًا أقرب جلسة — حتى مع التأجيلات — أو اختر تاريخًا محددًا بدلاً من ذلك.'},
   qr_today_section:{en:"Today & Tomorrow in court",ar:"اليوم وغدًا في المحكمة"},
-  qr_today_body:{en:"The Calendar tab opens with today's hearings front and center, plus every other open task for any case at the same court — useful if you're already headed there. A Tomorrow card appears the same way starting at 2pm, to help you walk in prepared.",ar:"يفتح تبويب التقويم بجلسات اليوم في المقدمة، بالإضافة إلى كل مهمة مفتوحة أخرى لأي قضية في نفس المحكمة — مفيد إن كنت متجهًا إليها أصلاً. تظهر بطاقة الغد بنفس الطريقة ابتداءً من الساعة 2 ظهرًا، لتدخل جاهزًا."},
+  qr_today_body:{en:"The Calendar tab opens with today's hearings and other court procedures front and center (anything due today that isn't a paperwork-only deadline), plus every other open task for any case at the same court — useful if you're already headed there. A Tomorrow card appears the same way starting at 2pm, to help you walk in prepared.",ar:"يفتح تبويب التقويم بجلسات اليوم وإجراءات المحكمة الأخرى في المقدمة (كل ما يستحق اليوم وليس مجرد موعد نهائي ورقي)، بالإضافة إلى كل مهمة مفتوحة أخرى لأي قضية في نفس المحكمة — مفيد إن كنت متجهًا إليها أصلاً. تظهر بطاقة الغد بنفس الطريقة ابتداءً من الساعة 2 ظهرًا، لتدخل جاهزًا."},
   qr_deadline_calc_section:{en:"Statutory deadline calculator",ar:"حاسبة المواعيد القانونية"},
   qr_deadline_calc_body:{en:"Settings → Tools → Statutory deadline calculator. Enter a start date and a number of days and it counts the way Libyan procedural law does — start date excluded, and a final day landing on the weekend pushes to the next working day. Save your own frequently-used periods as presets.",ar:"الإعدادات ← الأدوات ← حاسبة المواعيد القانونية. أدخل تاريخ البداية وعدد الأيام، وتحسب الموعد وفق طريقة القانون الليبي — باستثناء تاريخ البداية، وإذا وقع اليوم الأخير في عطلة نهاية الأسبوع يُمدد إلى يوم العمل التالي. احفظ المدد التي تستخدمها كثيرًا كقوالب جاهزة."},
   qr_language_section:{en:"Language",ar:"اللغة"},
@@ -1299,11 +1299,16 @@ function renderCalendar(upcoming){
   const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
   const tk2 = todayKey();
   const criticalItems = state.tasks.filter(t=>t.flag==="critical" && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
-  const todaysHearings = state.tasks.filter(t=>t.type==="Hearing" && t.date===tk && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)}));
+  // "In court" originally meant Hearing-only, but a Procedure due today (a filing,
+  // an in-person submission) is just as much a reason to be at the courthouse.
+  // Deadline-kind items are excluded — those are paperwork due-dates that don't
+  // need physical presence, and are already surfaced via Critical deadlines /
+  // Upcoming / the day list below.
+  const todaysHearings = state.tasks.filter(t=>t.kind!=="deadline" && t.date===tk && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)}));
   const todaySameCourtItems = sameCourtOpenItems(todaysHearings, casesById);
   const tomorrowKey = addDays(tk,1);
   const showTomorrow = new Date().getHours() >= 14;
-  const tomorrowsHearings = showTomorrow ? state.tasks.filter(t=>t.type==="Hearing" && t.date===tomorrowKey && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)})) : [];
+  const tomorrowsHearings = showTomorrow ? state.tasks.filter(t=>t.kind!=="deadline" && t.date===tomorrowKey && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)})) : [];
   const tomorrowSameCourtItems = sameCourtOpenItems(tomorrowsHearings, casesById);
 
   document.getElementById("view-calendar").innerHTML = `
