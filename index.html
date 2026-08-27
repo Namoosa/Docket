@@ -235,6 +235,12 @@ const db = firebase.firestore();
 /* ================= CONSTANTS ================= */
 const PROCEDURE_TYPES = ["Hearing","Procedure"];
 const FOLLOWUP_CHIPS = ["Notify party","Gather documents","Review with client"];
+const REASON_CHIP_KEYS = ["reason_judge_unavailable","reason_opposing_counsel","reason_missing_documents","reason_party_absent","reason_court_backlog"];
+const FOLLOWUP_CHIP_LABELS = {
+  en:{"Notify party":"Notify party","Gather documents":"Gather documents","Review with client":"Review with client"},
+  ar:{"Notify party":"إخطار الطرف","Gather documents":"جمع المستندات","Review with client":"مراجعة مع الموكل"}
+};
+function followUpChipLabel(v){ return (FOLLOWUP_CHIP_LABELS[state.lang]&&FOLLOWUP_CHIP_LABELS[state.lang][v]) || v; }
 // The two periods the Miqat Ledger research could confirm against the statute text
 // and published Supreme Court rulings (Art. 301/311 for appeal; Art. 83 for the
 // civil summons-to-hearing gap). Deliberately NOT pre-loading opposition/cassation/
@@ -298,6 +304,11 @@ const CASE_TYPE_COLOR = {"Criminal":"#744C2F","Civil":"#8B7C4B","Commercial":"#8
 const CASE_TYPE_ICON = {"Criminal":ICONS.handcuffs,"Civil":ICONS.scroll,"Commercial":ICONS.building,"Corporate":ICONS.building,"Family":ICONS.people_roof,"Labor":ICONS.helmet_safety,"Personal Status":ICONS.people_roof,"Real Estate":ICONS.house,"Administrative":ICONS.landmark,"Counsel":ICONS.comments};
 
 const PARTY_ROLES = ["Client","Opponent","Co-Defendant","Co-Plaintiff","Third Party","Other"];
+const PARTY_ROLE_LABELS = {
+  en:{Client:"Client",Opponent:"Opponent","Co-Defendant":"Co-Defendant","Co-Plaintiff":"Co-Plaintiff","Third Party":"Third Party",Other:"Other"},
+  ar:{Client:"موكل",Opponent:"خصم","Co-Defendant":"مدعى عليه مشترك","Co-Plaintiff":"مدعٍ مشترك","Third Party":"طرف ثالث",Other:"أخرى"}
+};
+function partyRoleLabel(v){ return (PARTY_ROLE_LABELS[state.lang]&&PARTY_ROLE_LABELS[state.lang][v]) || v; }
 const STATUS_OPTIONS = ["Pending Partner Review","Pending Power of Attorney","Pending Documents","Active","On Hold","Closed"];
 const HASH_PALETTE = ["#9A3B33","#A6762E","#3D5871","#556B4F","#6B5B8C","#8A6E4B","#7B7566","#3D6B6B"];
 
@@ -354,6 +365,8 @@ const TRANSLATIONS = {
   // Task row
   overdue_badge:{en:"Overdue",ar:"متأخر"}, missed_deadline:{en:"Missed deadline",ar:"موعد فائت"},
   critical_badge:{en:"CRITICAL",ar:"مهم"}, headsup_badge:{en:"heads-up",ar:"للعلم"},
+  day_abbrev:{en:"d",ar:"ي"},
+  open_gcal_title:{en:"Open in Google Calendar",ar:"فتح في تقويم غوغل"}, add_gcal_title:{en:"Add to Google Calendar",ar:"إضافة إلى تقويم غوغل"},
   deadline_suffix:{en:"(deadline)",ar:"(موعد نهائي)"}, postponed_prefix:{en:"Postponed:",ar:"أُجِّلت:"},
   no_case_linked:{en:"No case linked",ar:"لا توجد قضية مرتبطة"},
   // Cases tab
@@ -453,6 +466,65 @@ const TRANSLATIONS = {
   link_other_cases:{en:"Link to other cases or counsel matters (same client / dispute)",ar:"ربط بقضايا أو استشارات أخرى (نفس الموكل / النزاع)"},
   documents_optional:{en:"Documents (optional)",ar:"المستندات (اختياري)"},
   documents_label:{en:"Documents (paste a Google Drive / Dropbox link)",ar:"المستندات (الصق رابط Google Drive أو Dropbox)"},
+  documents_word:{en:"Documents",ar:"المستندات"},
+  hearing_title_opt:{en:"Title (optional)",ar:"العنوان (اختياري)"},
+  prosecution_office_label:{en:"Public Prosecution Office",ar:"مكتب النيابة العامة"},
+  prosecution_name_placeholder:{en:"e.g. Tripoli Public Prosecution",ar:"مثال: النيابة العامة طرابلس"},
+  full_name_placeholder:{en:"Full name",ar:"الاسم الكامل"},
+  phone_optional_placeholder:{en:"Phone (optional)",ar:"الهاتف (اختياري)"},
+  email_optional_placeholder:{en:"Email (optional)",ar:"البريد الإلكتروني (اختياري)"},
+  similar_case_warning:{en:'This looks similar to <strong>{title}</strong> — is this the same matter?',ar:'يبدو مشابهًا لـ <strong>{title}</strong> — هل هذه نفس القضية؟'},
+
+  /* ---- Quick Reference ---- */
+  welcome_title:{en:"Welcome to Docket",ar:"مرحبًا بك في Docket"}, quick_reference_title:{en:"Quick Reference",ar:"مرجع سريع"},
+  qr_calendar_icons:{en:"Calendar icons",ar:"أيقونات التقويم"},
+  qr_flags:{en:"Flags",ar:"الوسوم"},
+  qr_flag_critical:{en:"a can't-miss date. Pinned to the top of Calendar no matter how far away — and marks the whole case card as critical too, so it stands out in the Cases list.",ar:"موعد لا يجوز تفويته. يبقى مثبتًا أعلى التقويم مهما بعد — ويسم بطاقة القضية كاملة كذلك، فتبرز في قائمة القضايا."},
+  qr_flag_headsup:{en:"a gentle nudge. Shows automatically as any date approaches (based on your Settings), or force it earlier with the FYI flag.",ar:"تنبيه لطيف. يظهر تلقائيًا كلما اقترب أي موعد (حسب إعداداتك)، أو فعّله مبكرًا بوسم للعلم."},
+  qr_flag_overdue:{en:"passed and not yet marked done.",ar:"مضى ولم يُوسم كمكتمل بعد."},
+  qr_cases_section:{en:"Cases",ar:"القضايا"},
+  qr_cases_body:{en:"Link related cases to each other from the case form. Counsel and Criminal case types get their own simplified fields — Counsel cases show a distinct badge next to the name. Each card shows the next hearing date and how long it's been since anything happened on the case. Filter by court to see everything open at a specific courthouse. Adding a case with a name close to an existing one prompts a soft duplicate check, in case it's the same matter.",ar:"اربط القضايا ذات الصلة ببعضها من نموذج القضية. لقضايا الاستشارة والجنائية حقول مبسطة خاصة بها — تظهر قضايا الاستشارة بوسم مميز بجانب الاسم. تعرض كل بطاقة تاريخ الجلسة القادمة ومدة عدم وجود أي نشاط في القضية. صفِّ حسب المحكمة لرؤية كل ما هو مفتوح في محكمة معينة. إضافة قضية باسم قريب من قضية موجودة يستدعي تنبيهًا لطيفًا للتحقق من كونها نفس القضية."},
+  qr_status_section:{en:"Case status",ar:"حالة القضية"},
+  qr_status_body:{en:"Statuses follow the intake pipeline: Pending Partner Review → Pending Power of Attorney → Pending Documents → Active → On Hold → Closed. A case only counts as \"stale\" (no upcoming dates) once it's Active — the earlier stages aren't expected to have a date yet.",ar:"تتبع الحالات مسار الاستلام: مراجعة الأستاذ ← توكيل الموكل ← تقديم مستندات ← قيد العمل ← معلقة ← مغلقة. لا تُحتسب القضية \"بلا مواعيد قادمة\" إلا إذا كانت قيد العمل — فالمراحل السابقة لا يُتوقع أن يكون لها موعد بعد."},
+  qr_hearings_section:{en:"Postponing a hearing",ar:"تأجيل الجلسة"},
+  qr_hearings_body:{en:'Open a Hearing that\'s already on the docket and tap "Continue — schedule the next session" to log a postponement. A "Prepare memorandum" checklist item is added automatically, linked to whichever hearing is next — no need to re-link it if it gets postponed again. If a Hearing passes and nobody logs what happened, a "Get the next hearing date" reminder appears on the Checklist by itself.',ar:'افتح جلسة موجودة بالفعل في الدفتر واضغط "متابعة — تحديد الجلسة القادمة" لتسجيل التأجيل. تُضاف مهمة "إعداد مذكرة" تلقائيًا إلى القائمة، مرتبطة بأقرب جلسة قادمة — دون الحاجة لإعادة الربط إذا تأجلت مجددًا. إذا مرت جلسة دون تسجيل ما حدث فيها، يظهر تذكير "الحصول على موعد الجلسة القادمة" في قائمة المهام من تلقاء نفسه.'},
+  qr_ruling_section:{en:"No more hearings",ar:"لا مزيد من الجلسات"},
+  qr_ruling_body:{en:'When a hearing is the final one — the ruling was issued — open it and tap "Ruling issued — no further session" instead of Continue. This marks it done, logs it to the Case Log, and closes the case automatically.',ar:'عندما تكون الجلسة هي الأخيرة — بعد صدور الحكم — افتحها واضغط "صدر الحكم — لا جلسة قادمة" بدلاً من المتابعة. يؤدي هذا إلى وسمها كمكتملة، وتسجيلها في سجل القضية، وإغلاق القضية تلقائيًا.'},
+  qr_checklist_section:{en:"Checklist",ar:"قائمة المهام"},
+  qr_checklist_body:{en:'Link a checklist item to "Next hearing" so it automatically follows whichever hearing is soonest — even through postponements — or pick a specific date instead.',ar:'اربط عنصر القائمة بـ "الجلسة القادمة" ليتبع تلقائيًا أقرب جلسة — حتى مع التأجيلات — أو اختر تاريخًا محددًا بدلاً من ذلك.'},
+  qr_today_section:{en:"Today & Tomorrow in court",ar:"اليوم وغدًا في المحكمة"},
+  qr_today_body:{en:"The Calendar tab opens with today's hearings front and center, plus every other open task for any case at the same court — useful if you're already headed there. A Tomorrow card appears the same way starting at 2pm, to help you walk in prepared.",ar:"يفتح تبويب التقويم بجلسات اليوم في المقدمة، بالإضافة إلى كل مهمة مفتوحة أخرى لأي قضية في نفس المحكمة — مفيد إن كنت متجهًا إليها أصلاً. تظهر بطاقة الغد بنفس الطريقة ابتداءً من الساعة 2 ظهرًا، لتدخل جاهزًا."},
+  qr_deadline_calc_section:{en:"Statutory deadline calculator",ar:"حاسبة المواعيد القانونية"},
+  qr_deadline_calc_body:{en:"Settings → Tools → Statutory deadline calculator. Enter a start date and a number of days and it counts the way Libyan procedural law does — start date excluded, and a final day landing on the weekend pushes to the next working day. Save your own frequently-used periods as presets.",ar:"الإعدادات ← الأدوات ← حاسبة المواعيد القانونية. أدخل تاريخ البداية وعدد الأيام، وتحسب الموعد وفق طريقة القانون الليبي — باستثناء تاريخ البداية، وإذا وقع اليوم الأخير في عطلة نهاية الأسبوع يُمدد إلى يوم العمل التالي. احفظ المدد التي تستخدمها كثيرًا كقوالب جاهزة."},
+  qr_language_section:{en:"Language",ar:"اللغة"},
+  qr_language_body:{en:'Switch between English and Arabic anytime with the "AR" / "EN" button in the header. Your choice is saved to your account.',ar:'بدّل بين الإنجليزية والعربية في أي وقت من زر "AR" / "EN" أعلى الصفحة. يُحفظ اختيارك في حسابك.'},
+  qr_printing_section:{en:"Printing",ar:"الطباعة"},
+  qr_printing_body:{en:"Add your name and contact details under Settings → Letterhead to give printed reports (Today's Docket, case history) a proper header.",ar:"أضف اسمك وبيانات التواصل في الإعدادات ← الترويسة لإضافة رأسية رسمية للتقارير المطبوعة (دفتر اليوم، سجل القضية)."},
+  qr_gcal_title:{en:"Google Calendar — important",ar:"تقويم غوغل — مهم"},
+  qr_gcal_body:{en:'Anything you add while <strong>not</strong> connected won\'t sync to Google Calendar automatically — Docket has no way to reach it until you reconnect. The connection can quietly lapse (usually within about an hour), so it\'s worth checking the Calendar tab occasionally for the "Reconnect" banner.<br/><br/>Already added something while disconnected? Reconnect, then either open that date and tap Save (even with no changes) to sync just that one, or use <strong>Settings → Sync unsynced dates</strong> to catch up everything at once.',ar:'أي شيء تضيفه أثناء <strong>عدم</strong> الاتصال لن يتزامن تلقائيًا مع تقويم غوغل — لا توجد وسيلة للوصول إليه حتى تعيد الاتصال. قد ينقطع الاتصال بهدوء (عادة خلال ساعة تقريبًا)، لذا يستحق التحقق من تبويب التقويم أحيانًا لشريط "إعادة الاتصال".<br/><br/>أضفت شيئًا أثناء الانقطاع؟ أعد الاتصال، ثم افتح ذلك الموعد واضغط حفظ (حتى بلا تغييرات) لمزامنته وحده، أو استخدم <strong>الإعدادات ← مزامنة المواعيد غير المتزامنة</strong> لتحديث كل شيء دفعة واحدة.'},
+  qr_nav_section:{en:"Calendar navigation",ar:"التنقل في التقويم"},
+  qr_nav_body:{en:"Swipe left/right to change months, or tap the month name to jump straight to any month.",ar:"مرر يمينًا/يسارًا لتغيير الشهر، أو اضغط اسم الشهر للانتقال مباشرة إلى أي شهر."},
+  get_started_btn:{en:"Get started",ar:"ابدأ"},
+  link_instead_btn:{en:"Link instead?",ar:"ربط بدلاً من ذلك؟"},
+  linked_duplicate_toast:{en:"Linked to that case — you can unlink later from the case form.",ar:"تم الربط بتلك القضية — يمكنك إلغاء الربط لاحقًا من نموذج القضية."},
+  conflict_warning:{en:'"{name}" appears as {role} in {caseTitle} — potential conflict.',ar:'"{name}" يظهر بصفة {role} في {caseTitle} — تعارض محتمل.'},
+  default_document_label:{en:"Document",ar:"مستند"},
+  choose_case_type_alert:{en:"Choose or type a case type.",ar:"اختر أو اكتب نوع القضية."},
+  case_closed_toast:{en:"Case closed.",ar:"تم إغلاق القضية."},
+  logged_to_case_log_toast:{en:"Logged to Case Log",ar:"تمت الإضافة إلى سجل القضية"},
+  delete_case_confirm:{en:"Delete this case, all its dates and checklist items? This can't be undone.",ar:"حذف هذه القضية وكل مواعيدها وعناصر قائمتها؟ لا يمكن التراجع عن هذا."},
+  delete_word:{en:"Delete",ar:"حذف"}, cancel_word:{en:"Cancel",ar:"إلغاء"},
+  export_pdf_title:{en:"Export full case history as PDF",ar:"تصدير سجل القضية الكامل كملف PDF"},
+  duplicate_case_title:{en:"Duplicate this case",ar:"نسخ هذه القضية"},
+  log_call_btn:{en:"Log call",ar:"تسجيل مكالمة"}, log_email_btn:{en:"Log email",ar:"تسجيل بريد"},
+  prosecutor_prefix:{en:"Prosecutor:",ar:"وكيل النيابة:"},
+  partial_prefix:{en:"Partial:",ar:"جزئي:"}, general_prefix:{en:"General:",ar:"عام:"},
+  case_log_label:{en:"Case Log",ar:"سجل القضية"},
+  log_note_placeholder:{en:"Add a dated note (e.g. client called about settlement)…",ar:"أضف ملاحظة مؤرخة (مثال: اتصل الموكل بشأن التسوية)…"},
+  no_log_entries:{en:"No log entries yet.",ar:"لا توجد تدوينات بعد."},
+  edit_log_entry_prompt:{en:"Edit log entry:",ar:"تعديل التدوينة:"},
+  called_log_text:{en:"Called {name}",ar:"تم الاتصال بـ {name}"}, emailed_log_text:{en:"Emailed {name}",ar:"تم إرسال بريد إلى {name}"},
+  ruling_issued_log_text:{en:"Ruling issued — {title}. Case closed.",ar:"صدر الحكم — {title}. تم إغلاق القضية."},
   label_placeholder:{en:"Label",ar:"التسمية"}, url_placeholder:{en:"https://drive.google.com/…",ar:"https://drive.google.com/…"},
   add_hearing_now:{en:"Add a hearing date now",ar:"إضافة موعد جلسة الآن"},
   create_case_btn:{en:"Create case",ar:"إنشاء القضية"},
@@ -1052,7 +1124,7 @@ function badgeMenuRowHtml(t, caseItem){
   const color = t.flag==="critical" ? "var(--critical)" : (isOverdue ? "var(--overdue)" : colorForProcedure(t.type));
   const badge = isOverdue
     ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>`
-    : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${delta===0?tr('today_word'):delta+'d'} · ${tr('headsup_badge')}</span>`;
+    : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${delta===0?tr('today_word'):delta+tr('day_abbrev')} · ${tr('headsup_badge')}</span>`;
   return `<div class="task-row" style="border-inline-start:4px solid ${color};">
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -1272,19 +1344,19 @@ function taskRowHtml(t, caseItem, showDate){
   const baseColor = colorForProcedure(t.type);
   const icon = baseIcon;
   const color = overdue ? "var(--overdue)" : (isCritical ? "var(--critical)" : baseColor);
-  const countdownLabel = t.delta===0 ? "Today" : `${t.delta}d`;
+  const countdownLabel = t.delta===0 ? tr('today_word') : `${t.delta}${tr('day_abbrev')}`;
   let statusBadge = "";
-  if(overdue){ statusBadge = `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${isDeadline?'Missed deadline':'Overdue'}</span>`; }
+  if(overdue){ statusBadge = `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${isDeadline?tr('missed_deadline'):tr('overdue_badge')}</span>`; }
   else if(!t.completed && typeof t.delta==="number"){
-    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--critical);color:#fff;background:var(--critical);">CRITICAL · ${countdownLabel}</span>`;
-    else if(headsUp) statusBadge = `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${countdownLabel} · heads-up</span>`;
+    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--critical);color:#fff;background:var(--critical);">${tr('critical_badge')} · ${countdownLabel}</span>`;
+    else if(headsUp) statusBadge = `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${countdownLabel} · ${tr('headsup_badge')}</span>`;
   }
   const isNextHearingForCase = caseItem && t.type==="Hearing" && !t.completed && nextHearingForCase(caseItem.id)?.id===t.id;
   const prepItems = state.checklist.filter(c=> c.taskId===t.id || (isNextHearingForCase && c.followNextHearing && c.caseId===caseItem.id));
   const prepDone = prepItems.filter(c=>c.done).length;
   const prepHtml = prepItems.length ? `
     <div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);">
-      <div style="font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Prep for this date — ${prepDone}/${prepItems.length}</div>
+      <div style="font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">${tr('prep_for_this_date')} — ${prepDone}/${prepItems.length}</div>
       ${prepItems.map(it=>`
         <div style="display:flex;align-items:center;gap:7px;padding:2px 0;" onclick="event.stopPropagation()">
           <button class="task-check" style="width:16px;height:16px;${it.done?'border-color:var(--sage);':''}" onclick="toggleChecklistDone('${it.id}')">${it.done?ICONS.check:''}</button>
@@ -1297,8 +1369,8 @@ function taskRowHtml(t, caseItem, showDate){
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="task-title-icon" style="color:${color};">${icon}</span>
         <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${bdi(t.title)}${isDeadline?` <span style="font-size:11px;color:var(--muted);font-weight:500;">${tr('deadline_suffix')}</span>`:''}</span>
-        ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="Open in Google Calendar" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:
-          `<a href="${esc(googleCalendarAddLink(t, caseItem))}" target="_blank" onclick="event.stopPropagation()" title="Add to Google Calendar" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>`}
+        ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="${esc(tr('open_gcal_title'))}" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:
+          `<a href="${esc(googleCalendarAddLink(t, caseItem))}" target="_blank" onclick="event.stopPropagation()" title="${esc(tr('add_gcal_title'))}" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>`}
         ${statusBadge}
       </div>
       <div class="task-meta">${caseItem?bdi(computeCaseTitle(caseItem)):tr('no_case_linked')}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${bdi(caseItem.court)}`:""}${showDate?` · ${bdi(fmtLong(t.date))}`:""}</div>
@@ -1487,7 +1559,7 @@ function renderChecklist(){
         const rowColor = isOverdue ? "var(--overdue)" : effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (hasOwnDeadline ? "var(--heads-up)" : (c ? colorForCaseType(c.caseType) : "var(--line)"));
         const rowIcon = hasOwnDeadline ? ICONS.hourglass_half : (effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : ""));
         const deadlineBadge = effectiveDate && !it.done
-          ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?tr('today_word'):deltaDays+'d'}</span>`)
+          ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?tr('today_word'):deltaDays+tr('day_abbrev')}</span>`)
           : "";
         const metaLine = hasOwnDeadline
           ? `${tr('due_prefix',{date:bdi(fmtLong(it.dueDate))})}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
@@ -1524,33 +1596,33 @@ function openChecklistModal(existingRaw){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Checklist Item</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
-      <div class="field"><span class="field-label">Task</span><input class="input" id="chk-text" value="${esc(it.text)}" placeholder="e.g. Prepare witness list" /></div>
-      <div class="field"><span class="field-label">Link to a case (optional)</span>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?tr('edit_checklist_item'):tr('new_checklist_item')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div class="field"><span class="field-label">${tr('task_label')}</span><input class="input" id="chk-text" value="${esc(it.text)}" placeholder="${esc(tr('task_placeholder'))}" /></div>
+      <div class="field"><span class="field-label">${tr('link_to_case_optional')}</span>
         <select class="input" id="chk-case" onchange="refreshChecklistTaskOptions()">
-          <option value="">General — no case</option>
+          <option value="">${tr('general_no_case')}</option>
           ${state.cases.map(c=>`<option value="${c.id}" ${it.caseId===c.id?'selected':''}>${esc(computeCaseTitle(c))}</option>`).join("")}
         </select>
       </div>
       <div class="field" id="chk-task-field" style="${it.caseId?'':'display:none;'}">
-        <span class="field-label">Link to</span>
+        <span class="field-label">${tr('link_to_label')}</span>
         <div class="radio-row" id="chk-linkmode-row" style="margin-bottom:8px;">
-          <button type="button" class="radio-pill ${window._tempLinkMode==='hearing'?'active':''}" data-v="hearing" onclick="setChecklistLinkMode('hearing')">Next hearing</button>
-          <button type="button" class="radio-pill ${window._tempLinkMode==='date'?'active':''}" data-v="date" onclick="setChecklistLinkMode('date')">Date</button>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='hearing'?'active':''}" data-v="hearing" onclick="setChecklistLinkMode('hearing')">${tr('next_hearing_word')}</button>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='date'?'active':''}" data-v="date" onclick="setChecklistLinkMode('date')">${tr('date_word_link')}</button>
         </div>
-        <div id="chk-hearing-note" class="${window._tempLinkMode==='hearing'?'':'hidden'}" style="font-size:11.5px;color:var(--muted);">Means: finish this before whichever Hearing is next for this case. If it gets postponed, this moves with it — no need to re-link.</div>
+        <div id="chk-hearing-note" class="${window._tempLinkMode==='hearing'?'':'hidden'}" style="font-size:11.5px;color:var(--muted);">${tr('hearing_note')}</div>
         <div id="chk-date-sub" class="${window._tempLinkMode==='date'?'':'hidden'}">
           <div class="radio-row" id="chk-datesub-row" style="margin-bottom:8px;">
-            <button type="button" class="radio-pill ${window._tempDateSubMode==='none'?'active':''}" data-v="none" onclick="setChecklistDateSubMode('none')">No specific date</button>
-            <button type="button" class="radio-pill ${window._tempDateSubMode==='pick'?'active':''}" data-v="pick" onclick="setChecklistDateSubMode('pick')">Pick a date</button>
+            <button type="button" class="radio-pill ${window._tempDateSubMode==='none'?'active':''}" data-v="none" onclick="setChecklistDateSubMode('none')">${tr('no_specific_date')}</button>
+            <button type="button" class="radio-pill ${window._tempDateSubMode==='pick'?'active':''}" data-v="pick" onclick="setChecklistDateSubMode('pick')">${tr('pick_a_date')}</button>
           </div>
           <div id="chk-deadline-picker" class="${window._tempDateSubMode==='pick'?'':'hidden'}">
             <input class="input" id="chk-due-date" type="date" value="${it.dueDate||''}" />
-            <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before this date.</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">${tr('due_date_hint')}</div>
           </div>
         </div>
       </div>
-      <button class="btn-primary" style="width:100%;" onclick="submitChecklist(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add item'}</button>
+      <button class="btn-primary" style="width:100%;" onclick="submitChecklist(${existing?`'${existing.id}'`:'null'})">${existing?tr('save_changes_btn'):tr('add_item_btn')}</button>
     </div>
   </div>`;
 }
@@ -1617,55 +1689,55 @@ function openTaskModal(existingRaw){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Procedure / Date</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?tr('edit_procedure_date'):tr('new_procedure_date')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
 
-      <div class="field"><span class="field-label">This is a…</span>
+      <div class="field"><span class="field-label">${tr('this_is_a')}</span>
         <div class="radio-row" id="kind-row">
-          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')">${ICONS.calendar_days} Scheduled event</button>
-          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')">${ICONS.hourglass_half} Deadline</button>
+          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')">${ICONS.calendar_days} ${tr('scheduled_event')}</button>
+          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')">${ICONS.hourglass_half} ${tr('deadline_word')}</button>
         </div>
       </div>
 
-      ${state.cases.length===0 ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">No cases yet — this will be a standalone date, or add a case first from the Cases tab.</div>` : `
-      <div class="field"><span class="field-label">Case</span>
+      ${state.cases.length===0 ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">${tr('no_cases_add_first')}</div>` : `
+      <div class="field"><span class="field-label">${tr('case_label')}</span>
         <select class="input" id="f-caseId">
-          <option value="">No case (standalone)</option>
+          <option value="">${tr('no_case_standalone')}</option>
           ${state.cases.map(c=>`<option value="${c.id}" ${t.caseId===c.id?'selected':''}>${esc(computeCaseTitle(c))}${c.court?` · ${esc(c.court)}`:""}</option>`).join("")}
         </select>
       </div>`}
-      <div class="field"><span class="field-label" id="f-title-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
-      <div class="field"><span class="field-label" id="f-date-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
-      <div class="field"><span class="field-label">Procedure type</span>
+      <div class="field"><span class="field-label" id="f-title-label">${tr('title_label')}</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="${esc(tr('title_placeholder_task'))}" /></div>
+      <div class="field"><span class="field-label" id="f-date-label">${tr('date_label')}</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
+      <div class="field"><span class="field-label">${tr('procedure_type_label')}</span>
         <div class="radio-row" id="proc-type-row">
-          ${allProcTypes.map(pt=>`<button type="button" class="radio-pill ${t.type===pt?'active':''}" data-v="${esc(pt)}" onclick="setProcType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+          ${allProcTypes.map(pt=>`<button type="button" class="radio-pill ${t.type===pt?'active':''}" data-v="${esc(pt)}" onclick="setProcType('${esc(pt)}')">${esc(procTypeLabel(pt))}</button>`).join("")}
         </div>
       </div>
       <div class="field">
-        <span class="field-label">Flag this date</span>
+        <span class="field-label">${tr('flag_this_date')}</span>
         <div class="radio-row" id="flag-row">
-          <button type="button" class="radio-pill ${(t.flag||'none')==='none'?'active':''}" data-v="none" onclick="setTaskFlag('none')">None</button>
-          <button type="button" class="radio-pill ${t.flag==='fyi'?'active':''}" data-v="fyi" onclick="setTaskFlag('fyi')" style="${t.flag==='fyi'?'background:var(--heads-up);border-color:var(--heads-up);':''}">FYI</button>
-          <button type="button" class="radio-pill ${t.flag==='critical'?'active':''}" data-v="critical" onclick="setTaskFlag('critical')" style="${t.flag==='critical'?'background:var(--critical);border-color:var(--critical);':''}">Critical</button>
+          <button type="button" class="radio-pill ${(t.flag||'none')==='none'?'active':''}" data-v="none" onclick="setTaskFlag('none')">${tr('flag_none')}</button>
+          <button type="button" class="radio-pill ${t.flag==='fyi'?'active':''}" data-v="fyi" onclick="setTaskFlag('fyi')" style="${t.flag==='fyi'?'background:var(--heads-up);border-color:var(--heads-up);':''}">${tr('flag_fyi')}</button>
+          <button type="button" class="radio-pill ${t.flag==='critical'?'active':''}" data-v="critical" onclick="setTaskFlag('critical')" style="${t.flag==='critical'?'background:var(--critical);border-color:var(--critical);':''}">${tr('flag_critical')}</button>
         </div>
-        <div id="flag-hint" style="font-size:11.5px;color:var(--muted);margin-top:6px;">${(t.flag==='critical') ? "A can't-miss date — pinned to the top of your Calendar no matter how far away it is." : (t.flag==='fyi') ? "Not urgent — shows a quiet heads-up once it's within 7 days out." : "No flag — this date only shows the normal due-soon heads-up close to its date, based on your Settings."}</div>
+        <div id="flag-hint" style="font-size:11.5px;color:var(--muted);margin-top:6px;">${(t.flag==='critical') ? tr('flag_hint_critical') : (t.flag==='fyi') ? tr('flag_hint_fyi') : tr('flag_hint_none')}</div>
       </div>
-      <div class="field"><span class="field-label">Notes</span><textarea class="input" id="f-notes" style="min-height:60px;">${esc(t.notes)}</textarea></div>
+      <div class="field"><span class="field-label">${tr('notes_label')}</span><textarea class="input" id="f-notes" style="min-height:60px;">${esc(t.notes)}</textarea></div>
 
       ${!existing ? `
       <div class="field">
         <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);">
-          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> ${ICONS.rotate} Repeat this session
+          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> ${ICONS.rotate} ${tr('repeat_this_session')}
         </label>
         <div id="repeat-fields" class="hidden" style="margin-top:10px;display:flex;gap:8px;">
           <select class="input" id="f-repeat-freq">
-            <option value="7">Weekly</option>
-            <option value="14" selected>Every 2 weeks</option>
-            <option value="21">Every 3 weeks</option>
-            <option value="28">Every 4 weeks</option>
+            <option value="7">${tr('weekly_word')}</option>
+            <option value="14" selected>${tr('every_2_weeks')}</option>
+            <option value="21">${tr('every_3_weeks')}</option>
+            <option value="28">${tr('every_4_weeks')}</option>
           </select>
           <input class="input" id="f-repeat-count" type="number" min="2" max="20" value="4" style="width:90px;" title="Number of sessions" />
         </div>
-        <div id="repeat-hint" class="hidden" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Creates this many sessions total, spaced at the interval above, each individually editable afterward.</div>
+        <div id="repeat-hint" class="hidden" style="font-size:11.5px;color:var(--muted);margin-top:6px;">${tr('repeat_hint')}</div>
       </div>` : `
       <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
         <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>${ICONS.rotate} ${tr('continue_schedule_next')}</button>
@@ -1673,7 +1745,7 @@ function openTaskModal(existingRaw){
         <div id="ruling-confirm-wrap"></div>
       </div>`}
 
-      <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add to docket'}</button>
+      <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?tr('save_changes_btn'):tr('add_to_docket_btn')}</button>
     </div>
   </div>`;
   updateKindLabels();
@@ -1692,9 +1764,9 @@ window.setTaskFlag = (v)=>{
     else { b.style.background = ""; b.style.borderColor = ""; }
   });
   const hint = document.getElementById("flag-hint");
-  hint.textContent = v==="critical" ? "A can't-miss date — pinned to the top of your Calendar no matter how far away it is."
-    : v==="fyi" ? "Not urgent — shows a quiet heads-up once it's within 7 days out."
-    : "No flag — this date only shows the normal due-soon heads-up close to its date, based on your Settings.";
+  hint.textContent = v==="critical" ? tr('flag_hint_critical')
+    : v==="fyi" ? tr('flag_hint_fyi')
+    : tr('flag_hint_none');
 };
 window.toggleRepeatFields = (checked)=>{
   document.getElementById("repeat-fields").classList.toggle("hidden", !checked);
@@ -1704,8 +1776,8 @@ function updateKindLabels(){
   const isDeadline = window._tempKind==="deadline";
   const titleLabel = document.getElementById("f-title-label");
   const dateLabel = document.getElementById("f-date-label");
-  if(titleLabel) titleLabel.textContent = isDeadline ? "What's due" : "Title";
-  if(dateLabel) dateLabel.textContent = isDeadline ? "Deadline date" : "Date";
+  if(titleLabel) titleLabel.textContent = isDeadline ? tr('whats_due') : tr('title_label');
+  if(dateLabel) dateLabel.textContent = isDeadline ? tr('deadline_date_label') : tr('date_label');
 }
 window.submitTask = (id)=>{
   const title = document.getElementById("f-title").value.trim();
@@ -1742,11 +1814,11 @@ window.submitTask = (id)=>{
 };
 
 function followUpChipsHtml(){
-  return FOLLOWUP_CHIPS.map(f=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;${window._tempFollowUps.includes(f)?'border-color:var(--navy);color:var(--navy);font-weight:700;':''}" onclick="toggleFollowUp('${f.replace(/'/g,"&apos;")}')">${esc(f)}</button>`).join("");
+  return FOLLOWUP_CHIPS.map(f=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;${window._tempFollowUps.includes(f)?'border-color:var(--navy);color:var(--navy);font-weight:700;':''}" onclick="toggleFollowUp('${f.replace(/'/g,"&apos;")}')">${esc(followUpChipLabel(f))}</button>`).join("");
 }
 function followUpSelectedHtml(){
-  if(!window._tempFollowUps.length) return `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Not every postponement needs follow-up work — leave blank if there's nothing to prep.</div>`;
-  return `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">${window._tempFollowUps.map(f=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(f)} <button onclick="removeFollowUp('${f.replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}</div>`;
+  if(!window._tempFollowUps.length) return `<div style="font-size:11px;color:var(--muted);margin-top:4px;">${tr('followup_hint_empty')}</div>`;
+  return `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">${window._tempFollowUps.map(f=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(FOLLOWUP_CHIPS.includes(f)?followUpChipLabel(f):f)} <button onclick="removeFollowUp('${f.replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}</div>`;
 }
 window.toggleFollowUp = (f)=>{
   const idx = window._tempFollowUps.indexOf(f);
@@ -1773,26 +1845,26 @@ function openContinueModal(t){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${ICONS.rotate} Continue Session</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Schedules the next session for "${esc(t.title)}" on a new date.</div>
-      ${(t.type==="Hearing" && t.caseId) ? `<div style="font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:14px;">${ICONS.square_check} A "Prepare memorandum" checklist item is added automatically, linked to the next hearing.</div>` : ""}
-      <div class="field"><span class="field-label">Reason for postponement (optional)</span>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${ICONS.rotate} ${tr('continue_session_title')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">${tr('schedules_next_session',{title:esc(t.title)})}</div>
+      ${(t.type==="Hearing" && t.caseId) ? `<div style="font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:14px;">${ICONS.square_check} ${tr('auto_memo_note')}</div>` : ""}
+      <div class="field"><span class="field-label">${tr('reason_for_postponement')}</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-          ${["Judge unavailable","Opposing counsel requested","Missing documents","Party absent","Court backlog"].map(r=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;" onclick="fillReason('${r}')">${r}</button>`).join("")}
+          ${REASON_CHIP_KEYS.map(k=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;" onclick="fillReason('${esc(tr(k)).replace(/'/g,"&apos;")}')">${tr(k)}</button>`).join("")}
         </div>
-        <input class="input" id="cont-reason" placeholder="Tap a quick option above, or type your own" />
+        <input class="input" id="cont-reason" placeholder="${esc(tr('reason_placeholder'))}" />
       </div>
-      <div class="field"><span class="field-label">Next session date</span><input class="input" id="cont-date" type="date" value="${addDays(t.date,14)}" /></div>
-      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;"><input type="checkbox" id="cont-markdone" checked /> Mark the original date as completed</label></div>
-      <div class="field"><span class="field-label">Follow-up action (optional)</span>
+      <div class="field"><span class="field-label">${tr('next_session_date')}</span><input class="input" id="cont-date" type="date" value="${addDays(t.date,14)}" /></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;"><input type="checkbox" id="cont-markdone" checked /> ${tr('mark_original_completed')}</label></div>
+      <div class="field"><span class="field-label">${tr('followup_action_optional')}</span>
         <div id="followup-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">${followUpChipsHtml()}</div>
         <div style="display:flex;gap:6px;">
-          <input class="input" id="cont-followup-custom" placeholder="Or type a custom follow-up and tap Add" />
-          <button class="btn-ghost" onclick="addCustomFollowUp()">Add</button>
+          <input class="input" id="cont-followup-custom" placeholder="${esc(tr('followup_custom_placeholder'))}" />
+          <button class="btn-ghost" onclick="addCustomFollowUp()">${tr('add_word')}</button>
         </div>
         <div id="followup-selected">${followUpSelectedHtml()}</div>
       </div>
-      <button class="btn-primary" style="width:100%;" onclick="submitContinue('${t.id}')">Schedule next session</button>
+      <button class="btn-primary" style="width:100%;" onclick="submitContinue('${t.id}')">${tr('schedule_next_session_btn')}</button>
     </div>
   </div>`;
 }
@@ -1851,7 +1923,7 @@ window.confirmRulingIssued = (t)=>{
   coll("tasks").doc(t.id).set({...stripId(t), completed:true});
   const c = state.cases.find(x=>x.id===t.caseId);
   if(c){
-    const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text: `Ruling issued — ${t.title}. Case closed.` }];
+    const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text: tr('ruling_issued_log_text',{title:t.title}) }];
     coll("cases").doc(c.id).set({...stripId(c), status:"Closed", noteLog:newLog});
   }
   // The case is closing — any outstanding "get the next hearing date" reminders
@@ -1859,7 +1931,7 @@ window.confirmRulingIssued = (t)=>{
   // one for the same case.
   state.checklist.filter(x=>x.caseId===t.caseId && x.text.indexOf("Get the next hearing date")===0 && !x.done)
     .forEach(x=> coll("checklist").doc(x.id).set({...stripId(x), done:true}));
-  showToast("Case closed.");
+  showToast(tr('case_closed_toast'));
   closeModal();
 };
 function openCaseModal(existingRaw){
@@ -1879,79 +1951,79 @@ function openCaseModal(existingRaw){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?tr('edit_case_title'):tr('new_case_title')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
 
-      <div class="field"><span class="field-label">Case type</span>
+      <div class="field"><span class="field-label">${tr('case_type_label')}</span>
         <select class="input" id="c-type-select" onchange="onCaseTypeSelectChange()">
-          ${allCaseTypes.map(x=>`<option value="${esc(x)}" ${c.caseType===x?'selected':''}>${esc(x)}</option>`).join("")}
-          <option value="__other__" ${!allCaseTypes.includes(c.caseType)?'selected':''}>+ Custom type…</option>
+          ${allCaseTypes.map(x=>`<option value="${esc(x)}" ${c.caseType===x?'selected':''}>${esc(caseTypeLabel(x))}</option>`).join("")}
+          <option value="__other__" ${!allCaseTypes.includes(c.caseType)?'selected':''}>${tr('custom_type_option')}</option>
         </select>
-        <input class="input ${!allCaseTypes.includes(c.caseType)?'':'hidden'}" id="c-type-custom" placeholder="Type a custom case type" value="${!allCaseTypes.includes(c.caseType)?esc(c.caseType):''}" style="margin-top:6px;" oninput="onCaseTypeChange()" />
+        <input class="input ${!allCaseTypes.includes(c.caseType)?'':'hidden'}" id="c-type-custom" placeholder="${esc(tr('custom_type_placeholder'))}" value="${!allCaseTypes.includes(c.caseType)?esc(c.caseType):''}" style="margin-top:6px;" oninput="onCaseTypeChange()" />
       </div>
 
       <div id="duplicate-warning"></div>
 
       <div id="counsel-fields" class="${isCounsel?'':'hidden'}">
-        <div class="field"><span class="field-label">Client</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="Client's full name" oninput="checkDuplicateCase()" /></div>
-        <div class="field"><span class="field-label">Subject</span><input class="input" id="c-counsel-subject" value="${esc(c.subject)}" placeholder="e.g. Contract review for lease renewal" /></div>
-        <div class="field"><span class="field-label">Date received</span><input class="input" id="c-date-received" type="date" value="${c.dateReceived||todayKey()}" /></div>
+        <div class="field"><span class="field-label">${tr('client_label')}</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="${esc(tr('client_name_placeholder'))}" oninput="checkDuplicateCase()" /></div>
+        <div class="field"><span class="field-label">${tr('subject_label')}</span><input class="input" id="c-counsel-subject" value="${esc(c.subject)}" placeholder="${esc(tr('subject_placeholder_counsel'))}" /></div>
+        <div class="field"><span class="field-label">${tr('date_received_label')}</span><input class="input" id="c-date-received" type="date" value="${c.dateReceived||todayKey()}" /></div>
       </div>
 
       <div id="standard-fields" class="${isCounsel?'hidden':''}">
-        <div class="field"><span class="field-label">Identify this case by</span>
+        <div class="field"><span class="field-label">${tr('identify_case_by')}</span>
           <div class="radio-row" id="title-source-row">
-            <button type="button" class="radio-pill ${window._tempTitleSource==='opponent'?'active':''}" data-v="opponent" onclick="setTitleSource('opponent')">Opponent name</button>
-            <button type="button" class="radio-pill ${window._tempTitleSource==='client'?'active':''}" data-v="client" onclick="setTitleSource('client')">Client name</button>
-            <button type="button" class="radio-pill ${window._tempTitleSource==='subject'?'active':''}" data-v="subject" onclick="setTitleSource('subject')">Title</button>
+            <button type="button" class="radio-pill ${window._tempTitleSource==='opponent'?'active':''}" data-v="opponent" onclick="setTitleSource('opponent')">${tr('opponent_name_opt')}</button>
+            <button type="button" class="radio-pill ${window._tempTitleSource==='client'?'active':''}" data-v="client" onclick="setTitleSource('client')">${tr('client_name_opt')}</button>
+            <button type="button" class="radio-pill ${window._tempTitleSource==='subject'?'active':''}" data-v="subject" onclick="setTitleSource('subject')">${tr('title_opt')}</button>
           </div>
         </div>
 
-        <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" oninput="checkDuplicateCase()" /></div>
+        <div class="field"><span class="field-label">${tr('title_opt')} ${window._tempTitleSource==='subject'?tr('title_used_as_case_name'):tr('title_optional_suffix')}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="${esc(tr('subject_placeholder_general'))}" oninput="checkDuplicateCase()" /></div>
 
         <div class="field">
-          <span class="field-label">Parties</span>
+          <span class="field-label">${tr('parties_label')}</span>
           <div id="party-list"></div>
-          <button type="button" class="btn-ghost" onclick="addPartyRow()">+ Add party</button>
+          <button type="button" class="btn-ghost" onclick="addPartyRow()">${tr('add_party_btn')}</button>
           <div id="conflict-warning"></div>
         </div>
 
-        <div class="field"><span class="field-label">Handling authority</span>
+        <div class="field"><span class="field-label">${tr('handling_authority')}</span>
           <div class="radio-row" id="authority-row">
-            <button type="button" class="radio-pill ${(c.authorityType||'court')==='court'?'active':''}" data-v="court" onclick="setAuthorityType('court')">Court</button>
-            <button type="button" class="radio-pill ${c.authorityType==='prosecution'?'active':''}" data-v="prosecution" onclick="setAuthorityType('prosecution')">Public Prosecution (investigation)</button>
+            <button type="button" class="radio-pill ${(c.authorityType||'court')==='court'?'active':''}" data-v="court" onclick="setAuthorityType('court')">${tr('court_opt')}</button>
+            <button type="button" class="radio-pill ${c.authorityType==='prosecution'?'active':''}" data-v="prosecution" onclick="setAuthorityType('prosecution')">${tr('prosecution_opt')}</button>
           </div>
         </div>
-        <div class="field"><span class="field-label" id="c-courtname-label">Court</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="e.g. Tripoli Court of First Instance" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
-        <div id="chamber-field" class="field ${(c.authorityType||'court')==='court'?'':'hidden'}"><span class="field-label">Chamber / Circuit</span><input class="input" id="c-chamber" value="${esc(c.chamber||'')}" placeholder="e.g. 3rd Circuit — الدائرة الثالثة" /></div>
-        <div id="prosecutor-field" class="field ${c.authorityType==='prosecution'?'':'hidden'}"><span class="field-label">Prosecutor in charge — وكيل النيابة المكلف</span><input class="input" id="c-prosecutor" value="${esc(c.prosecutorInCharge||'')}" placeholder="Name of the assigned deputy prosecutor" /></div>
+        <div class="field"><span class="field-label" id="c-courtname-label">${tr('court_label')}</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="${esc(tr('court_placeholder'))}" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+        <div id="chamber-field" class="field ${(c.authorityType||'court')==='court'?'':'hidden'}"><span class="field-label">${tr('chamber_label')}</span><input class="input" id="c-chamber" value="${esc(c.chamber||'')}" placeholder="${esc(tr('chamber_placeholder'))}" /></div>
+        <div id="prosecutor-field" class="field ${c.authorityType==='prosecution'?'':'hidden'}"><span class="field-label">${tr('prosecutor_label')}</span><input class="input" id="c-prosecutor" value="${esc(c.prosecutorInCharge||'')}" placeholder="${esc(tr('prosecutor_placeholder'))}" /></div>
       </div>
 
-      <div id="generic-number-field" class="field ${c.caseType==="Criminal"?'hidden':''}"><span class="field-label">Case / file number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
+      <div id="generic-number-field" class="field ${c.caseType==="Criminal"?'hidden':''}"><span class="field-label">${tr('case_file_number_label')}</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="${esc(tr('case_file_number_placeholder'))}" /></div>
       <div id="criminal-number-fields" class="${c.caseType==="Criminal"?'':'hidden'}">
-        <div class="field"><span class="field-label">Partial number (with police department)</span><input class="input" id="c-partial-number" value="${esc(c.partialNumber||'')}" placeholder="e.g. 45/2026 — Central Police Station" /></div>
-        <div class="field"><span class="field-label">General number</span><input class="input" id="c-general-number" value="${esc(c.generalNumber||'')}" placeholder="e.g. 1145/2026" /></div>
+        <div class="field"><span class="field-label">${tr('partial_number_label')}</span><input class="input" id="c-partial-number" value="${esc(c.partialNumber||'')}" placeholder="${esc(tr('partial_number_placeholder'))}" /></div>
+        <div class="field"><span class="field-label">${tr('general_number_label')}</span><input class="input" id="c-general-number" value="${esc(c.generalNumber||'')}" placeholder="${esc(tr('general_number_placeholder'))}" /></div>
       </div>
-      <div class="field"><span class="field-label">Status</span>
+      <div class="field"><span class="field-label">${tr('status_label')}</span>
         <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${esc(statusLabel(s))}</option>`).join("")}</select>
       </div>
-      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ${ICONS.star} Priority case — stand out in the list</label></div>
-      <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ${ICONS.star} ${tr('priority_case_label')}</label></div>
+      <div class="field"><span class="field-label">${tr('notes_label')}</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
 
       ${state.cases.filter(x=>x.id!==(existing?existing.id:null)).length>0 ? `
       <div class="field">
-        <span class="field-label">Link to other cases or counsel matters (same client / dispute)</span>
+        <span class="field-label">${tr('link_other_cases')}</span>
         <div id="link-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface);"></div>
       </div>` : ""}
 
-      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${window._tempDocs.length ? (ICONS.chevron_down+' Documents') : (ICONS.chevron_right+' Documents (optional)')}</button>
+      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${window._tempDocs.length ? (ICONS.chevron_down+' '+tr('documents_word')) : (ICONS.chevron_right+' '+tr('documents_optional'))}</button>
       <div id="advanced-fields" class="${window._tempDocs.length?'':'hidden'}">
       <div class="field">
-        <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
+        <span class="field-label">${tr('documents_label')}</span>
         <div id="doc-list"></div>
         <div style="display:flex;gap:6px;">
-          <input class="input" id="doc-label" placeholder="Label" style="flex:0 0 40%;" />
-          <input class="input" id="doc-url" placeholder="https://drive.google.com/…" />
-          <button type="button" class="btn-ghost" onclick="addDocLink()">Add</button>
+          <input class="input" id="doc-label" placeholder="${esc(tr('label_placeholder'))}" style="flex:0 0 40%;" />
+          <input class="input" id="doc-url" placeholder="${esc(tr('url_placeholder'))}" />
+          <button type="button" class="btn-ghost" onclick="addDocLink()">${tr('add_word')}</button>
         </div>
       </div>
       </div>
@@ -1959,21 +2031,21 @@ function openCaseModal(existingRaw){
       ${(!existing && !isCounsel) ? `
       <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
         <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);">
-          <input type="checkbox" id="c-add-hearing-on" onchange="toggleCaseHearingFields(this.checked)" /> ${ICONS.calendar_days} Add a hearing date now
+          <input type="checkbox" id="c-add-hearing-on" onchange="toggleCaseHearingFields(this.checked)" /> ${ICONS.calendar_days} ${tr('add_hearing_now')}
         </label>
         <div id="case-hearing-fields" class="hidden" style="margin-top:10px;">
-          <div class="field"><span class="field-label">Title (optional)</span><input class="input" id="c-hearing-title" placeholder="e.g. First hearing session" /></div>
-          <div class="field"><span class="field-label">Date</span><input class="input" id="c-hearing-date" type="date" value="${todayKey()}" /></div>
+          <div class="field"><span class="field-label">${tr('hearing_title_opt')}</span><input class="input" id="c-hearing-title" placeholder="${esc(tr('title_placeholder_task'))}" /></div>
+          <div class="field"><span class="field-label">${tr('date_label')}</span><input class="input" id="c-hearing-date" type="date" value="${todayKey()}" /></div>
           <div class="field">
-            <span class="field-label">Procedure type</span>
+            <span class="field-label">${tr('procedure_type_label')}</span>
             <div class="radio-row" id="c-hearing-type-row">
-              ${PROCEDURE_TYPES.map(pt=>`<button type="button" class="radio-pill ${pt===PROCEDURE_TYPES[0]?'active':''}" data-v="${esc(pt)}" onclick="setCaseHearingType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+              ${PROCEDURE_TYPES.map(pt=>`<button type="button" class="radio-pill ${pt===PROCEDURE_TYPES[0]?'active':''}" data-v="${esc(pt)}" onclick="setCaseHearingType('${esc(pt)}')">${esc(procTypeLabel(pt))}</button>`).join("")}
             </div>
           </div>
         </div>
       </div>` : ""}
 
-      <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Create case'}</button>
+      <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?tr('save_changes_btn'):tr('create_case_btn')}</button>
     </div>
   </div>`;
   renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts(); checkDuplicateCase();
@@ -2013,28 +2085,28 @@ window.setAuthorityType = (v)=>{
   document.querySelectorAll("#authority-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v));
   document.getElementById("chamber-field").classList.toggle("hidden", v!=="court");
   document.getElementById("prosecutor-field").classList.toggle("hidden", v!=="prosecution");
-  document.getElementById("c-courtname-label").textContent = v==="prosecution" ? "Public Prosecution Office" : "Court";
+  document.getElementById("c-courtname-label").textContent = v==="prosecution" ? tr('prosecution_office_label') : tr('court_label');
   const input = document.getElementById("c-courtname");
-  input.placeholder = v==="prosecution" ? "e.g. Tripoli Public Prosecution" : "e.g. Tripoli Court of First Instance";
+  input.placeholder = v==="prosecution" ? tr('prosecution_name_placeholder') : tr('court_placeholder');
 };
 window.toggleCaseAdvanced = ()=>{
   const fields = document.getElementById("advanced-fields");
   const btn = document.getElementById("advanced-toggle-btn");
   const nowHidden = fields.classList.toggle("hidden");
-  btn.innerHTML = nowHidden ? (ICONS.chevron_right+" Documents (optional)") : (ICONS.chevron_down+" Documents");
+  btn.innerHTML = nowHidden ? (ICONS.chevron_right+" "+tr('documents_optional')) : (ICONS.chevron_down+" "+tr('documents_word'));
 };
 
 function renderPartyList(){
   document.getElementById("party-list").innerHTML = window._tempParties.map((p,i)=>`
     <div style="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:var(--surface);">
       <div class="party-row" style="margin-bottom:6px;">
-        <select onchange="updatePartyField(${i},'role',this.value)">${PARTY_ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join("")}</select>
-        <input class="input" value="${esc(p.name)}" placeholder="Full name" oninput="updatePartyField(${i},'name',this.value)" />
+        <select onchange="updatePartyField(${i},'role',this.value)">${PARTY_ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${esc(partyRoleLabel(r))}</option>`).join("")}</select>
+        <input class="input" value="${esc(p.name)}" placeholder="${esc(tr('full_name_placeholder'))}" oninput="updatePartyField(${i},'name',this.value)" />
         <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;">${ICONS.xmark}</button>
       </div>
       <div style="display:flex;gap:6px;">
-        <input class="input" style="font-size:12.5px;" value="${esc(p.phone||'')}" placeholder="Phone (optional)" oninput="updatePartyField(${i},'phone',this.value)" />
-        <input class="input" style="font-size:12.5px;" value="${esc(p.email||'')}" placeholder="Email (optional)" oninput="updatePartyField(${i},'email',this.value)" />
+        <input class="input" style="font-size:12.5px;" value="${esc(p.phone||'')}" placeholder="${esc(tr('phone_optional_placeholder'))}" oninput="updatePartyField(${i},'phone',this.value)" />
+        <input class="input" style="font-size:12.5px;" value="${esc(p.email||'')}" placeholder="${esc(tr('email_optional_placeholder'))}" oninput="updatePartyField(${i},'email',this.value)" />
       </div>
     </div>`).join("");
 }
@@ -2069,15 +2141,15 @@ function checkDuplicateCase(){
   });
   el.innerHTML = matches.length ? matches.map(c=>`
     <div style="margin-top:8px;background:var(--surface);border:1px solid var(--slate);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--slate);line-height:1.5;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span>${ICONS.info} This looks similar to <strong>${esc(computeCaseTitle(c))}</strong> — is this the same matter?</span>
-      <button type="button" class="btn-ghost" style="font-size:11px;padding:4px 8px;flex-shrink:0;" onclick="linkDuplicateCase('${c.id}')">Link instead?</button>
+      <span>${ICONS.info} ${tr('similar_case_warning',{title:bdi(computeCaseTitle(c))})}</span>
+      <button type="button" class="btn-ghost" style="font-size:11px;padding:4px 8px;flex-shrink:0;" onclick="linkDuplicateCase('${c.id}')">${tr('link_instead_btn')}</button>
     </div>`).join("") : "";
 }
 window.linkDuplicateCase = (id)=>{
   if(!window._tempLinked.includes(id)) window._tempLinked.push(id);
   renderLinkList(window._editingCaseId);
   checkDuplicateCase();
-  showToast("Linked to that case — you can unlink later from the case form.");
+  showToast(tr('linked_duplicate_toast'));
 };
 function checkConflicts(){
   const el = document.getElementById("conflict-warning");
@@ -2093,7 +2165,7 @@ function checkConflicts(){
         const opName = (op.name||"").trim().toLowerCase();
         const crossesSides = (op.role==="Opponent" && p.role!=="Opponent") || (p.role==="Opponent" && op.role!=="Opponent");
         if(opName===name && crossesSides){
-          warnings.push(`"${esc(p.name)}" appears as ${esc(op.role)} in ${esc(computeCaseTitle(c))} — potential conflict.`);
+          warnings.push(tr('conflict_warning',{name:bdi(p.name), role:esc(partyRoleLabel(op.role)), caseTitle:bdi(computeCaseTitle(c))}));
         }
       });
     });
@@ -2103,14 +2175,14 @@ function checkConflicts(){
 
 function renderDocList(){
   document.getElementById("doc-list").innerHTML = window._tempDocs.map((d,i)=>`
-    <div class="doc-link-row"><span>${ICONS.link}</span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.label)}</a>
+    <div class="doc-link-row"><span>${ICONS.link}</span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${bdi(d.label)}</a>
     <button onclick="removeDocLink(${i})" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button></div>
   `).join("");
 }
 window.addDocLink = ()=>{
   const url = document.getElementById("doc-url").value.trim();
   if(!url) return;
-  const label = document.getElementById("doc-label").value.trim() || "Document";
+  const label = document.getElementById("doc-label").value.trim() || tr('default_document_label');
   window._tempDocs.push({id: uid(), label, url});
   document.getElementById("doc-label").value=""; document.getElementById("doc-url").value="";
   renderDocList();
@@ -2124,7 +2196,7 @@ function renderLinkList(selfId){
   el.innerHTML = others.map(c=>`
     <label class="link-check-row">
       <input type="checkbox" ${window._tempLinked.includes(c.id)?'checked':''} onchange="toggleLinked('${c.id}', this.checked)" />
-      <span>${esc(computeCaseTitle(c))}${c.courtNumber?` · ${esc(c.courtNumber)}`:""}</span>
+      <span>${bdi(computeCaseTitle(c))}${c.courtNumber?` · ${bdi(c.courtNumber)}`:""}</span>
     </label>`).join("");
 }
 window.toggleLinked = (id, checked)=>{
@@ -2139,7 +2211,7 @@ window.submitCase = (id)=>{
   const isCriminal = caseType === "Criminal";
 
   let data;
-  if(!caseType){ alert("Choose or type a case type."); return; }
+  if(!caseType){ alert(tr('choose_case_type_alert')); return; }
   if(isCounsel){
     const clientName = document.getElementById("c-counsel-client").value.trim();
     const subject = document.getElementById("c-counsel-subject").value.trim();
@@ -2223,51 +2295,51 @@ function openCaseDetailModal(c){
         <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">${bdi(computeCaseTitle(c))}</div>
         ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">${ICONS.location_dot} ${bdi(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-inline-start:4px;">Investigation</span>`:""}</div>`:""}
         ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${bdi(c.chamber)}</div>`:""}
-        ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${bdi(c.prosecutorInCharge)}</div>`:""}
-        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} Received ${bdi(fmtLong(c.dateReceived))}</div>`:""}
-        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${c.partialNumber?"Partial: "+bdi(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"General: "+bdi(c.generalNumber):""}</div>`:""}
+        ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${tr('prosecutor_prefix')} ${bdi(c.prosecutorInCharge)}</div>`:""}
+        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} ${tr('received_word')} ${bdi(fmtLong(c.dateReceived))}</div>`:""}
+        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${c.partialNumber?tr('partial_prefix')+" "+bdi(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?tr('general_prefix')+" "+bdi(c.generalNumber):""}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${bdi(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
-          <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.file_pdf}</button>
-          <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.clone}</button>
+          <button class="icon-btn" title="${esc(tr('export_pdf_title'))}" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.file_pdf}</button>
+          <button class="icon-btn" title="${esc(tr('duplicate_case_title'))}" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.clone}</button>
           <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.pen}</button>
           <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')">${ICONS.trash}</button>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin:10px 0 16px;flex-wrap:wrap;">
-        <span class="badge" style="border-color:${colorForCaseType(c.caseType)};color:${colorForCaseType(c.caseType)};">${iconForCaseType(c.caseType)} ${esc(c.caseType)}</span>
+        <span class="badge" style="border-color:${colorForCaseType(c.caseType)};color:${colorForCaseType(c.caseType)};">${iconForCaseType(c.caseType)} ${esc(caseTypeLabel(c.caseType))}</span>
         <span class="badge" style="border-color:${statusColor};color:${statusColor};">${esc(statusLabel(c.status))}</span>
       </div>
 
-      ${(c.parties&&c.parties.length) ? `<div style="margin-bottom:16px;"><div class="section-label" style="font-size:11px;">Parties</div>
+      ${(c.parties&&c.parties.length) ? `<div style="margin-bottom:16px;"><div class="section-label" style="font-size:11px;">${tr('parties_label')}</div>
         ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
-          <div><strong>${esc(p.role)}:</strong> ${bdi(p.name)}</div>
+          <div><strong>${esc(partyRoleLabel(p.role))}:</strong> ${bdi(p.name)}</div>
           ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;flex-wrap:wrap;margin-top:2px;align-items:center;">
-            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${bdi(p.phone)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','call')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log call</button>`:""}
-            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${bdi(p.email)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','email')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log email</button>`:""}
+            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${bdi(p.phone)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','call')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} ${tr('log_call_btn')}</button>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${bdi(p.email)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','email')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} ${tr('log_email_btn')}</button>`:""}
           </div>` : ""}
         </div>`).join("")}</div>` : ""}
 
-      ${c.notes?`<div style="font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5;">${esc(c.notes)}</div>`:""}
+      ${c.notes?`<div style="font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5;">${bdi(c.notes)}</div>`:""}
 
       <div style="margin-bottom:18px;">
-        <div class="section-label">Case Log</div>
+        <div class="section-label">${tr('case_log_label')}</div>
         <div style="display:flex;gap:6px;margin-bottom:8px;">
-          <input class="input" id="log-entry-input" placeholder="Add a dated note (e.g. client called about settlement)…" />
-          <button class="btn-ghost" onclick="addLogEntry('${c.id}')">Add</button>
+          <input class="input" id="log-entry-input" placeholder="${esc(tr('log_note_placeholder'))}" />
+          <button class="btn-ghost" onclick="addLogEntry('${c.id}')">${tr('add_word')}</button>
         </div>
         ${(c.noteLog&&c.noteLog.length) ? `<div>${c.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>`
           <div style="font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-            <div><span class="mono" style="color:var(--muted);font-size:11px;">${fmtLong(l.date)}</span> — <span id="log-text-${l.id}">${esc(l.text)}</span></div>
+            <div><span class="mono" style="color:var(--muted);font-size:11px;">${bdi(fmtLong(l.date))}</span> — <span id="log-text-${l.id}">${bdi(l.text)}</span></div>
             <div style="display:flex;gap:4px;flex-shrink:0;">
               <button onclick="editLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;">${ICONS.pen}</button>
               <button onclick="deleteLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;">${ICONS.trash}</button>
             </div>
-          </div>`).join("")}</div>` : `<div style="color:var(--muted);font-size:12.5px;">No log entries yet.</div>`}
+          </div>`).join("")}</div>` : `<div style="color:var(--muted);font-size:12.5px;">${tr('no_log_entries')}</div>`}
       </div>
 
-      ${c.documents&&c.documents.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Documents</div>
-        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank">${ICONS.link} ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
+      ${c.documents&&c.documents.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">${tr('documents_word')}</div>
+        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank">${ICONS.link} ${bdi(d.label)}</a></div>`).join("")}</div>` : ""}
 
       ${linked.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Linked cases</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">${linked.map(lc=>`<button class="group-badge" style="cursor:pointer;" onclick='closeModal();openCaseDetail("${lc.id}")'>${ICONS.link} ${esc(computeCaseTitle(lc))}</button>`).join("")}</div></div>` : ""}
@@ -2307,7 +2379,7 @@ window.editLogEntry = (caseId, logId)=>{
   if(!c) return;
   const entry = (c.noteLog||[]).find(l=>l.id===logId);
   if(!entry) return;
-  const newText = prompt("Edit log entry:", entry.text);
+  const newText = prompt(tr('edit_log_entry_prompt'), entry.text);
   if(newText===null || !newText.trim()) return;
   const newLog = (c.noteLog||[]).map(l=> l.id===logId ? {...l, text:newText.trim()} : l);
   coll("cases").doc(caseId).set({...stripId(c), noteLog:newLog}).then(()=>{
@@ -2325,10 +2397,10 @@ window.deleteLogEntry = (caseId, logId)=>{
 window.logPartyContact = (caseId, partyName, kind)=>{
   const c = state.cases.find(x=>x.id===caseId);
   if(!c) return;
-  const text = kind==="call" ? `Called ${partyName}` : `Emailed ${partyName}`;
+  const text = kind==="call" ? tr('called_log_text',{name:partyName}) : tr('emailed_log_text',{name:partyName});
   const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text }];
   coll("cases").doc(caseId).set({...stripId(c), noteLog: newLog}).then(()=>{
-    showToast("Logged to Case Log");
+    showToast(tr('logged_to_case_log_toast'));
     openCaseDetailModal({...c, noteLog: newLog});
   });
 };
@@ -2340,10 +2412,10 @@ window.duplicateCase = (c)=>{
 window.confirmDeleteCase = (id)=>{
   document.getElementById(`delete-confirm-${id}`).innerHTML = `
   <div style="margin-top:18px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:12px;">
-    <div style="font-size:13px;margin-bottom:10px;">${ICONS.triangle_exclamation} Delete this case, all its dates and checklist items? This can't be undone.</div>
+    <div style="font-size:13px;margin-bottom:10px;">${ICONS.triangle_exclamation} ${tr('delete_case_confirm')}</div>
     <div style="display:flex;gap:8px;">
-      <button style="background:#B23A32;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px;" onclick="deleteCaseDoc('${id}');closeModal();">Delete</button>
-      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button style="background:#B23A32;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px;" onclick="deleteCaseDoc('${id}');closeModal();">${tr('delete_word')}</button>
+      <button class="btn-ghost" onclick="closeModal()">${tr('cancel_word')}</button>
     </div>
   </div>`;
 };
@@ -2454,54 +2526,80 @@ window.openQuickReference = (isFirstTime)=>{
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal wide" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${isFirstTime?'Welcome to Docket':'Quick Reference'}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${isFirstTime?tr('welcome_title'):tr('quick_reference_title')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
 
       <div style="margin-bottom:16px;">
-        <div class="section-label">Calendar icons</div>
+        <div class="section-label">${tr('qr_calendar_icons')}</div>
         <div style="display:flex;flex-wrap:wrap;gap:10px;">
-          ${legendTypes.map(t=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 8px;"><span style="color:${colorForProcedure(t)};">${iconForProcedure(t)}</span> ${esc(t)}</span>`).join("")}
+          ${legendTypes.map(pt=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 8px;"><span style="color:${colorForProcedure(pt)};">${iconForProcedure(pt)}</span> ${esc(procTypeLabel(pt))}</span>`).join("")}
         </div>
       </div>
 
       <div style="margin-bottom:16px;">
-        <div class="section-label">Flags</div>
+        <div class="section-label">${tr('qr_flags')}</div>
         <div style="font-size:13px;line-height:1.7;">
-          <div><span class="badge" style="border-color:var(--critical);color:var(--critical);">CRITICAL</span> — a can't-miss date. Pinned to the top of Calendar no matter how far away.</div>
-          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">Heads-up</span> — a gentle nudge. Shows automatically as any date approaches (based on your Settings), or force it earlier with the FYI flag.</div>
-          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--overdue);color:var(--overdue);">Overdue</span> — passed and not yet marked done.</div>
+          <div><span class="badge" style="border-color:var(--critical);color:#fff;background:var(--critical);">${tr('critical_badge')}</span> — ${tr('qr_flag_critical')}</div>
+          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${tr('headsup_badge')}</span> — ${tr('qr_flag_headsup')}</div>
+          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span> — ${tr('qr_flag_overdue')}</div>
         </div>
       </div>
 
       <div style="margin-bottom:16px;">
-        <div class="section-label">Cases</div>
-        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
-          Link related cases to each other from the case form. Counsel and Criminal case types get their own simplified fields. Filter by court to see everything open at a specific courthouse.
-        </div>
+        <div class="section-label">${tr('qr_cases_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_cases_body')}</div>
       </div>
 
       <div style="margin-bottom:16px;">
-        <div class="section-label">Checklist</div>
-        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
-          Link a checklist item to a specific date, or to "Next court hearing" so it automatically follows whichever hearing is soonest — even through postponements.
-        </div>
+        <div class="section-label">${tr('qr_status_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_status_body')}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">${tr('qr_hearings_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_hearings_body')}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">${tr('qr_ruling_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_ruling_body')}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">${tr('qr_checklist_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_checklist_body')}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">${tr('qr_today_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_today_body')}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">${tr('qr_deadline_calc_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_deadline_calc_body')}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">${tr('qr_language_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_language_body')}</div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">${tr('qr_printing_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_printing_body')}</div>
       </div>
 
       <div style="margin-bottom:16px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:10px 12px;">
-        <div class="section-label" style="color:var(--brick);">${ICONS.triangle_exclamation} Google Calendar — important</div>
-        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
-          Anything you add while <strong>not</strong> connected won't sync to Google Calendar automatically — Docket has no way to reach it until you reconnect. The connection can quietly lapse (usually within about an hour), so it's worth checking the Calendar tab occasionally for the "Reconnect" banner.<br/><br/>
-          Already added something while disconnected? Reconnect, then either open that date and tap Save (even with no changes) to sync just that one, or use <strong>Settings → Sync unsynced dates</strong> to catch up everything at once.
-        </div>
+        <div class="section-label" style="color:var(--brick);">${ICONS.triangle_exclamation} ${tr('qr_gcal_title')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_gcal_body')}</div>
       </div>
 
       <div style="margin-bottom:8px;">
-        <div class="section-label">Calendar navigation</div>
-        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
-          Swipe left/right to change months, or tap the month name to jump straight to any month.
-        </div>
+        <div class="section-label">${tr('qr_nav_section')}</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">${tr('qr_nav_body')}</div>
       </div>
 
-      ${isFirstTime ? `<button class="btn-primary" style="width:100%;margin-top:10px;" onclick="closeModal()">Get started</button>` : ""}
+      ${isFirstTime ? `<button class="btn-primary" style="width:100%;margin-top:10px;" onclick="closeModal()">${tr('get_started_btn')}</button>` : ""}
     </div>
   </div>`;
 };
