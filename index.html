@@ -505,6 +505,56 @@ const TRANSLATIONS = {
   qr_nav_section:{en:"Calendar navigation",ar:"التنقل في التقويم"},
   qr_nav_body:{en:"Swipe left/right to change months, or tap the month name to jump straight to any month.",ar:"مرر يمينًا/يسارًا لتغيير الشهر، أو اضغط اسم الشهر للانتقال مباشرة إلى أي شهر."},
   get_started_btn:{en:"Get started",ar:"ابدأ"},
+
+  /* ---- Settings ---- */
+  settings_title:{en:"Settings",ar:"الإعدادات"},
+  quick_reference_btn:{en:"Quick reference",ar:"مرجع سريع"},
+  flag_due_soon_label:{en:'Flag dates as "due soon" within',ar:'وسم المواعيد بأنها "قريبة" خلال'},
+  days_word:{en:"days",ar:"يوم"},
+  save_btn:{en:"Save",ar:"حفظ"},
+  letterhead_section:{en:"Letterhead — for printed reports",ar:"الترويسة — للتقارير المطبوعة"},
+  letterhead_hint:{en:"Shown at the top of anything you print (Today's docket, case history). Leave blank to skip it.",ar:"تظهر أعلى أي شيء تطبعه (دفتر اليوم، سجل القضية). اتركها فارغة لتخطيها."},
+  letterhead_name_placeholder:{en:"Your name or firm name",ar:"اسمك أو اسم المكتب"},
+  letterhead_subtitle_placeholder:{en:"e.g. Attorney at Law · Bar No. 1234",ar:"مثال: محامٍ · رقم القيد 1234"},
+  letterhead_contact_placeholder:{en:"Phone, email, or office address",ar:"الهاتف أو البريد الإلكتروني أو عنوان المكتب"},
+  save_letterhead_btn:{en:"Save letterhead",ar:"حفظ الترويسة"},
+  gcal_section:{en:"Google Calendar",ar:"تقويم غوغل"},
+  gcal_connected_msg:{en:"Connected — new dates sync automatically, with reminders (1 day + 1 hour before; 3 days too for Critical) handled by Google Calendar itself.",ar:"متصل — تتم مزامنة المواعيد الجديدة تلقائيًا، مع تذكيرات (قبل يوم واحد + ساعة؛ وقبل 3 أيام أيضًا للمواعيد المهمة) يتولاها تقويم غوغل بنفسه."},
+  sync_unsynced_btn:{en:"Sync {n} unsynced date{suffix} now",ar:"مزامنة {n} من المواعيد غير المتزامنة الآن"},
+  sync_unsynced_hint:{en:"These were likely added while disconnected, so they never made it to Google Calendar. This catches them up.",ar:"من المحتمل أنها أُضيفت أثناء الانقطاع، فلم تصل إلى تقويم غوغل. هذا يزامنها الآن."},
+  gcal_not_connected_msg:{en:'Not connected. Dates added while disconnected won\'t sync automatically — you can still add any of them to Google Calendar manually with one tap (look for the calendar icon next to any date), or reconnect and use "Sync unsynced dates" below.',ar:'غير متصل. المواعيد المضافة أثناء الانقطاع لن تتزامن تلقائيًا — يمكنك إضافة أي منها يدويًا بلمسة واحدة (ابحث عن أيقونة التقويم بجانب أي موعد)، أو أعد الاتصال واستخدم "مزامنة المواعيد غير المتزامنة" أدناه.'},
+  connect_gcal_btn:{en:"Connect Google Calendar",ar:"ربط تقويم غوغل"},
+  tools_section:{en:"Tools",ar:"الأدوات"},
+  backup_section:{en:"Backup",ar:"النسخ الاحتياطي"},
+  download_backup_btn:{en:"Download a full backup (.json)",ar:"تنزيل نسخة احتياطية كاملة (.json)"},
+  backup_hint:{en:"A plain copy of every case, date, and checklist item — worth doing occasionally as a safety net.",ar:"نسخة بسيطة من كل قضية وموعد وعنصر قائمة — يستحق فعلها بين الحين والآخر كإجراء احترازي."},
+  custom_case_types_section:{en:"Custom case types you've added",ar:"أنواع القضايا المخصصة التي أضفتها"},
+  custom_types_empty:{en:"None yet — custom case types you type into the case form will appear here, removable if added by mistake. (Procedure type is fixed to Hearing/Procedure.)",ar:"لا يوجد شيء بعد — أنواع القضايا المخصصة التي تكتبها في نموذج القضية ستظهر هنا، ويمكن إزالتها إن أُضيفت بالخطأ. (نوع الإجراء ثابت: جلسة/إجراء.)"},
+  custom_types_hint:{en:"Removing a type only hides it from future suggestions — cases already using it are unaffected.",ar:"إزالة نوع ما تخفيه فقط من الاقتراحات المستقبلية — القضايا التي تستخدمه بالفعل لا تتأثر."},
+  checklist_template_section:{en:"Starting checklist by case type",ar:"قائمة المهام الافتتاحية حسب نوع القضية"},
+  checklist_template_hint:{en:"Every new case of a type below starts with these checklist items already added — one per line.",ar:"كل قضية جديدة من نوع أدناه تبدأ بهذه العناصر مضافة مسبقًا — عنصر في كل سطر."},
+  checklist_template_placeholder:{en:"e.g.\nReview case file\nConfirm client contact",ar:"مثال:\nمراجعة ملف القضية\nتأكيد التواصل مع الموكل"},
+  save_template_btn:{en:"Save template for this type",ar:"حفظ القالب لهذا النوع"},
+  hearing_prep_section:{en:"Default hearing-prep checklist",ar:"قائمة التحضير الافتراضية للجلسات"},
+  hearing_prep_hint:{en:"Every new Hearing you schedule automatically gets these checklist items attached.",ar:"كل جلسة جديدة تجدولها تُرفق بها هذه العناصر تلقائيًا."},
+  hearing_prep_input_placeholder:{en:"e.g. Confirm client will attend",ar:"مثال: تأكيد حضور الموكل"},
+  hearing_prep_empty:{en:"None yet — add a standard prep step above and it'll be attached to every new Hearing automatically.",ar:"لا يوجد شيء بعد — أضف خطوة تحضير معتادة أعلاه وستُرفق بكل جلسة جديدة تلقائيًا."},
+  footer_stats:{en:"{cases} case{cs} · {tasks} date{ts} · {checklist} checklist item{ks}.",ar:"{cases} قضية · {tasks} موعد · {checklist} عنصر قائمة."},
+  signed_in_as:{en:"Signed in as {email}. Your data is private to this account and syncs automatically across every device you sign in on.",ar:"تم تسجيل الدخول بصفة {email}. بياناتك خاصة بهذا الحساب وتتزامن تلقائيًا عبر كل جهاز تسجل الدخول منه."},
+  deadline_calc_btn:{en:"Statutory deadline calculator",ar:"حاسبة المواعيد القانونية"},
+  letterhead_saved_toast:{en:"Letterhead saved.",ar:"تم حفظ الترويسة."},
+  connect_gcal_first_toast:{en:"Connect Google Calendar first.",ar:"اربط تقويم غوغل أولاً."},
+  nothing_to_sync_toast:{en:"Nothing to sync — you're all caught up.",ar:"لا شيء لمزامنته — كل شيء محدّث."},
+  syncing_toast:{en:"Syncing {n} date{suffix}…",ar:"جارِ مزامنة {n} من المواعيد…"},
+  reconnect_needed_toast:{en:"Reconnect needed partway through — synced what it could, reconnect and try again for the rest.",ar:"يلزم إعادة الاتصال في منتصف العملية — تمت مزامنة ما أمكن، أعد الاتصال وحاول مجددًا للباقي."},
+  caught_up_toast:{en:"Caught up {n} date{suffix} that synced while disconnected.",ar:"تم تحديث {n} من المواعيد التي تزامنت أثناء الانقطاع."},
+  synced_toast:{en:"Synced {n} of {total} date{suffix}.",ar:"تمت مزامنة {n} من أصل {total} موعد."},
+  gcal_no_access_reconnect:{en:"Google didn't grant calendar access this time — please try Reconnect again.",ar:"لم يمنح غوغل صلاحية الوصول للتقويم هذه المرة — يرجى المحاولة مرة أخرى."},
+  gcal_lib_loading:{en:"Google's sign-in library hasn't finished loading yet — try again in a moment.",ar:"لم تنتهِ مكتبة تسجيل الدخول من غوغل من التحميل بعد — حاول مرة أخرى بعد لحظة."},
+  gcal_connected_toast:{en:"Google Calendar connected.",ar:"تم ربط تقويم غوغل."},
+  gcal_no_access:{en:"Google didn't grant calendar access this time — please try again.",ar:"لم يمنح غوغل صلاحية الوصول للتقويم هذه المرة — يرجى المحاولة مرة أخرى."},
+  gcal_connect_failed:{en:"Couldn't connect Google Calendar: {err}",ar:"تعذّر ربط تقويم غوغل: {err}"},
+  unknown_error_word:{en:"unknown error",ar:"خطأ غير معروف"},
   link_instead_btn:{en:"Link instead?",ar:"ربط بدلاً من ذلك؟"},
   linked_duplicate_toast:{en:"Linked to that case — you can unlink later from the case form.",ar:"تم الربط بتلك القضية — يمكنك إلغاء الربط لاحقًا من نموذج القضية."},
   conflict_warning:{en:'"{name}" appears as {role} in {caseTitle} — potential conflict.',ar:'"{name}" يظهر بصفة {role} في {caseTitle} — تعارض محتمل.'},
@@ -679,7 +729,7 @@ auth.getRedirectResult().then(result=>{
       state.googleConnected = true;
       render();
     } else {
-      showToast("Google didn't grant calendar access this time — please try Reconnect again.");
+      showToast(tr('gcal_no_access_reconnect'));
     }
   }
 }).catch(e=>{
@@ -890,7 +940,7 @@ let gisTokenClient = null;
 function getGisTokenClient(){
   if(gisTokenClient) return gisTokenClient;
   if(!window.google || !window.google.accounts || !window.google.accounts.oauth2){
-    showToast("Google's sign-in library hasn't finished loading yet — try again in a moment.");
+    showToast(tr('gcal_lib_loading'));
     return null;
   }
   gisTokenClient = google.accounts.oauth2.initTokenClient({
@@ -903,18 +953,18 @@ function getGisTokenClient(){
         state.calendarEverConnected = true;
         saveTokenToSession(tokenResponse.access_token, tokenResponse.expires_in);
         saveSettings();
-        showToast("Google Calendar connected.");
+        showToast(tr('gcal_connected_toast'));
         render();
         if(state.tasks.filter(t=>!t.completed && !t.googleEventId).length > 0){
           syncAllUnsynced(true);
         }
       } else {
-        showToast("Google didn't grant calendar access this time — please try again.");
+        showToast(tr('gcal_no_access'));
       }
     },
     error_callback: (err)=>{
       if(err && err.type==="popup_closed") return; // user just changed their mind, no need to alarm them
-      showToast("Couldn't connect Google Calendar: " + (err && err.type ? err.type : "unknown error"));
+      showToast(tr('gcal_connect_failed',{err: err && err.type ? err.type : tr('unknown_error_word')}));
     }
   });
   return gisTokenClient;
@@ -929,21 +979,21 @@ window.connectGoogleCalendar = ()=>{
   if(client) client.requestAccessToken();
 };
 window.syncAllUnsynced = async (silent)=>{
-  if(!state.googleConnected || !state.googleAccessToken){ if(!silent) showToast("Connect Google Calendar first."); return; }
+  if(!state.googleConnected || !state.googleAccessToken){ if(!silent) showToast(tr('connect_gcal_first_toast')); return; }
   const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId);
-  if(unsynced.length===0){ if(!silent) showToast("Nothing to sync — you're all caught up."); return; }
-  if(!silent) showToast(`Syncing ${unsynced.length} date${unsynced.length===1?'':'s'}…`);
+  if(unsynced.length===0){ if(!silent) showToast(tr('nothing_to_sync_toast')); return; }
+  if(!silent) showToast(tr('syncing_toast',{n:unsynced.length, suffix:unsynced.length===1?'':'s'}));
   let successCount = 0;
   for(const t of unsynced){
     const caseItem = state.cases.find(c=>c.id===t.caseId);
     const result = await pushToGoogleCalendar(t, caseItem);
-    if(result && result.needsReconnect){ state.googleConnected=false; clearTokenFromSession(); showToast("Reconnect needed partway through — synced what it could, reconnect and try again for the rest."); render(); return; }
+    if(result && result.needsReconnect){ state.googleConnected=false; clearTokenFromSession(); showToast(tr('reconnect_needed_toast')); render(); return; }
     if(result && result.id){
       await coll("tasks").doc(t.id).set({...stripId(t), googleEventId: result.id, googleEventLink: result.link || null});
       successCount++;
     }
   }
-  showToast(silent ? `Caught up ${successCount} date${successCount===1?'':'s'} that synced while disconnected.` : `Synced ${successCount} of ${unsynced.length} date${unsynced.length===1?'':'s'}.`);
+  showToast(silent ? tr('caught_up_toast',{n:successCount, suffix:successCount===1?'':'s'}) : tr('synced_toast',{n:successCount, total:unsynced.length, suffix:unsynced.length===1?'':'s'}));
   if(!silent) closeModal();
 };
 window.reconnectGoogle = window.connectGoogleCalendar;
@@ -2427,86 +2477,86 @@ function openSettingsModal(){
   document.getElementById("modal-root").innerHTML = `
   <div class="modal-bg" onclick="closeModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
-      <button class="btn-ghost" style="width:100%;margin-bottom:16px;" onclick="closeModal();openQuickReference(false)">${ICONS.info} Quick reference</button>
-      <div class="field"><span class="field-label">Flag dates as "due soon" within</span>
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${tr('settings_title')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <button class="btn-ghost" style="width:100%;margin-bottom:16px;" onclick="closeModal();openQuickReference(false)">${ICONS.info} ${tr('quick_reference_btn')}</button>
+      <div class="field"><span class="field-label">${tr('flag_due_soon_label')}</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <input class="input" id="s-alertdays" type="number" min="1" max="60" value="${state.alertDays}" style="width:80px;" />
-          <span style="font-size:13.5px;color:var(--muted);">days</span>
+          <span style="font-size:13.5px;color:var(--muted);">${tr('days_word')}</span>
         </div>
       </div>
-      <button class="btn-primary" onclick="saveAlertDays()">Save</button>
+      <button class="btn-primary" onclick="saveAlertDays()">${tr('save_btn')}</button>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Letterhead — for printed reports</div>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Shown at the top of anything you print (Today's docket, case history). Leave blank to skip it.</div>
-        <div class="field"><input class="input" id="s-lh-name" placeholder="Your name or firm name" value="${esc(state.letterhead.name||'')}" /></div>
-        <div class="field"><input class="input" id="s-lh-subtitle" placeholder="e.g. Attorney at Law · Bar No. 1234" value="${esc(state.letterhead.subtitle||'')}" /></div>
-        <div class="field"><input class="input" id="s-lh-contact" placeholder="Phone, email, or office address" value="${esc(state.letterhead.contact||'')}" /></div>
-        <button class="btn-primary" onclick="saveLetterhead()">Save letterhead</button>
+        <div class="field-label" style="margin-bottom:8px;">${tr('letterhead_section')}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">${tr('letterhead_hint')}</div>
+        <div class="field"><input class="input" id="s-lh-name" placeholder="${esc(tr('letterhead_name_placeholder'))}" value="${esc(state.letterhead.name||'')}" /></div>
+        <div class="field"><input class="input" id="s-lh-subtitle" placeholder="${esc(tr('letterhead_subtitle_placeholder'))}" value="${esc(state.letterhead.subtitle||'')}" /></div>
+        <div class="field"><input class="input" id="s-lh-contact" placeholder="${esc(tr('letterhead_contact_placeholder'))}" value="${esc(state.letterhead.contact||'')}" /></div>
+        <button class="btn-primary" onclick="saveLetterhead()">${tr('save_letterhead_btn')}</button>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
+        <div class="field-label" style="margin-bottom:8px;">${tr('gcal_section')}</div>
         ${state.googleConnected
           ? (()=>{
               const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId).length;
-              return `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically, with reminders (1 day + 1 hour before; 3 days too for Critical) handled by Google Calendar itself.</div>
-              ${unsynced>0 ? `<button class="btn-ghost" style="margin-top:10px;" onclick="syncAllUnsynced()">${ICONS.rotate} Sync ${unsynced} unsynced date${unsynced===1?'':'s'} now</button>
-              <div style="font-size:11px;color:var(--muted);margin-top:5px;">These were likely added while disconnected, so they never made it to Google Calendar. This catches them up.</div>` : ''}`;
+              return `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} ${tr('gcal_connected_msg')}</div>
+              ${unsynced>0 ? `<button class="btn-ghost" style="margin-top:10px;" onclick="syncAllUnsynced()">${ICONS.rotate} ${tr('sync_unsynced_btn',{n:unsynced, suffix:unsynced===1?'':'s'})}</button>
+              <div style="font-size:11px;color:var(--muted);margin-top:5px;">${tr('sync_unsynced_hint')}</div>` : ''}`;
             })()
-          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Not connected. Dates added while disconnected won't sync automatically — you can still add any of them to Google Calendar manually with one tap (look for the calendar icon next to any date), or reconnect and use "Sync unsynced dates" below.</div>
-             <button class="btn-ghost" onclick="connectGoogleCalendar()">Connect Google Calendar</button>`}
+          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">${tr('gcal_not_connected_msg')}</div>
+             <button class="btn-ghost" onclick="connectGoogleCalendar()">${tr('connect_gcal_btn')}</button>`}
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Tools</div>
-        <button class="btn-ghost" onclick="openDeadlineCalcModal()">${ICONS.hourglass_half} Statutory deadline calculator</button>
+        <div class="field-label" style="margin-bottom:8px;">${tr('tools_section')}</div>
+        <button class="btn-ghost" onclick="openDeadlineCalcModal()">${ICONS.hourglass_half} ${tr('deadline_calc_btn')}</button>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Backup</div>
-        <button class="btn-ghost" onclick="exportData()">${ICONS.download} Download a full backup (.json)</button>
-        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">A plain copy of every case, date, and checklist item — worth doing occasionally as a safety net.</div>
+        <div class="field-label" style="margin-bottom:8px;">${tr('backup_section')}</div>
+        <button class="btn-ghost" onclick="exportData()">${ICONS.download} ${tr('download_backup_btn')}</button>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">${tr('backup_hint')}</div>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Custom case types you've added</div>
-        ${state.customCaseTypes.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">None yet — custom case types you type into the case form will appear here, removable if added by mistake. (Procedure type is fixed to Hearing/Procedure.)</div>` : `
+        <div class="field-label" style="margin-bottom:8px;">${tr('custom_case_types_section')}</div>
+        ${state.customCaseTypes.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">${tr('custom_types_empty')}</div>` : `
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            ${state.customCaseTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('case','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
+            ${state.customCaseTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${bdi(t)} <button onclick="removeCustomType('case','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
         </div>
         `}
-        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Removing a type only hides it from future suggestions — cases already using it are unaffected.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">${tr('custom_types_hint')}</div>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Starting checklist by case type</div>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new case of a type below starts with these checklist items already added — one per line.</div>
+        <div class="field-label" style="margin-bottom:8px;">${tr('checklist_template_section')}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">${tr('checklist_template_hint')}</div>
         <select class="input" id="tmpl-type-select" onchange="onTemplateTypeChange()">
-          ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${window._tempTemplateType===t?'selected':''}>${esc(t)}</option>`).join("")}
+          ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${window._tempTemplateType===t?'selected':''}>${esc(caseTypeLabel(t))}</option>`).join("")}
         </select>
-        <textarea class="input" id="tmpl-items" rows="4" placeholder="e.g.&#10;Review case file&#10;Confirm client contact" style="margin-top:6px;resize:vertical;">${esc((state.checklistTemplates[window._tempTemplateType]||[]).join("\n"))}</textarea>
-        <button class="btn-ghost" style="margin-top:6px;" onclick="saveChecklistTemplate()">Save template for this type</button>
+        <textarea class="input" id="tmpl-items" rows="4" placeholder="${esc(tr('checklist_template_placeholder'))}" style="margin-top:6px;resize:vertical;">${esc((state.checklistTemplates[window._tempTemplateType]||[]).join("\n"))}</textarea>
+        <button class="btn-ghost" style="margin-top:6px;" onclick="saveChecklistTemplate()">${tr('save_template_btn')}</button>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
-        <div class="field-label" style="margin-bottom:8px;">Default hearing-prep checklist</div>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new Hearing you schedule automatically gets these checklist items attached.</div>
+        <div class="field-label" style="margin-bottom:8px;">${tr('hearing_prep_section')}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">${tr('hearing_prep_hint')}</div>
         <div style="display:flex;gap:6px;margin-bottom:8px;">
-          <input class="input" id="hearing-prep-input" placeholder="e.g. Confirm client will attend" />
-          <button class="btn-ghost" onclick="addHearingPrepDefault()">Add</button>
+          <input class="input" id="hearing-prep-input" placeholder="${esc(tr('hearing_prep_input_placeholder'))}" />
+          <button class="btn-ghost" onclick="addHearingPrepDefault()">${tr('add_word')}</button>
         </div>
-        ${state.hearingPrepDefaults.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">None yet — add a standard prep step above and it'll be attached to every new Hearing automatically.</div>` : `
+        ${state.hearingPrepDefaults.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">${tr('hearing_prep_empty')}</div>` : `
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            ${state.hearingPrepDefaults.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeHearingPrepDefault('${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
+            ${state.hearingPrepDefaults.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${bdi(t)} <button onclick="removeHearingPrepDefault('${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
         </div>
         `}
       </div>
 
       <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
-        ${state.cases.length} case${state.cases.length===1?"":"s"} · ${state.tasks.length} date${state.tasks.length===1?"":"s"} · ${state.checklist.length} checklist item${state.checklist.length===1?"":"s"}.<br/><br/>
-        Signed in as ${esc(state.user.email)}. Your data is private to this account and syncs automatically across every device you sign in on.
+        ${tr('footer_stats',{cases:state.cases.length, cs:state.cases.length===1?"":"s", tasks:state.tasks.length, ts:state.tasks.length===1?"":"s", checklist:state.checklist.length, ks:state.checklist.length===1?"":"s"})}<br/><br/>
+        ${tr('signed_in_as',{email:esc(state.user.email)})}
       </div>
     </div>
   </div>`;
@@ -2519,7 +2569,7 @@ window.saveLetterhead = ()=>{
     contact: document.getElementById("s-lh-contact").value.trim()
   };
   saveSettings();
-  showToast("Letterhead saved.");
+  showToast(tr('letterhead_saved_toast'));
 };
 window.openQuickReference = (isFirstTime)=>{
   const legendTypes = [...PROCEDURE_TYPES];
