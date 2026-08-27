@@ -78,8 +78,16 @@
   .or-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px;}
   .or-divider::before,.or-divider::after{content:"";flex:1;height:1px;background:var(--line);}
   header{background:var(--navy-dark); color:var(--panel); padding:16px 16px 12px;}
-  .header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
-  .brand{display:flex;align-items:center;gap:8px;font-size:19px;}
+  .header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;flex-wrap:wrap;gap:8px;}
+  .brand{display:flex;align-items:center;gap:8px;font-size:19px;margin-inline-end:auto;}
+  #header-badges{display:flex;gap:6px;order:2;}
+  .header-actions{display:flex;gap:8px;align-items:center;order:3;}
+  @media (max-width:640px){
+    #header-badges{order:4;flex-basis:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;scrollbar-width:none;}
+    #header-badges::-webkit-scrollbar{display:none;}
+    #header-badges .badge{flex-shrink:0;white-space:nowrap;}
+    .header-actions{order:2;}
+  }
   .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1.3px solid; font-weight:600; white-space:nowrap;}
   main{max-width:800px;margin:0 auto;padding:16px 16px 0;}
   .tabs{display:flex;gap:6px;margin-bottom:16px;}
@@ -188,8 +196,8 @@
   <div id="badge-menu-wrap" style="position:relative;"></div>
     <div class="header-inner">
       <div class="brand"><span style="color:var(--brass);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg></span> <span class="serif">Docket</span></div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div id="header-badges" style="display:flex;gap:6px;"></div>
+      <div id="header-badges" style="display:flex;gap:6px;"></div>
+      <div class="header-actions">
         <button class="icon-btn" id="lang-toggle-btn" onclick="toggleLanguage()" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;font-weight:700;width:auto;padding:0 10px;" title="EN / عربي">AR</button>
         <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'/><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><rect x='6' y='14' width='12' height='8'/></svg></button>
         <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg></button>
@@ -649,7 +657,7 @@ function coll(name){ return db.collection("users").doc(state.user.uid).collectio
 function attachListeners(uidVal){
   unsubCases = db.collection("users").doc(uidVal).collection("cases").onSnapshot(snap=>{ state.cases = snap.docs.map(d=>({id:d.id, ...d.data()})); migrateLegacyCaseStatuses(); render(); });
   unsubTasks = db.collection("users").doc(uidVal).collection("tasks").onSnapshot(snap=>{ state.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
-  unsubChecklist = db.collection("users").doc(uidVal).collection("checklist").onSnapshot(snap=>{ state.checklist = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
+  unsubChecklist = db.collection("users").doc(uidVal).collection("checklist").onSnapshot(snap=>{ state.checklist = snap.docs.map(d=>({id:d.id, ...d.data()})); dedupeOverdueHearingReminders(); render(); });
   unsubSettings = db.collection("users").doc(uidVal).collection("meta").doc("settings").onSnapshot(snap=>{
     const d = snap.data() || {};
     state.alertDays = d.alertDays ?? 7;
@@ -689,6 +697,21 @@ function migrateLegacyCaseStatuses(){
   state.cases.filter(c=>c.status==="Pending").forEach(c=>{
     coll("cases").doc(c.id).set({...stripId(c), status:"Pending Partner Review"});
   });
+}
+// checkOverdueHearings used to dedupe per hearing-task rather than per case, so a
+// case with several stale un-logged hearings could accumulate one reminder each.
+// One-time, self-limiting cleanup: for any case with more than one open "get the
+// next hearing date" reminder, keep the earliest and delete the rest. Stops
+// touching a case as soon as it's down to one (or zero).
+function dedupeOverdueHearingReminders(){
+  const seenCaseIds = new Set();
+  state.checklist
+    .filter(x=>x.text && x.text.indexOf("Get the next hearing date")===0 && !x.done)
+    .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0))
+    .forEach(x=>{
+      if(seenCaseIds.has(x.caseId)){ coll("checklist").doc(x.id).delete(); }
+      else seenCaseIds.add(x.caseId);
+    });
 }
 function deleteCaseDoc(id){
   coll("cases").doc(id).delete();
@@ -958,20 +981,27 @@ document.getElementById("fab-btn").onclick = ()=>{
 /* ================= RENDER ================= */
 // A Hearing that passed uncompleted and was never run through Continue Session
 // means the lawyer never got a new date logged — surface that as a checklist
-// item automatically rather than letting it sit silently in "Overdue". Guarded
-// two ways against duplicates: an in-memory set for same-session re-renders
-// (Firestore round-trips aren't instant), and a check against state.checklist
-// for anything that survives a reload.
+// item automatically rather than letting it sit silently in "Overdue". Dedupes
+// per CASE (not per individual hearing task) — if a case has piled up several
+// stale, un-logged hearings, that's still just one thing to go sort out, not
+// one reminder per hearing. Guarded two ways: an in-memory set for same-session
+// re-renders (Firestore round-trips aren't instant), and a check against
+// state.checklist for anything that survives a reload.
 window._autoOverdueHandled = window._autoOverdueHandled || new Set();
 function checkOverdueHearings(overdueItems){
+  const byCaseId = {};
   overdueItems.filter(t=>t.type==="Hearing" && t.caseId).forEach(t=>{
-    if(window._autoOverdueHandled.has(t.id)) return;
-    const already = state.checklist.some(x=>x.taskId===t.id && x.text.indexOf("Get the next hearing date")===0);
-    window._autoOverdueHandled.add(t.id);
+    (byCaseId[t.caseId] = byCaseId[t.caseId] || []).push(t);
+  });
+  Object.keys(byCaseId).forEach(caseId=>{
+    if(window._autoOverdueHandled.has(caseId)) return;
+    const already = state.checklist.some(x=>x.caseId===caseId && x.text.indexOf("Get the next hearing date")===0 && !x.done);
+    window._autoOverdueHandled.add(caseId);
     if(already) return;
-    const caseItem = state.cases.find(c=>c.id===t.caseId);
+    const t = byCaseId[caseId][0];
+    const caseItem = state.cases.find(c=>c.id===caseId);
     const label = caseItem ? computeCaseTitle(caseItem) : "";
-    saveChecklistItem({ caseId:t.caseId, text:`Get the next hearing date — ${label}`, done:false, taskId:t.id, followNextHearing:false, dueDate:null });
+    saveChecklistItem({ caseId, text:`Get the next hearing date — ${label}`, done:false, taskId:t.id, followNextHearing:false, dueDate:null });
   });
 }
 function syncStaticChrome(){
@@ -1041,7 +1071,12 @@ function renderBadgeMenu(){
   const isStale = openBadgeMenu==="stale";
   const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : isStale ? (state._staleCases||[]) : (state._headsUpItems||[]);
   const title = openBadgeMenu==="overdue" ? tr('overdue_word') : isStale ? tr('stale_no_upcoming') : tr('badge_due_soon_title');
-  wrap.innerHTML = `<div style="position:absolute;inset-inline-end:16px;top:64px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
+  // Header height is variable now (mobile can wrap badges onto their own second
+  // row), so anchor the popup to the header's actual rendered height rather than
+  // a fixed pixel guess that only matched the old always-one-line layout.
+  const headerEl = document.querySelector("header");
+  const topOffset = headerEl ? headerEl.offsetHeight : 64;
+  wrap.innerHTML = `<div style="position:absolute;inset-inline-end:16px;top:${topOffset}px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
       <span class="section-label" style="margin-bottom:0;">${title} (${items.length})</span>
       <button onclick="toggleBadgeMenu('${openBadgeMenu}')" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
@@ -1791,8 +1826,8 @@ window.submitContinue = (origId)=>{
   // If this hearing had already gone overdue un-logged and picked up its automatic
   // "Get the next hearing date" checklist item, logging it here via Continue Session
   // resolves that reminder — it's served its purpose.
-  const staleReminder = state.checklist.find(x=>x.taskId===origId && x.text.indexOf("Get the next hearing date")===0 && !x.done);
-  if(staleReminder){ coll("checklist").doc(staleReminder.id).set({...stripId(staleReminder), done:true}); }
+  const staleReminders = state.checklist.filter(x=>x.caseId===orig.caseId && x.text.indexOf("Get the next hearing date")===0 && !x.done);
+  staleReminders.forEach(x=> coll("checklist").doc(x.id).set({...stripId(x), done:true}));
   if(document.getElementById("cont-markdone").checked){
     coll("tasks").doc(origId).set({...stripId(orig), completed:true, postponeReason: reason || orig.postponeReason || null});
   } else if(reason){
@@ -1819,6 +1854,11 @@ window.confirmRulingIssued = (t)=>{
     const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text: `Ruling issued — ${t.title}. Case closed.` }];
     coll("cases").doc(c.id).set({...stripId(c), status:"Closed", noteLog:newLog});
   }
+  // The case is closing — any outstanding "get the next hearing date" reminders
+  // for it are moot now, whether tied to this specific hearing or another stale
+  // one for the same case.
+  state.checklist.filter(x=>x.caseId===t.caseId && x.text.indexOf("Get the next hearing date")===0 && !x.done)
+    .forEach(x=> coll("checklist").doc(x.id).set({...stripId(x), done:true}));
   showToast("Case closed.");
   closeModal();
 };
