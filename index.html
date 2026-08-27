@@ -418,7 +418,7 @@ const TRANSLATIONS = {
   // Continue Session modal
   continue_session_title:{en:"Continue Session",ar:"متابعة الجلسة"},
   schedules_next_session:{en:'Schedules the next session for "{title}" on a new date.',ar:'يحدد الجلسة القادمة لـ "{title}" في موعد جديد.'},
-  auto_memo_note:{en:'A "Prepare memorandum" checklist item is added automatically, linked to the next hearing.',ar:'تُضاف مهمة "إعداد مذكرة" تلقائيًا إلى القائمة، مرتبطة بالجلسة القادمة.'},
+  auto_memo_note:{en:'Add a "Prepare memorandum" checklist item, linked to the next hearing.',ar:'إضافة مهمة "إعداد مذكرة" إلى القائمة، مرتبطة بالجلسة القادمة.'},
   reason_for_postponement:{en:"Reason for postponement (optional)",ar:"سبب التأجيل (اختياري)"},
   reason_judge_unavailable:{en:"Judge unavailable",ar:"غياب القاضي"}, reason_opposing_counsel:{en:"Opposing counsel requested",ar:"بطلب من الخصم"},
   reason_missing_documents:{en:"Missing documents",ar:"نقص مستندات"}, reason_party_absent:{en:"Party absent",ar:"غياب أحد الأطراف"}, reason_court_backlog:{en:"Court backlog",ar:"ازدحام قضائي"},
@@ -487,7 +487,7 @@ const TRANSLATIONS = {
   qr_status_section:{en:"Case status",ar:"حالة القضية"},
   qr_status_body:{en:"Statuses follow the intake pipeline: Pending Partner Review → Pending Power of Attorney → Pending Documents → Active → On Hold → Closed. A case only counts as \"stale\" (no upcoming dates) once it's Active — the earlier stages aren't expected to have a date yet.",ar:"تتبع الحالات مسار الاستلام: مراجعة الأستاذ ← توكيل الموكل ← تقديم مستندات ← قيد العمل ← معلقة ← مغلقة. لا تُحتسب القضية \"بلا مواعيد قادمة\" إلا إذا كانت قيد العمل — فالمراحل السابقة لا يُتوقع أن يكون لها موعد بعد."},
   qr_hearings_section:{en:"Postponing a hearing",ar:"تأجيل الجلسة"},
-  qr_hearings_body:{en:'Open a Hearing that\'s already on the docket and tap "Continue — schedule the next session" to log a postponement. A "Prepare memorandum" checklist item is added automatically, linked to whichever hearing is next — no need to re-link it if it gets postponed again. If a Hearing passes and nobody logs what happened, a "Get the next hearing date" reminder appears on the Checklist by itself.',ar:'افتح جلسة موجودة بالفعل في الدفتر واضغط "متابعة — تحديد الجلسة القادمة" لتسجيل التأجيل. تُضاف مهمة "إعداد مذكرة" تلقائيًا إلى القائمة، مرتبطة بأقرب جلسة قادمة — دون الحاجة لإعادة الربط إذا تأجلت مجددًا. إذا مرت جلسة دون تسجيل ما حدث فيها، يظهر تذكير "الحصول على موعد الجلسة القادمة" في قائمة المهام من تلقاء نفسه.'},
+  qr_hearings_body:{en:'Open a Hearing that\'s already on the docket and tap "Continue — schedule the next session" to log a postponement. A "Prepare memorandum" checklist item is checked by default — linked to whichever hearing is next, so it doesn\'t need re-linking if postponed again — but uncheck it if this particular postponement doesn\'t need one. If a Hearing passes and nobody logs what happened, a "Get the next hearing date" reminder appears on the Checklist by itself.',ar:'افتح جلسة موجودة بالفعل في الدفتر واضغط "متابعة — تحديد الجلسة القادمة" لتسجيل التأجيل. مهمة "إعداد مذكرة" مفعّلة افتراضيًا — مرتبطة بأقرب جلسة قادمة، فلا تحتاج لإعادة الربط إذا تأجلت مجددًا — لكن يمكن إلغاء تفعيلها إن لم يكن هذا التأجيل بالذات بحاجة إلى مذكرة. إذا مرت جلسة دون تسجيل ما حدث فيها، يظهر تذكير "الحصول على موعد الجلسة القادمة" في قائمة المهام من تلقاء نفسه.'},
   qr_ruling_section:{en:"No more hearings",ar:"لا مزيد من الجلسات"},
   qr_ruling_body:{en:'When a hearing is the final one — the ruling was issued — open it and tap "Ruling issued — no further session" instead of Continue. This marks it done, logs it to the Case Log, and closes the case automatically.',ar:'عندما تكون الجلسة هي الأخيرة — بعد صدور الحكم — افتحها واضغط "صدر الحكم — لا جلسة قادمة" بدلاً من المتابعة. يؤدي هذا إلى وسمها كمكتملة، وتسجيلها في سجل القضية، وإغلاق القضية تلقائيًا.'},
   qr_checklist_section:{en:"Checklist",ar:"قائمة المهام"},
@@ -1897,7 +1897,7 @@ function openContinueModal(t){
     <div class="modal" onclick="event.stopPropagation()">
       <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${ICONS.rotate} ${tr('continue_session_title')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">${tr('schedules_next_session',{title:esc(t.title)})}</div>
-      ${(t.type==="Hearing" && t.caseId) ? `<div style="font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:14px;">${ICONS.square_check} ${tr('auto_memo_note')}</div>` : ""}
+      ${(t.type==="Hearing" && t.caseId) ? `<div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;"><input type="checkbox" id="cont-auto-memo" checked /> ${tr('auto_memo_note')}</label></div>` : ""}
       <div class="field"><span class="field-label">${tr('reason_for_postponement')}</span>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
           ${REASON_CHIP_KEYS.map(k=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;" onclick="fillReason('${esc(tr(k)).replace(/'/g,"&apos;")}')">${tr(k)}</button>`).join("")}
@@ -1928,12 +1928,18 @@ window.submitContinue = (origId)=>{
   if(!orig) return;
   const followUps = (window._tempFollowUps||[]).slice();
   const isHearing = orig.type==="Hearing" && !!orig.caseId;
+  // Capture the checkbox state now, synchronously — closeModal() wipes the DOM
+  // before the async .then() below resolves, same lesson as the case-hearing-date
+  // fields: read anything from the form before the save, never after.
+  const memoEl = document.getElementById("cont-auto-memo");
+  const wantsMemo = isHearing && (!memoEl || memoEl.checked);
   saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", flag:orig.flag||"none", notes:orig.notes, completed:false, googleEventId:null }).then((newTaskId)=>{
-    // Every hearing postponement automatically gets a "Prepare memorandum" checklist
-    // item, linked via followNextHearing so its deadline always tracks whichever
-    // hearing is next — including through further postponements. Skip creating a
-    // second one if an unfinished memorandum item for this case is already open.
-    if(isHearing){
+    // A hearing postponement can get a "Prepare memorandum" checklist item, linked
+    // via followNextHearing so its deadline always tracks whichever hearing is next
+    // — including through further postponements. Skip creating a second one if an
+    // unfinished memorandum item for this case is already open, and skip entirely
+    // if the checkbox was unchecked for this particular postponement.
+    if(wantsMemo){
       const alreadyOpen = state.checklist.some(x=>x.caseId===orig.caseId && x.followNextHearing && x.text==="Prepare memorandum" && !x.done);
       if(!alreadyOpen){
         saveChecklistItem({ caseId: orig.caseId, text:"Prepare memorandum", done:false, taskId:"", followNextHearing:true, dueDate:null });
