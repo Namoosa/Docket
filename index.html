@@ -445,8 +445,14 @@ function saveSettings(){
 function stripId(t){ const {id, ...rest}=t; return rest; }
 
 function saveCase(data){
-  if(data.id){ const {id, ...rest} = data; return coll("cases").doc(id).set(rest); }
-  const {id, ...rest} = data; return coll("cases").add({...rest, createdAt: Date.now()});
+  const promise = data.id
+    ? (()=>{ const {id, ...rest} = data; return coll("cases").doc(id).set(rest); })()
+    : (()=>{ const {id, ...rest} = data; return coll("cases").add({...rest, createdAt: Date.now()}); })();
+  return promise.catch(e=>{
+    console.error("Case save failed:", e);
+    showToast("Couldn't save the case — check your connection and try again.");
+    throw e; // stop dependent .then() work (linking, templates, first-hearing) from running on a failed save
+  });
 }
 function deleteCaseDoc(id){
   coll("cases").doc(id).delete();
@@ -457,8 +463,14 @@ function deleteCaseDoc(id){
 async function saveTask(data){
   let docId = data.id;
   const payload = stripId(data);
-  if(docId){ await coll("tasks").doc(docId).set(payload); }
-  else { const ref = await coll("tasks").add(payload); docId = ref.id; }
+  try{
+    if(docId){ await coll("tasks").doc(docId).set(payload); }
+    else { const ref = await coll("tasks").add(payload); docId = ref.id; }
+  }catch(e){
+    console.error("Task save failed:", e);
+    showToast("Couldn't save — check your connection and try again. Nothing was lost from the form.");
+    return null;
+  }
   if(state.googleConnected && state.googleAccessToken){
     const caseItem = state.cases.find(c=>c.id===payload.caseId);
     const result = await pushToGoogleCalendar({...payload, id:docId}, caseItem);
@@ -484,8 +496,13 @@ function ensureCustomCaseType(t){ if(t && !CASE_TYPES.includes(t) && !state.cust
 function ensureCustomProcedureType(t){ if(t && !PROCEDURE_TYPES.includes(t) && !state.customProcedureTypes.includes(t)){ state.customProcedureTypes.push(t); saveSettings(); } }
 
 function saveChecklistItem(data){
-  if(data.id){ const {id, ...rest}=data; return coll("checklist").doc(id).set(rest); }
-  const {id, ...rest}=data; return coll("checklist").add({...rest, createdAt: Date.now()});
+  const promise = data.id
+    ? (()=>{ const {id, ...rest}=data; return coll("checklist").doc(id).set(rest); })()
+    : (()=>{ const {id, ...rest}=data; return coll("checklist").add({...rest, createdAt: Date.now()}); })();
+  return promise.catch(e=>{
+    console.error("Checklist save failed:", e);
+    showToast("Couldn't save the checklist item — check your connection and try again.");
+  });
 }
 function deleteChecklistItem(id){ coll("checklist").doc(id).delete(); }
 function toggleChecklistDone(id){
@@ -1464,7 +1481,7 @@ function updateKindLabels(){
   if(titleLabel) titleLabel.textContent = isDeadline ? "What's due" : "Title";
   if(dateLabel) dateLabel.textContent = isDeadline ? "Deadline date" : "Date";
 }
-window.submitTask = (id)=>{
+window.submitTask = async (id)=>{
   const title = document.getElementById("f-title").value.trim();
   const date = document.getElementById("f-date").value;
   if(!title || !date) return;
@@ -1478,19 +1495,21 @@ window.submitTask = (id)=>{
   if(!existing && repeatOn && repeatOn.checked){
     const interval = Number(document.getElementById("f-repeat-freq").value);
     const count = Math.max(2, Math.min(20, Number(document.getElementById("f-repeat-count").value)||2));
+    let anyFailed = false;
     for(let i=0;i<count;i++){
       const occDate = addDays(date, i*interval);
-      saveTask({ ...baseData, title: `${title} — Session ${i+1} of ${count}`, date: occDate });
+      const result = await saveTask({ ...baseData, title: `${title} — Session ${i+1} of ${count}`, date: occDate });
+      if(!result) anyFailed = true;
     }
+    if(anyFailed) return; // error already shown per-attempt; leave the form open rather than pretend it all worked
   } else {
     const data = { ...baseData, title, date };
     if(id) data.id = id;
-    const savePromise = saveTask(data);
+    const newTaskId = await saveTask(data);
+    if(!newTaskId) return; // saveTask already showed the error — keep the form open with the data still filled in
     if(!existing && type==="Hearing" && kind==="event" && state.hearingPrepDefaults.length>0){
-      savePromise.then(newTaskId=>{
-        state.hearingPrepDefaults.forEach(text=>{
-          saveChecklistItem({ text, caseId: data.caseId, taskId: newTaskId, followNextHearing:false, dueDate:null, done:false });
-        });
+      state.hearingPrepDefaults.forEach(text=>{
+        saveChecklistItem({ text, caseId: data.caseId, taskId: newTaskId, followNextHearing:false, dueDate:null, done:false });
       });
     }
   }
@@ -1586,6 +1605,7 @@ function openCaseModal(existingRaw){
   window._editingCaseId = existing ? existing.id : null;
   window._tempNoteLog = (c.noteLog || []).slice();
   window._tempAuthorityType = c.authorityType || "court";
+  window._tempFirstTaskType = PROCEDURE_TYPES[0];
   const isCounsel = c.caseType === "Counsel";
   const counselClient = (c.parties||[]).find(p=>p.role==="Client");
   document.getElementById("modal-root").innerHTML = `
@@ -1649,6 +1669,21 @@ function openCaseModal(existingRaw){
       <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ${ICONS.star} Priority case — stand out in the list</label></div>
       <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
 
+      ${!existing ? `
+      <div style="border-top:1px solid var(--line);padding-top:14px;margin-bottom:14px;">
+        <div class="field-label" style="margin-bottom:8px;">First hearing / procedure (optional)</div>
+        <div class="field"><input class="input" id="c-first-task-title" placeholder="e.g. First hearing session" /></div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input class="input" id="c-first-task-date" type="date" style="flex:1;" />
+          <div class="radio-row" id="c-first-task-type-row" style="flex:1;">
+            ${PROCEDURE_TYPES.map((pt,i)=>`<button type="button" class="radio-pill ${i===0?'active':''}" data-v="${esc(pt)}" onclick="setFirstTaskType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+          </div>
+        </div>
+        <div class="field-label" style="margin-bottom:8px;">Checklist items (optional)</div>
+        <textarea class="input" id="c-first-checklist" rows="3" placeholder="e.g.&#10;Review case file&#10;Contact client" style="resize:vertical;"></textarea>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Leave blank to skip — you can always add dates and checklist items from the case file afterward.</div>
+      </div>` : ""}
+
       ${state.cases.filter(x=>x.id!==(existing?existing.id:null)).length>0 ? `
       <div class="field">
         <span class="field-label">Link to other cases or counsel matters (same client / dispute)</span>
@@ -1695,6 +1730,7 @@ window.onCaseTypeChange = ()=>{
   document.getElementById("criminal-number-fields").classList.toggle("hidden", !isCriminal);
 };
 window.setTitleSource = (v)=>{ window._tempTitleSource=v; document.querySelectorAll("#title-source-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v)); };
+window.setFirstTaskType = (v)=>{ window._tempFirstTaskType=v; document.querySelectorAll("#c-first-task-type-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); };
 window.setAuthorityType = (v)=>{
   window._tempAuthorityType = v;
   document.querySelectorAll("#authority-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v));
@@ -1825,6 +1861,17 @@ window.submitCase = (id)=>{
   const isCounsel = caseType === "Counsel";
   const isCriminal = caseType === "Criminal";
 
+  // Read these now, synchronously — closeModal() runs before saveCase()'s
+  // promise resolves, so reading these inside that .then() would find the
+  // modal (and these fields) already gone.
+  const firstTaskTitleEl = document.getElementById("c-first-task-title");
+  const firstTitle = firstTaskTitleEl ? firstTaskTitleEl.value.trim() : "";
+  const firstDateEl = document.getElementById("c-first-task-date");
+  const firstDate = firstDateEl ? firstDateEl.value : "";
+  const firstChecklistEl = document.getElementById("c-first-checklist");
+  const firstChecklistLines = firstChecklistEl ? firstChecklistEl.value.split("\n").map(s=>s.trim()).filter(Boolean) : [];
+  const firstType = window._tempFirstTaskType || PROCEDURE_TYPES[0];
+
   let data;
   if(!caseType){ alert("Choose or type a case type."); return; }
   if(isCounsel){
@@ -1877,8 +1924,26 @@ window.submitCase = (id)=>{
       template.forEach(text=>{
         saveChecklistItem({ caseId: newCaseId, text, done:false, taskId:null, followNextHearing:false, dueDate:null });
       });
+
+      // Optional first hearing/procedure, entered right in the case form
+      // instead of requiring a separate trip after creating the case.
+      // (firstTitle/firstDate/firstChecklistLines/firstType were captured
+      // synchronously above, before the modal could close out from under us.)
+      if(firstTitle && firstDate){
+        saveTask({ caseId:newCaseId, title:firstTitle, date:firstDate, type:firstType, kind:"event", flag:"none", notes:"", completed:false, googleEventId:null, createdAt:Date.now() }).then(newTaskId=>{
+          // Same auto-prep behavior as adding a Hearing normally.
+          if(firstType==="Hearing" && state.hearingPrepDefaults.length>0){
+            state.hearingPrepDefaults.forEach(text=>{
+              saveChecklistItem({ text, caseId:newCaseId, taskId:newTaskId, followNextHearing:false, dueDate:null, done:false });
+            });
+          }
+        });
+      }
+      firstChecklistLines.forEach(text=>{
+        saveChecklistItem({ caseId: newCaseId, text, done:false, taskId:null, followNextHearing:false, dueDate:null });
+      });
     }
-  });
+  }).catch(()=>{}); // failure already reported via toast inside saveCase() itself
   closeModal();
 };
 
