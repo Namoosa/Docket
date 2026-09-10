@@ -1605,7 +1605,9 @@ function openCaseModal(existingRaw){
   window._editingCaseId = existing ? existing.id : null;
   window._tempNoteLog = (c.noteLog || []).slice();
   window._tempAuthorityType = c.authorityType || "court";
-  window._tempFirstTaskType = PROCEDURE_TYPES[0];
+  window._stagedTasks = [];
+  window._stagedChecklist = [];
+  window._stagedTaskType = PROCEDURE_TYPES[0];
   const isCounsel = c.caseType === "Counsel";
   const counselClient = (c.parties||[]).find(p=>p.role==="Client");
   document.getElementById("modal-root").innerHTML = `
@@ -1671,17 +1673,33 @@ function openCaseModal(existingRaw){
 
       ${!existing ? `
       <div style="border-top:1px solid var(--line);padding-top:14px;margin-bottom:14px;">
-        <div class="field-label" style="margin-bottom:8px;">First hearing / procedure (optional)</div>
-        <div class="field"><input class="input" id="c-first-task-title" placeholder="e.g. First hearing session" /></div>
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <input class="input" id="c-first-task-date" type="date" style="flex:1;" />
-          <div class="radio-row" id="c-first-task-type-row" style="flex:1;">
-            ${PROCEDURE_TYPES.map((pt,i)=>`<button type="button" class="radio-pill ${i===0?'active':''}" data-v="${esc(pt)}" onclick="setFirstTaskType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
-          </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="field-label" style="margin-bottom:0;">Dates & Procedures (optional)</div>
+          <button type="button" style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick="toggleStagedTaskForm()">+ Add</button>
         </div>
-        <div class="field-label" style="margin-bottom:8px;">Checklist items (optional)</div>
-        <textarea class="input" id="c-first-checklist" rows="3" placeholder="e.g.&#10;Review case file&#10;Contact client" style="resize:vertical;"></textarea>
-        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Leave blank to skip — you can always add dates and checklist items from the case file afterward.</div>
+        <div id="staged-task-form" class="hidden" style="border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface);margin-bottom:10px;">
+          <input class="input" id="staged-task-title" placeholder="e.g. First hearing session" style="margin-bottom:8px;" />
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input class="input" id="staged-task-date" type="date" style="flex:1;" />
+          </div>
+          <div class="radio-row" id="staged-task-type-row" style="margin-bottom:10px;">
+            ${PROCEDURE_TYPES.map((pt,i)=>`<button type="button" class="radio-pill ${i===0?'active':''}" data-v="${esc(pt)}" onclick="setStagedTaskType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+          </div>
+          <button type="button" class="btn-ghost" style="width:100%;" onclick="commitStagedTask()">Add to list</button>
+        </div>
+        <div id="staged-task-list"></div>
+      </div>
+
+      <div style="border-top:1px solid var(--line);padding-top:14px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="field-label" style="margin-bottom:0;">Checklist (optional)</div>
+          <button type="button" style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick="toggleStagedChecklistForm()">+ Add</button>
+        </div>
+        <div id="staged-checklist-form" class="hidden" style="border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface);margin-bottom:10px;">
+          <input class="input" id="staged-checklist-text" placeholder="e.g. Review case file" style="margin-bottom:8px;" />
+          <button type="button" class="btn-ghost" style="width:100%;" onclick="commitStagedChecklist()">Add to list</button>
+        </div>
+        <div id="staged-checklist-list"></div>
       </div>` : ""}
 
       ${state.cases.filter(x=>x.id!==(existing?existing.id:null)).length>0 ? `
@@ -1730,7 +1748,64 @@ window.onCaseTypeChange = ()=>{
   document.getElementById("criminal-number-fields").classList.toggle("hidden", !isCriminal);
 };
 window.setTitleSource = (v)=>{ window._tempTitleSource=v; document.querySelectorAll("#title-source-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v)); };
-window.setFirstTaskType = (v)=>{ window._tempFirstTaskType=v; document.querySelectorAll("#c-first-task-type-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); };
+window.toggleStagedTaskForm = ()=>{
+  const form = document.getElementById("staged-task-form");
+  form.classList.toggle("hidden");
+  if(!form.classList.contains("hidden")){
+    document.getElementById("staged-task-date").value = todayKey();
+  }
+};
+window.setStagedTaskType = (v)=>{
+  window._stagedTaskType = v;
+  document.querySelectorAll("#staged-task-type-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
+};
+window.commitStagedTask = ()=>{
+  const title = document.getElementById("staged-task-title").value.trim();
+  const date = document.getElementById("staged-task-date").value;
+  if(!title || !date){ alert("Add a title and a date."); return; }
+  window._stagedTasks.push({ title, date, type: window._stagedTaskType || PROCEDURE_TYPES[0] });
+  document.getElementById("staged-task-title").value = "";
+  document.getElementById("staged-task-date").value = todayKey();
+  document.getElementById("staged-task-form").classList.add("hidden");
+  renderStagedTaskList();
+};
+window.removeStagedTask = (i)=>{ window._stagedTasks.splice(i,1); renderStagedTaskList(); };
+function renderStagedTaskList(){
+  const el = document.getElementById("staged-task-list");
+  if(!el) return;
+  el.innerHTML = window._stagedTasks.map((t,i)=>`
+    <div class="task-row">
+      <button type="button" class="task-check" style="pointer-events:none;opacity:.45;" title="Not saved yet"></button>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="task-title-icon" style="color:${colorForProcedure(t.type)};">${iconForProcedure(t.type)}</span>
+          <span class="task-title">${esc(t.title)}</span>
+          <a href="${esc(googleCalendarAddLink(t, null))}" target="_blank" onclick="event.stopPropagation()" title="Add to Google Calendar" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>
+        </div>
+        <div class="task-meta">${esc(t.type)} · ${fmtLong(t.date)}</div>
+      </div>
+      <button type="button" onclick="removeStagedTask(${i})" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
+    </div>`).join("");
+}
+window.toggleStagedChecklistForm = ()=>{ document.getElementById("staged-checklist-form").classList.toggle("hidden"); };
+window.commitStagedChecklist = ()=>{
+  const text = document.getElementById("staged-checklist-text").value.trim();
+  if(!text) return;
+  window._stagedChecklist.push({ text });
+  document.getElementById("staged-checklist-text").value = "";
+  document.getElementById("staged-checklist-form").classList.add("hidden");
+  renderStagedChecklistList();
+};
+window.removeStagedChecklist = (i)=>{ window._stagedChecklist.splice(i,1); renderStagedChecklistList(); };
+function renderStagedChecklistList(){
+  const el = document.getElementById("staged-checklist-list");
+  if(!el) return;
+  el.innerHTML = window._stagedChecklist.map((it,i)=>`
+    <div class="checklist-row">
+      <span style="flex:1;font-size:13.5px;">${esc(it.text)}</span>
+      <button type="button" onclick="removeStagedChecklist(${i})" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
+    </div>`).join("");
+}
 window.setAuthorityType = (v)=>{
   window._tempAuthorityType = v;
   document.querySelectorAll("#authority-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v));
@@ -1861,17 +1936,6 @@ window.submitCase = (id)=>{
   const isCounsel = caseType === "Counsel";
   const isCriminal = caseType === "Criminal";
 
-  // Read these now, synchronously — closeModal() runs before saveCase()'s
-  // promise resolves, so reading these inside that .then() would find the
-  // modal (and these fields) already gone.
-  const firstTaskTitleEl = document.getElementById("c-first-task-title");
-  const firstTitle = firstTaskTitleEl ? firstTaskTitleEl.value.trim() : "";
-  const firstDateEl = document.getElementById("c-first-task-date");
-  const firstDate = firstDateEl ? firstDateEl.value : "";
-  const firstChecklistEl = document.getElementById("c-first-checklist");
-  const firstChecklistLines = firstChecklistEl ? firstChecklistEl.value.split("\n").map(s=>s.trim()).filter(Boolean) : [];
-  const firstType = window._tempFirstTaskType || PROCEDURE_TYPES[0];
-
   let data;
   if(!caseType){ alert("Choose or type a case type."); return; }
   if(isCounsel){
@@ -1925,22 +1989,20 @@ window.submitCase = (id)=>{
         saveChecklistItem({ caseId: newCaseId, text, done:false, taskId:null, followNextHearing:false, dueDate:null });
       });
 
-      // Optional first hearing/procedure, entered right in the case form
-      // instead of requiring a separate trip after creating the case.
-      // (firstTitle/firstDate/firstChecklistLines/firstType were captured
-      // synchronously above, before the modal could close out from under us.)
-      if(firstTitle && firstDate){
-        saveTask({ caseId:newCaseId, title:firstTitle, date:firstDate, type:firstType, kind:"event", flag:"none", notes:"", completed:false, googleEventId:null, createdAt:Date.now() }).then(newTaskId=>{
-          // Same auto-prep behavior as adding a Hearing normally.
-          if(firstType==="Hearing" && state.hearingPrepDefaults.length>0){
+      // Save every staged date/procedure the same way adding one normally
+      // works (same auto hearing-prep attachment for Hearing-type items),
+      // now that we finally have a real case ID to attach them to.
+      window._stagedTasks.forEach(t=>{
+        saveTask({ caseId:newCaseId, title:t.title, date:t.date, type:t.type, kind:"event", flag:"none", notes:"", completed:false, googleEventId:null, createdAt:Date.now() }).then(newTaskId=>{
+          if(t.type==="Hearing" && state.hearingPrepDefaults.length>0){
             state.hearingPrepDefaults.forEach(text=>{
               saveChecklistItem({ text, caseId:newCaseId, taskId:newTaskId, followNextHearing:false, dueDate:null, done:false });
             });
           }
         });
-      }
-      firstChecklistLines.forEach(text=>{
-        saveChecklistItem({ caseId: newCaseId, text, done:false, taskId:null, followNextHearing:false, dueDate:null });
+      });
+      window._stagedChecklist.forEach(it=>{
+        saveChecklistItem({ caseId:newCaseId, text:it.text, done:false, taskId:null, followNextHearing:false, dueDate:null });
       });
     }
   }).catch(()=>{}); // failure already reported via toast inside saveCase() itself
@@ -2014,7 +2076,7 @@ function openCaseDetailModal(c){
         <button style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick='closeModal();openTaskModal({caseId:"${c.id}",title:"",date:"${state.selectedDay}",type:"${PROCEDURE_TYPES[0]}",notes:"",completed:false})'>+ Add</button>
       </div>
       ${tasks.length===0? `<div style="color:var(--muted);font-size:13px;">No dates yet for this case.</div>` :
-        tasks.map(t=>taskRowHtml(t, null, true)).join("")}
+        tasks.map(t=>taskRowHtml(t, c, true)).join("")}
 
       <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;">
         <div class="section-label" style="margin-bottom:0;">Checklist</div>
@@ -2273,4 +2335,3 @@ if("serviceWorker" in navigator){ window.addEventListener("load", ()=> navigator
 </script>
 </body>
 </html>
-
