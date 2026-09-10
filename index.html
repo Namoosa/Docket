@@ -63,7 +63,7 @@
   .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:8px;border:none;background:var(--navy);color:var(--panel);font-weight:600;font-size:14px;}
   .btn-google{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:#3c4043;font-weight:600;font-size:14px;}
   .btn-ghost{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--navy);font-weight:600;font-size:13px;}
-  .icon-btn{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;color:var(--navy);}
+  .icon-btn{width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;color:var(--navy);}
   .field-label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px;}
   .field{margin-bottom:14px;}
   #auth-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
@@ -178,7 +178,7 @@
   <div id="badge-menu-wrap" style="position:relative;"></div>
     <div class="header-inner">
       <div class="brand"><span style="color:var(--brass);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg></span> <span class="serif">Docket</span></div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:flex;gap:11px;align-items:center;">
         <div id="header-badges" style="display:flex;gap:6px;"></div>
         <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'/><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><rect x='6' y='14' width='12' height='8'/></svg></button>
         <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg></button>
@@ -971,18 +971,25 @@ function renderCalendar(upcoming){
   const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
   const tk2 = todayKey();
   const criticalItems = state.tasks.filter(t=>t.flag==="critical" && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
-  const todaysHearings = state.tasks.filter(t=>t.type==="Hearing" && t.date===tk && !t.completed).map(t=>({...t, delta:daysBetween(tk,t.date)}));
+  // Keep today's hearing(s) visible for the whole day, even once checked off —
+  // this is what actually surfaces the linked prep checklist; hiding the card
+  // the instant you check the box was taking the checklist down with it.
+  const now = new Date();
+  const showTomorrow = now.getHours() >= 15; // after 3pm, look ahead instead of back
+  const courtDayKey = showTomorrow ? addDays(tk,1) : tk;
+  const courtDayHearings = state.tasks.filter(t=>t.type==="Hearing" && t.date===courtDayKey).map(t=>({...t, delta:daysBetween(tk,t.date)}));
+  const courtDayLabel = showTomorrow ? "Tomorrow in court" : "Today in court";
 
   document.getElementById("view-calendar").innerHTML = `
-    ${todaysHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:2px solid var(--navy);border-radius:10px;padding:12px 14px;">
-      <div class="section-label" style="color:var(--navy-dark);margin-bottom:8px;">${ICONS.gavel} Today in court</div>
-      ${todaysHearings.map(t=>{
+    ${courtDayHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:2px solid var(--navy);border-radius:10px;padding:12px 14px;">
+      <div class="section-label" style="color:var(--navy-dark);margin-bottom:8px;">${ICONS.gavel} ${courtDayLabel}</div>
+      ${courtDayHearings.map(t=>{
         const caseItem = casesById[t.caseId];
         const latestLog = (caseItem && caseItem.noteLog && caseItem.noteLog.length) ? caseItem.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date))[0] : null;
         const chamberLine = (caseItem && caseItem.authorityType==="court" && caseItem.chamber) ? esc(caseItem.chamber) : "";
         const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? `Prosecutor: ${esc(caseItem.prosecutorInCharge)}` : "";
         const hasExtra = !!(chamberLine || prosecutorLine || (caseItem && caseItem.notes) || latestLog);
-        return `${taskRowHtml(t, caseItem, false)}
+        return `${taskRowHtml(t, caseItem, showTomorrow)}
           ${hasExtra ? `<div style="margin:-6px 0 10px 4px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;">
             ${chamberLine?`<div style="color:var(--muted);margin-bottom:4px;">${chamberLine}</div>`:""}
             ${prosecutorLine?`<div style="color:var(--muted);margin-bottom:4px;">${prosecutorLine}</div>`:""}
