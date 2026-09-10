@@ -893,9 +893,9 @@ function render(){
   state._staleCases = staleCases;
 
   const badges = document.getElementById("header-badges");
-  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" title="${overdueItems.length} overdue" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:3px 7px;">${ICONS.triangle_exclamation}${overdueItems.length}</button>`:"") +
-                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" title="${headsUpItems.length} due soon" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:3px 7px;">${ICONS.hourglass_half}${headsUpItems.length}</button>`:"") +
-                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" title="${staleCases.length} no upcoming dates" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:3px 7px;">${ICONS.folder_open}${staleCases.length}</button>`:"");
+  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" title="${overdueItems.length} overdue" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:11px 8px;min-height:36px;box-sizing:border-box;">${ICONS.triangle_exclamation}${overdueItems.length}</button>`:"") +
+                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" title="${headsUpItems.length} due soon" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:11px 8px;min-height:36px;box-sizing:border-box;">${ICONS.hourglass_half}${headsUpItems.length}</button>`:"") +
+                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" title="${staleCases.length} no upcoming dates" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:11px 8px;min-height:36px;box-sizing:border-box;">${ICONS.folder_open}${staleCases.length}</button>`:"");
   renderBadgeMenu();
 
   renderInstallBanner();
@@ -2273,3 +2273,4 @@ if("serviceWorker" in navigator){ window.addEventListener("load", ()=> navigator
 </script>
 </body>
 </html>
+
