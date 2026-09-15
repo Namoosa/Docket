@@ -9,7 +9,2444 @@
 <link rel="apple-touch-icon" href="icon-192.png" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" con<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Docket</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#182234" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+
+
+<script>
+  window.FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDWBHEZuaaBfAJfsg1wZrg4vu9XNOtOO30",
+    authDomain: "docket-d82dd.firebaseapp.com",
+    projectId: "docket-d82dd",
+    storageBucket: "docket-d82dd.firebasestorage.app",
+    messagingSenderId: "702066124462",
+    appId: "1:702066124462:web:f7dde9b3e57ba082812f3f"
+  };
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- ============================================================
+     GOOGLE OAUTH CLIENT ID — needed only for Calendar connection.
+     Get this from Google Cloud Console → APIs & Services → Credentials →
+     under "OAuth 2.0 Client IDs" → the entry usually named
+     "Web client (auto created by Google Service)" → copy its Client ID
+     (ends in .apps.googleusercontent.com).
+============================================================= -->
+<script>
+  window.GOOGLE_OAUTH_CLIENT_ID = "702066124462-bl1cp7bi4e1viddm4a03695migjucu80.apps.googleusercontent.com";
+</script>
+
+<style>
+  :root{
+    --ink:#20242C; --paper:#ECE7DA; --panel:#FBF9F3; --navy:#22344A; --navy-dark:#182234;
+    --brass:#8F6526; --brick:#9A3B33; --sage:#556B4F; --slate:#3D5871; --line:#D8D0BB; --muted:#7B7566; --surface:#F6F1E4;
+    --purple:#6B5B8C; --clay:#8A6E4B; --info:#3E6B8A;
+    --overdue:#B23A32; --critical:#6B2439; --heads-up:#3E6B8A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Inter',sans-serif; min-height:100vh; padding-bottom:90px;}
+  ::-webkit-scrollbar{width:8px;height:8px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit; outline:none;}
+  input:focus,select:focus,textarea:focus{border-color:var(--navy) !important;}
+  .serif{font-family:'Source Serif 4',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:var(--slate);}
+  .hidden{display:none !important;}
+  .input{width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--surface); font-size:15px; color:var(--ink);}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:8px;border:none;background:var(--navy);color:var(--panel);font-weight:600;font-size:14px;}
+  .btn-google{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:#3c4043;font-weight:600;font-size:14px;}
+  .btn-ghost{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--navy);font-weight:600;font-size:13px;}
+  .icon-btn{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--panel);display:inline-flex;align-items:center;justify-content:center;color:var(--navy);}
+  .field-label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:5px;}
+  .field{margin-bottom:14px;}
+  #auth-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .auth-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px 24px; width:100%; max-width:380px;}
+  .auth-tabs{display:flex; gap:6px; margin-bottom:18px;}
+  .auth-tab{flex:1; text-align:center; padding:9px 0; border-radius:7px; font-size:13px; font-weight:600; border:1px solid var(--line); background:var(--surface); color:var(--muted);}
+  .auth-tab.active{background:var(--navy); color:var(--panel); border-color:var(--navy);}
+  #auth-error{color:#B23A32; font-size:12.5px; margin-top:8px; min-height:16px;}
+  .or-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:12px;}
+  .or-divider::before,.or-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+  header{background:var(--navy-dark); color:var(--panel); padding:16px 16px 12px;}
+  .header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:8px;font-size:19px;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1.3px solid; font-weight:600; white-space:nowrap;}
+  main{max-width:800px;margin:0 auto;padding:16px 16px 0;}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;}
+  .tab-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-weight:600;font-size:13px;}
+  .tab-btn.active{background:var(--navy);color:var(--panel);border-color:var(--navy);}
+  .cal-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 10px;margin-bottom:14px;}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-wd{text-align:center;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.04em;}
+  .cal-day{aspect-ratio:1;border-radius:7px;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;position:relative;}
+  .cal-day.today{border:1.5px solid var(--brass);}
+  .cal-day.selected{border:2px solid var(--navy); background:#DFE3E8;}
+  .cal-day.has-critical{box-shadow:inset 0 0 0 2px var(--critical);}
+  .dot{width:5px;height:5px;border-radius:3px;}
+  .overdue-mark{position:absolute;top:2px;right:3px;width:6px;height:6px;border-radius:3px;background:#B23A32;}
+  .cal-icon svg{width:12.5px !important;height:12.5px !important;vertical-align:middle !important;}
+  .section-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
+  .task-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
+  .task-row.overdue{border-color:#D9A9A3;}
+  .task-check{background:none;border:1.5px solid var(--line);border-radius:5px;width:23px;height:23px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .task-title{font-size:13.5px;font-weight:600;}
+  .task-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .case-card{width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:9px;}
+  .search-wrap{position:relative;margin-bottom:10px;}
+  .search-wrap input{padding-left:32px;}
+  .fab{position:fixed;right:20px;bottom:24px;width:56px;height:56px;border-radius:28px;background:var(--brass);color:var(--navy-dark);border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.28);font-size:26px;z-index:40;}
+  .modal-bg{position:fixed;inset:0;background:rgba(24,20,14,.45);display:flex;align-items:flex-end;justify-content:center;z-index:100;}
+  .modal{background:var(--paper);width:100%;max-width:460px;max-height:88vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:20px 20px 28px;}
+  @media(min-width:640px){ .modal{border-radius:16px; margin-bottom:5vh;} }
+  .modal.wide{max-width:640px;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .doc-link-row{display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:5px;}
+  .install-banner{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:8px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;font-size:13px;line-height:1.5;}
+  .party-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+  .party-row select{flex:0 0 34%;}
+  .link-check-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .link-check-row:last-child{border-bottom:none;}
+  .radio-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .radio-pill{flex:1;min-width:110px;text-align:center;padding:8px 6px;border-radius:7px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:600;color:var(--muted);}
+  .radio-pill.active{background:var(--navy);color:var(--panel);border-color:var(--navy);}
+  .group-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--purple);border:1px solid var(--purple);border-radius:3px;padding:2px 6px;font-weight:600;}
+  .checklist-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 11px;margin-bottom:8px;}
+  /* Icon sizing — inline SVGs, self-contained, no external font dependency */
+  .icon-btn svg{width:18px;height:18px;}
+  .tab-btn svg{margin-right:3px;}
+  .fab svg{width:22px;height:22px;}
+  .brand svg{width:20px;height:20px;}
+  .badge svg{width:12px;height:12px;vertical-align:-2px !important;}
+  #print-area{display:none;}
+  .app-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--navy-dark);color:var(--panel);padding:11px 18px;border-radius:8px;font-size:13px;max-width:88vw;box-shadow:0 6px 18px rgba(0,0,0,.3);opacity:0;transition:opacity .25s, transform .25s;z-index:200;}
+  .app-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  @media print{
+    body *{visibility:hidden;}
+    #print-area, #print-area *{visibility:visible;}
+    #print-area{display:block !important;position:absolute;top:0;left:0;width:100%;padding:20px;color:#000;}
+    #print-area h1{font-family:'Source Serif 4',serif;font-size:22px;margin-bottom:4px;}
+    #print-area .p-sub{color:#555;font-size:13px;margin-bottom:18px;}
+    #print-area .p-section{margin-bottom:20px;}
+    #print-area .p-section-title{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#555;border-bottom:1px solid #ccc;padding-bottom:4px;margin-bottom:8px;}
+    #print-area .p-item{padding:6px 0;border-bottom:1px solid #eee;font-size:13.5px;}
+    #print-area .p-item .p-meta{color:#666;font-size:12px;margin-top:2px;}
+    #print-area .p-letterhead{font-size:12.5px;color:#333;line-height:1.55;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #ccc;white-space:pre-line;}
+    #print-area.rtl{direction:rtl;text-align:right;font-family:'Amiri','Traditional Arabic',serif;}
+    #print-area.rtl .p-section-title{text-align:right;}
+  }
+  .rtl-preview{direction:rtl;text-align:right;font-family:'Amiri','Traditional Arabic',serif;}
+</style>
+</head>
+<body>
+
+<div id="loading-screen" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--paper);">
+  <span style="color:var(--brass);animation:docket-pulse 1.6s ease-in-out infinite;">
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='34' height='34' fill='none' stroke='currentColor' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg>
+  </span>
+  <span class="serif" style="font-size:20px;color:var(--navy-dark);letter-spacing:.02em;">Docket</span>
+</div>
+<style>@keyframes docket-pulse{0%,100%{opacity:.45;}50%{opacity:1;}}</style>
+
+<div id="auth-screen" class="hidden">
+  <div class="auth-card">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+      <span class="serif" style="font-size:22px;color:var(--navy-dark);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg> Docket</span>
+    </div>
+    <button class="btn-google" id="google-signin-btn">
+      <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.5 5.1 29.6 3 24 3c-7.7 0-14.3 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.8 14.3-5l-6.6-5.6C29.6 35.9 27 37 24 37c-5.3 0-9.7-3.3-11.3-8l-6.6 5.1C9.5 40.4 16.2 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.6C41.5 36 45 30.6 45 24c0-1.4-.1-2.7-.4-3.5z"/></svg>
+      Continue with Google
+    </button>
+    <div class="or-divider">or use email</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin">Sign in</button>
+      <button class="auth-tab" id="tab-signup">Create account</button>
+    </div>
+    <div class="field"><span class="field-label">Email</span><input class="input" id="auth-email" type="email" autocomplete="email" /></div>
+    <div class="field"><span class="field-label">Password</span><input class="input" id="auth-password" type="password" autocomplete="current-password" /></div>
+    <button class="btn-primary" id="auth-submit" style="width:100%;">Sign in</button>
+    <div id="auth-error"></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:16px;line-height:1.5;">This account is private to you — only you can see the cases and dates stored here. You can connect Google Calendar separately, any time, from Settings — with any login method.</div>
+  </div>
+</div>
+
+<div id="app-shell" class="hidden">
+  <header>
+  <div id="badge-menu-wrap" style="position:relative;"></div>
+    <div class="header-inner">
+      <div class="brand"><span style="color:var(--brass);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg></span> <span class="serif">Docket</span></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div id="header-badges" style="display:flex;gap:6px;"></div>
+        <button class="icon-btn" id="print-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);" title="Print today's docket"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'/><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><rect x='6' y='14' width='12' height='8'/></svg></button>
+        <button class="icon-btn" id="settings-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg></button>
+        <button class="icon-btn" id="signout-btn" style="background:transparent;border-color:rgba(255,255,255,.25);color:var(--panel);font-size:12px;">Out</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="install-banner-wrap" style="max-width:800px;margin:14px auto 0;padding:0 16px;"></div>
+  <div id="reconnect-banner-wrap" style="max-width:800px;margin:0 auto;padding:0 16px;"></div>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-calendar"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg> Calendar</button>
+      <button class="tab-btn" id="tab-cases"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/></svg> Cases</button>
+      <button class="tab-btn" id="tab-checklist"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='10' y1='6' x2='21' y2='6'/><line x1='10' y1='12' x2='21' y2='12'/><line x1='10' y1='18' x2='21' y2='18'/><polyline points='3 6 4 7 6 5'/><polyline points='3 12 4 13 6 11'/><polyline points='3 18 4 19 6 17'/></svg> Checklist</button>
+    </div>
+    <div id="view-calendar"></div>
+    <div id="view-cases" class="hidden"></div>
+    <div id="view-checklist" class="hidden"></div>
+  </main>
+
+  <button class="fab" id="fab-btn"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg></button>
+</div>
+
+<div id="modal-root"></div>
+<div id="print-area"></div>
+
+<script>
+/* ================= FIREBASE INIT ================= */
+firebase.initializeApp(window.FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ================= CONSTANTS ================= */
+const PROCEDURE_TYPES = ["Hearing","Procedure"];
+const FOLLOWUP_CHIPS = ["Prepare memorandum","Notify party","Gather documents","Review with client"];
+const PROCEDURE_COLOR = {"Hearing":"#5F4B8B","Procedure":"#6F3091"};
+const ICONS = {
+  xmark: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>`,
+  check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>`,
+  plus: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>`,
+  trash: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='3 6 5 6 21 6'/><path d='M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6'/><line x1='10' y1='11' x2='10' y2='17'/><line x1='14' y1='11' x2='14' y2='17'/><path d='M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'/></svg>`,
+  pen: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/></svg>`,
+  clone: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='11' height='11' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/></svg>`,
+  magnifying_glass: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>`,
+  chevron_left: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='15 18 9 12 15 6'/></svg>`,
+  chevron_right: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 18 15 12 9 6'/></svg>`,
+  chevron_down: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>`,
+  calendar_days: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>`,
+  calendar_check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/><polyline points='9 16 11 18 15 14'/></svg>`,
+  folder_open: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/></svg>`,
+  folder: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/></svg>`,
+  list_check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='10' y1='6' x2='21' y2='6'/><line x1='10' y1='12' x2='21' y2='12'/><line x1='10' y1='18' x2='21' y2='18'/><polyline points='3 6 4 7 6 5'/><polyline points='3 12 4 13 6 11'/><polyline points='3 18 4 19 6 17'/></svg>`,
+  print: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 6 2 18 2 18 9'/><path d='M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2'/><rect x='6' y='14' width='12' height='8'/></svg>`,
+  gear: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg>`,
+  file_pdf: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/></svg>`,
+  file_lines: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='8' y1='13' x2='16' y2='13'/><line x1='8' y1='17' x2='16' y2='17'/></svg>`,
+  file_signature: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><path d='M8 17c1-1.2 2-1.2 3 0s2 1.2 3 0'/></svg>`,
+  link: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/><path d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/></svg>`,
+  location_dot: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'/><circle cx='12' cy='10' r='3'/></svg>`,
+  star: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2' fill='currentColor'/></svg>`,
+  phone: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z'/></svg>`,
+  envelope: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='4' width='20' height='16' rx='2'/><polyline points='2 6 12 13 22 6'/></svg>`,
+  hourglass_half: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 2h12M6 22h12M6 2c0 5 6 5 6 10s-6 5-6 10M18 2c0 5-6 5-6 10s6 5 6 10'/></svg>`,
+  triangle_exclamation: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>`,
+  rotate: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='23 4 23 10 17 10'/><polyline points='1 20 1 14 7 14'/><path d='M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15'/></svg>`,
+  mobile_screen_button: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='7' y='2' width='10' height='20' rx='2'/><line x1='11' y1='18' x2='13' y2='18'/></svg>`,
+  handcuffs: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z'/><line x1='9' y1='12' x2='11' y2='14'/><line x1='11' y1='14' x2='15' y2='10'/></svg>`,
+  building: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='4' y='2' width='16' height='20' rx='1'/><line x1='4' y1='9' x2='20' y2='9'/><line x1='4' y1='14' x2='20' y2='14'/><line x1='9' y1='22' x2='9' y2='18'/><line x1='15' y1='22' x2='15' y2='18'/></svg>`,
+  helmet_safety: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 18v-2a8 8 0 0 1 16 0v2'/><rect x='2' y='18' width='20' height='3' rx='1'/><line x1='12' y1='4' x2='12' y2='8'/></svg>`,
+  people_roof: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l9 6h-3v9H6v-9H3z'/><circle cx='9' cy='18' r='1.6'/><circle cx='15' cy='18' r='1.6'/></svg>`,
+  house: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12l9-9 9 9'/><path d='M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10'/></svg>`,
+  landmark: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='3' y1='22' x2='21' y2='22'/><line x1='6' y1='18' x2='6' y2='11'/><line x1='10' y1='18' x2='10' y2='11'/><line x1='14' y1='18' x2='14' y2='11'/><line x1='18' y1='18' x2='18' y2='11'/><polygon points='12 2 20 7 4 7'/></svg>`,
+  comments: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z'/></svg>`,
+  download: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/><polyline points='7 10 12 15 17 10'/><line x1='12' y1='15' x2='12' y2='3'/></svg>`,
+  square: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/></svg>`,
+  square_check: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><polyline points='8 12 11 15 16 9'/></svg>`,
+  scale_balanced: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='3' x2='12' y2='21'/><line x1='8' y1='21' x2='16' y2='21'/><line x1='5' y1='7' x2='19' y2='7'/><path d='M5 7L2.5 13a2.7 2.7 0 0 0 5 0z'/><path d='M19 7l-2.5 6a2.7 2.7 0 0 0 5 0z'/></svg>`,
+  gavel: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='5,4 19,4 16,20 8,20'/><line x1='7' y1='10' x2='17' y2='10'/><line x1='3' y1='21' x2='21' y2='21'/></svg>`,
+  info: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><line x1='12' y1='16' x2='12' y2='12'/><line x1='12' y1='8' x2='12.01' y2='8'/></svg>`,
+  tag: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20.59 13.41L11 3.83a2 2 0 0 0-1.41-.59H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z'/><circle cx='7.5' cy='7.5' r='1.5' fill='currentColor' stroke='none'/></svg>`,
+  scroll: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' style='vertical-align:-4px;flex-shrink:0;' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 21h8a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4'/><path d='M19 17V5a2 2 0 0 0-2-2H7'/></svg>`,
+};
+const PROCEDURE_ICON = {"Hearing":ICONS.gavel,"Procedure":ICONS.file_signature};
+
+const CASE_TYPES = ["Criminal","Civil","Commercial","Corporate","Family","Labor","Personal Status","Real Estate","Administrative","Counsel"];
+const CASE_TYPE_COLOR = {"Criminal":"#744C2F","Civil":"#8B7C4B","Commercial":"#889130","Corporate":"#56742F","Family":"#5A8B4B","Labor":"#30913B","Personal Status":"#2F744E","Real Estate":"#4B8B7E","Administrative":"#305491","Counsel":"#2F3174"};
+const CASE_TYPE_ICON = {"Criminal":ICONS.handcuffs,"Civil":ICONS.scroll,"Commercial":ICONS.building,"Corporate":ICONS.building,"Family":ICONS.people_roof,"Labor":ICONS.helmet_safety,"Personal Status":ICONS.people_roof,"Real Estate":ICONS.house,"Administrative":ICONS.landmark,"Counsel":ICONS.comments};
+
+const PARTY_ROLES = ["Client","Opponent","Co-Defendant","Co-Plaintiff","Third Party","Other"];
+const STATUS_OPTIONS = ["Active","Pending","On Hold","Closed"];
+const HASH_PALETTE = ["#9A3B33","#A6762E","#3D5871","#556B4F","#6B5B8C","#8A6E4B","#7B7566","#3D6B6B"];
+
+function hashColor(str){ let h=0; for(let i=0;i<str.length;i++){ h = str.charCodeAt(i) + ((h<<5)-h); } return HASH_PALETTE[Math.abs(h)%HASH_PALETTE.length]; }
+function colorForProcedure(t){ return PROCEDURE_COLOR[t] || hashColor(t||"?"); }
+function colorForCaseType(t){ return CASE_TYPE_COLOR[t] || hashColor(t||"?"); }
+function iconForProcedure(t){ return PROCEDURE_ICON[t] || ICONS.tag; }
+function iconForCaseType(t){ return CASE_TYPE_ICON[t] || ICONS.folder_open; }
+
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WD = ["S","M","T","W","T","F","S"];
+
+/* ---- Arabic report translation tables (used only for printed/previewed
+   reports — the app's working UI stays English; only report output is
+   translatable, per explicit request). ---- */
+const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+const CASE_TYPE_AR = {"Criminal":"جزائي","Civil":"مدني","Commercial":"تجاري","Corporate":"شركات","Family":"أحوال شخصية","Labor":"عمل","Personal Status":"أحوال شخصية","Real Estate":"عقاري","Administrative":"إداري","Counsel":"استشارة"};
+const PROCEDURE_TYPE_AR = {"Hearing":"جلسة","Procedure":"إجراء"};
+const STATUS_AR = {"Active":"نشطة","Pending":"معلقة","On Hold":"متوقفة","Closed":"مغلقة"};
+const REPORT_STRINGS = {
+  en: {
+    activityReport:"Activity Report", weekOf:"Week of", monthOf:"Month of",
+    nothing:"Nothing recorded for this period.", prepared:"Prepared",
+    standalone:"Standalone dates", general:"General checklist",
+    nextHearing:"Next hearing", noNextHearing:"No upcoming hearing scheduled",
+    completed:"Completed", overdue:"Overdue — not yet resolved", scheduled:"Scheduled",
+    continuedPrefix:"Continued — postponed to next session", reasonLabel:"Reason",
+    due:"due", court:"Court", status:"Status"
+  },
+  ar: {
+    activityReport:"تقرير النشاط", weekOf:"أسبوع", monthOf:"شهر",
+    nothing:"لا يوجد ما يُسجَّل لهذه الفترة.", prepared:"أُعدّ في",
+    standalone:"مواعيد مستقلة", general:"قائمة عامة",
+    nextHearing:"الجلسة القادمة", noNextHearing:"لا توجد جلسة قادمة مُحددة",
+    completed:"مكتملة", overdue:"متأخر — لم يُحسم بعد", scheduled:"مُحددة",
+    continuedPrefix:"تأجّلت إلى الجلسة القادمة", reasonLabel:"السبب",
+    due:"الاستحقاق", court:"المحكمة", status:"الحالة"
+  }
+};
+function fmtLongLang(k, lang){
+  if(lang!=="ar") return fmtLong(k);
+  const d = parseKey(k);
+  return `${d.getDate()} ${MONTHS_AR[d.getMonth()]} ${d.getFullYear()}`;
+}
+function caseTypeLabel(t, lang){ return lang==="ar" ? (CASE_TYPE_AR[t]||t) : t; }
+function procedureTypeLabel(t, lang){ return lang==="ar" ? (PROCEDURE_TYPE_AR[t]||t) : t; }
+function statusLabel(s, lang){ return lang==="ar" ? (STATUS_AR[s]||s) : s; }
+
+/* ================= STATE ================= */
+let state = {
+  user:null, googleAccessToken:null, googleConnected:false, calendarEverConnected:false, hasSeenQuickRef:false,
+  cases:[], tasks:[], checklist:[],
+  customCaseTypes:[], customProcedureTypes:[], alertDays:7, onboardDismissed:false, checklistTemplates:{}, hearingPrepDefaults:[], reportHeader:"",
+  view:"calendar", cursorY:new Date().getFullYear(), cursorM:new Date().getMonth(),
+  selectedDay: todayKey(), search:"", filterType:"All", filterStatus:"All", filterCourt:"All",
+};
+let unsubCases=null, unsubTasks=null, unsubChecklist=null, unsubSettings=null;
+
+function todayKey(){ return dateKey(new Date()); }
+function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function parseKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
+function addDays(k,n){ const d=parseKey(k); d.setDate(d.getDate()+n); return dateKey(d); }
+function googleCalendarAddLink(task, caseItem){
+  const title = (caseItem ? computeCaseTitle(caseItem) + " — " : "") + task.title;
+  const start = task.date.replace(/-/g,"");
+  const end = addDays(task.date,1).replace(/-/g,"");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: title,
+    dates: `${start}/${end}`,
+    details: task.notes || ""
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+function daysBetween(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000); }
+function fmtLong(k){ const d=parseKey(k); return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
+function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function uniqueCourts(){
+  const set = new Set();
+  state.cases.forEach(c=>{ if(c.court && c.court.trim()) set.add(c.court.trim()); });
+  return Array.from(set).sort();
+}
+function computeCaseTitle(c){
+  if(c.titleSource==="subject" && c.subject) return c.subject;
+  const wantRole = c.titleSource==="client" ? "Client" : "Opponent";
+  const party = (c.parties||[]).find(p=>p.role===wantRole);
+  if(party) return wantRole==="Opponent" ? `v. ${party.name}` : party.name;
+  if(c.subject) return c.subject;
+  if(c.parties && c.parties[0]) return c.parties[0].name;
+  return "Untitled case";
+}
+
+/* ================= AUTH ================= */
+let authMode = "signin";
+document.getElementById("tab-signin").onclick = ()=>{ authMode="signin"; document.getElementById("tab-signin").classList.add("active"); document.getElementById("tab-signup").classList.remove("active"); document.getElementById("auth-submit").textContent="Sign in"; };
+document.getElementById("tab-signup").onclick = ()=>{ authMode="signup"; document.getElementById("tab-signup").classList.add("active"); document.getElementById("tab-signin").classList.remove("active"); document.getElementById("auth-submit").textContent="Create account"; };
+
+document.getElementById("auth-submit").onclick = async ()=>{
+  const email = document.getElementById("auth-email").value.trim();
+  const pw = document.getElementById("auth-password").value;
+  const errEl = document.getElementById("auth-error");
+  errEl.textContent="";
+  if(!email || !pw){ errEl.textContent="Enter an email and password."; return; }
+  try{
+    if(authMode==="signup") await auth.createUserWithEmailAndPassword(email, pw);
+    else await auth.signInWithEmailAndPassword(email, pw);
+  }catch(e){ errEl.textContent = e.message; }
+};
+
+async function googleSignIn(){
+  const errEl = document.getElementById("auth-error");
+  if(errEl) errEl.textContent = "";
+  const provider = new firebase.auth.GoogleAuthProvider();
+  function reportError(msg){
+    if(errEl) errEl.textContent = msg;
+    showToast(msg);
+  }
+  try{
+    await auth.signInWithPopup(provider);
+  }catch(e){
+    const popupFailed = e && ["auth/popup-blocked","auth/cancelled-popup-request","auth/popup-closed-by-user","auth/operation-not-supported-in-this-environment"].includes(e.code);
+    if(popupFailed){
+      try{ await auth.signInWithRedirect(provider); }
+      catch(e2){ reportError(e2.message); }
+    } else {
+      reportError(e.message);
+    }
+  }
+}
+
+auth.getRedirectResult().then(result=>{
+  if(result && result.user){
+    state.user = result.user;
+    const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+    if(credential && credential.accessToken){
+      state.googleAccessToken = credential.accessToken;
+      state.googleConnected = true;
+      render();
+    } else {
+      showToast("Google didn't grant calendar access this time — please try Reconnect again.");
+    }
+  }
+}).catch(e=>{
+  const errEl = document.getElementById("auth-error");
+  if(errEl) errEl.textContent = e.message;
+  showToast(e.message);
+  console.error("Google redirect sign-in error:", e);
+});
+document.getElementById("google-signin-btn").onclick = googleSignIn;
+document.getElementById("signout-btn").onclick = ()=> { state.googleAccessToken=null; state.googleConnected=false; auth.signOut(); };
+
+auth.onAuthStateChanged(user=>{
+  const loadingScreen = document.getElementById("loading-screen");
+  if(loadingScreen) loadingScreen.style.display = "none";
+  if(user){
+    state.user = user;
+    if(!state.googleConnected){
+      const sessionToken = loadTokenFromSession();
+      if(sessionToken){
+        state.googleAccessToken = sessionToken;
+        state.googleConnected = true;
+      } else {
+        state.googleConnected = user.providerData.some(p=>p.providerId==="google.com") && !!state.googleAccessToken;
+      }
+    }
+    document.getElementById("auth-screen").classList.add("hidden");
+    document.getElementById("app-shell").classList.remove("hidden");
+    attachListeners(user.uid);
+  } else {
+    state.user = null;
+    state.googleAccessToken = null;
+    state.googleConnected = false;
+    clearTokenFromSession();
+    document.getElementById("auth-screen").classList.remove("hidden");
+    document.getElementById("app-shell").classList.add("hidden");
+    if(unsubCases) unsubCases(); if(unsubTasks) unsubTasks(); if(unsubChecklist) unsubChecklist(); if(unsubSettings) unsubSettings();
+  }
+});
+
+/* ================= FIRESTORE SYNC ================= */
+function coll(name){ return db.collection("users").doc(state.user.uid).collection(name); }
+function attachListeners(uidVal){
+  unsubCases = db.collection("users").doc(uidVal).collection("cases").onSnapshot(snap=>{ state.cases = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
+  unsubTasks = db.collection("users").doc(uidVal).collection("tasks").onSnapshot(snap=>{ state.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
+  unsubChecklist = db.collection("users").doc(uidVal).collection("checklist").onSnapshot(snap=>{ state.checklist = snap.docs.map(d=>({id:d.id, ...d.data()})); render(); });
+  unsubSettings = db.collection("users").doc(uidVal).collection("meta").doc("settings").onSnapshot(snap=>{
+    const d = snap.data() || {};
+    state.alertDays = d.alertDays ?? 7;
+    state.customCaseTypes = d.customCaseTypes || [];
+    state.customProcedureTypes = d.customProcedureTypes || [];
+    state.checklistTemplates = d.checklistTemplates || {};
+    state.hearingPrepDefaults = d.hearingPrepDefaults || [];
+    state.reportHeader = d.reportHeader || "";
+    state.onboardDismissed = !!d.onboardDismissed;
+    state.calendarEverConnected = !!d.calendarEverConnected;
+    const wasUnset = !state.hasSeenQuickRef && !d.hasSeenQuickRef;
+    state.hasSeenQuickRef = !!d.hasSeenQuickRef;
+    render();
+    if(wasUnset && !document.getElementById("modal-root").innerHTML){
+      state.hasSeenQuickRef = true; saveSettings();
+      openQuickReference(true);
+    }
+  });
+}
+function saveSettings(){
+  coll("meta").doc("settings").set({ alertDays: state.alertDays, customCaseTypes: state.customCaseTypes, customProcedureTypes: state.customProcedureTypes, onboardDismissed: state.onboardDismissed, calendarEverConnected: state.calendarEverConnected, hasSeenQuickRef: state.hasSeenQuickRef, checklistTemplates: state.checklistTemplates, hearingPrepDefaults: state.hearingPrepDefaults, reportHeader: state.reportHeader });
+}
+function letterheadHtml(){
+  return (state.reportHeader && state.reportHeader.trim()) ? `<div class="p-letterhead">${esc(state.reportHeader)}</div>` : "";
+}
+function stripId(t){ const {id, ...rest}=t; return rest; }
+
+function saveCase(data){
+  const promise = data.id
+    ? (()=>{ const {id, ...rest} = data; return coll("cases").doc(id).set(rest); })()
+    : (()=>{ const {id, ...rest} = data; return coll("cases").add({...rest, createdAt: Date.now()}); })();
+  return promise.catch(e=>{
+    console.error("Case save failed:", e);
+    showToast("Couldn't save the case — check your connection and try again.");
+    throw e; // stop dependent .then() work (linking, templates, first-hearing) from running on a failed save
+  });
+}
+function deleteCaseDoc(id){
+  coll("cases").doc(id).delete();
+  state.tasks.filter(t=>t.caseId===id).forEach(t=>{ coll("tasks").doc(t.id).delete(); if(t.googleEventId) deleteFromGoogleCalendar(t.googleEventId); });
+  state.checklist.filter(c=>c.caseId===id).forEach(c=> coll("checklist").doc(c.id).delete());
+  state.cases.forEach(c=>{ if(c.linkedCaseIds && c.linkedCaseIds.includes(id)){ coll("cases").doc(c.id).set({...stripId(c), linkedCaseIds: c.linkedCaseIds.filter(x=>x!==id)}); } });
+}
+async function saveTask(data){
+  let docId = data.id;
+  const payload = stripId(data);
+  try{
+    if(docId){ await coll("tasks").doc(docId).set(payload); }
+    else { const ref = await coll("tasks").add(payload); docId = ref.id; }
+  }catch(e){
+    console.error("Task save failed:", e);
+    showToast("Couldn't save — check your connection and try again. Nothing was lost from the form.");
+    return null;
+  }
+  if(state.googleConnected && state.googleAccessToken){
+    const caseItem = state.cases.find(c=>c.id===payload.caseId);
+    const result = await pushToGoogleCalendar({...payload, id:docId}, caseItem);
+    if(result && result.needsReconnect){ state.googleConnected=false; clearTokenFromSession(); render(); }
+    else if(result && result.error){ showToast(result.message); }
+    else if(result && result.id){
+      coll("tasks").doc(docId).set({...payload, googleEventId: result.id, googleEventLink: result.link || null});
+    }
+  }
+  return docId;
+}
+function deleteTaskDoc(id){
+  const t = state.tasks.find(x=>x.id===id);
+  coll("tasks").doc(id).delete();
+  if(t && t.googleEventId) deleteFromGoogleCalendar(t.googleEventId);
+}
+function toggleTaskDone(id){
+  const t = state.tasks.find(x=>x.id===id);
+  const nowDone = !t.completed;
+  coll("tasks").doc(id).set({...stripId(t), completed: nowDone, completedAt: nowDone ? Date.now() : null});
+}
+function ensureCustomCaseType(t){ if(t && !CASE_TYPES.includes(t) && !state.customCaseTypes.includes(t)){ state.customCaseTypes.push(t); saveSettings(); } }
+function ensureCustomProcedureType(t){ if(t && !PROCEDURE_TYPES.includes(t) && !state.customProcedureTypes.includes(t)){ state.customProcedureTypes.push(t); saveSettings(); } }
+
+function saveChecklistItem(data){
+  const promise = data.id
+    ? (()=>{ const {id, ...rest}=data; return coll("checklist").doc(id).set(rest); })()
+    : (()=>{ const {id, ...rest}=data; return coll("checklist").add({...rest, createdAt: Date.now()}); })();
+  return promise.catch(e=>{
+    console.error("Checklist save failed:", e);
+    showToast("Couldn't save the checklist item — check your connection and try again.");
+  });
+}
+function deleteChecklistItem(id){ coll("checklist").doc(id).delete(); }
+function toggleChecklistDone(id){
+  const c = state.checklist.find(x=>x.id===id);
+  const nowDone = !c.done;
+  coll("checklist").doc(id).set({...stripId(c), done: nowDone, doneAt: nowDone ? Date.now() : null});
+}
+
+/* ================= GOOGLE CALENDAR ================= */
+async function pushToGoogleCalendar(task, caseItem){
+  if(!state.googleAccessToken) return null;
+  const summary = (caseItem ? computeCaseTitle(caseItem) + " — " : "") + task.title;
+  const overrides = task.flag==="critical"
+    ? [{method:"popup", minutes: 3*24*60}, {method:"popup", minutes: 24*60}, {method:"popup", minutes: 60}]
+    : [{method:"popup", minutes: 24*60}, {method:"popup", minutes: 60}];
+  const body = { summary, description: task.notes||"", start:{date: task.date}, end:{date: addDays(task.date,1)}, reminders: { useDefault:false, overrides } };
+  try{
+    let url = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+    let method = "POST";
+    if(task.googleEventId){ url += "/" + task.googleEventId; method = "PUT"; }
+    const res = await fetch(url, { method, headers:{ "Authorization":"Bearer "+state.googleAccessToken, "Content-Type":"application/json" }, body: JSON.stringify(body) });
+    if(res.status===401 || res.status===403){ return {needsReconnect:true}; }
+    if(!res.ok){
+      let detail = "";
+      try{ const errBody = await res.json(); detail = errBody?.error?.message || ""; }catch(e){}
+      return { error:true, message: `Google Calendar declined the sync (${res.status})${detail?": "+detail:""}.` };
+    }
+    const data = await res.json();
+    return { id: data.id, link: data.htmlLink || null };
+  }catch(e){
+    console.error("calendar push failed", e);
+    return { error:true, message: "Couldn't reach Google Calendar — check your connection and try again." };
+  }
+}
+async function deleteFromGoogleCalendar(eventId){
+  if(!state.googleAccessToken || !eventId) return;
+  try{ await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, { method:"DELETE", headers:{ "Authorization":"Bearer "+state.googleAccessToken } }); }catch(e){}
+}
+function saveTokenToSession(accessToken, expiresInSeconds){
+  try{
+    const expiresAt = Date.now() + (Number(expiresInSeconds || 3300) * 1000);
+    sessionStorage.setItem("docket_g_token", accessToken);
+    sessionStorage.setItem("docket_g_token_expiry", String(expiresAt));
+  }catch(e){}
+}
+function loadTokenFromSession(){
+  try{
+    const token = sessionStorage.getItem("docket_g_token");
+    const expiry = Number(sessionStorage.getItem("docket_g_token_expiry") || 0);
+    if(token && expiry && Date.now() < expiry) return token;
+    if(token){ sessionStorage.removeItem("docket_g_token"); sessionStorage.removeItem("docket_g_token_expiry"); }
+  }catch(e){}
+  return null;
+}
+function clearTokenFromSession(){
+  try{ sessionStorage.removeItem("docket_g_token"); sessionStorage.removeItem("docket_g_token_expiry"); }catch(e){}
+}
+
+let gisTokenClient = null;
+function getGisTokenClient(){
+  if(gisTokenClient) return gisTokenClient;
+  if(!window.google || !window.google.accounts || !window.google.accounts.oauth2){
+    showToast("Google's sign-in library hasn't finished loading yet — try again in a moment.");
+    return null;
+  }
+  gisTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: window.GOOGLE_OAUTH_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/calendar.events",
+    callback: (tokenResponse)=>{
+      if(tokenResponse && tokenResponse.access_token){
+        state.googleAccessToken = tokenResponse.access_token;
+        state.googleConnected = true;
+        state.calendarEverConnected = true;
+        saveTokenToSession(tokenResponse.access_token, tokenResponse.expires_in);
+        saveSettings();
+        showToast("Google Calendar connected.");
+        render();
+        if(state.tasks.filter(t=>!t.completed && !t.googleEventId).length > 0){
+          syncAllUnsynced(true);
+        }
+      } else {
+        showToast("Google didn't grant calendar access this time — please try again.");
+      }
+    },
+    error_callback: (err)=>{
+      if(err && err.type==="popup_closed") return;
+      showToast("Couldn't connect Google Calendar: " + (err && err.type ? err.type : "unknown error"));
+    }
+  });
+  return gisTokenClient;
+}
+window.connectGoogleCalendar = ()=>{
+  const client = getGisTokenClient();
+  if(client) client.requestAccessToken();
+};
+window.syncAllUnsynced = async (silent)=>{
+  if(!state.googleConnected || !state.googleAccessToken){ if(!silent) showToast("Connect Google Calendar first."); return; }
+  const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId);
+  if(unsynced.length===0){ if(!silent) showToast("Nothing to sync — you're all caught up."); return; }
+  if(!silent) showToast(`Syncing ${unsynced.length} date${unsynced.length===1?'':'s'}…`);
+  let successCount = 0;
+  for(const t of unsynced){
+    const caseItem = state.cases.find(c=>c.id===t.caseId);
+    const result = await pushToGoogleCalendar(t, caseItem);
+    if(result && result.needsReconnect){ state.googleConnected=false; clearTokenFromSession(); showToast("Reconnect needed partway through — synced what it could, reconnect and try again for the rest."); render(); return; }
+    if(result && result.id){
+      await coll("tasks").doc(t.id).set({...stripId(t), googleEventId: result.id, googleEventLink: result.link || null});
+      successCount++;
+    }
+  }
+  showToast(silent ? `Caught up ${successCount} date${successCount===1?'':'s'} that synced while disconnected.` : `Synced ${successCount} of ${unsynced.length} date${unsynced.length===1?'':'s'}.`);
+  if(!silent) closeModal();
+};
+window.reconnectGoogle = window.connectGoogleCalendar;
+function showToast(message){
+  const el = document.createElement("div");
+  el.className = "app-toast";
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(()=>{ el.classList.add("show"); }, 10);
+  setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(), 400); }, 5000);
+}
+
+/* ================= TAB NAV ================= */
+document.getElementById("tab-calendar").onclick = ()=>{ state.view="calendar"; render(); };
+document.getElementById("tab-cases").onclick = ()=>{ state.view="cases"; render(); };
+document.getElementById("tab-checklist").onclick = ()=>{ state.view="checklist"; render(); };
+document.getElementById("settings-btn").onclick = ()=> openSettingsModal();
+document.getElementById("print-btn").onclick = ()=> printTodaysDocket();
+function printTodaysDocket(){
+  const tk = todayKey();
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const dueToday = state.tasks.filter(t=>!t.completed && t.date===tk).sort((a,b)=>(a.kind==="deadline")-(b.kind==="deadline"));
+  const overdue = state.tasks.filter(t=>!t.completed && t.date<tk).sort((a,b)=>a.date.localeCompare(b.date));
+  const openChecklist = state.checklist.filter(x=>!x.done);
+  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?"⏳ ":"📅 "}${esc(t.title)}</strong> — ${esc(t.type)}
+    <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):"No case linked"}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}${t.date!==tk?` · ${fmtLong(t.date)}`:""}</div></div>`;
+  document.getElementById("print-area").classList.remove("rtl");
+  document.getElementById("print-area").innerHTML = `
+    ${letterheadHtml()}
+    <h1>Docket — Today</h1>
+    <div class="p-sub">${fmtLong(tk)}</div>
+    <div class="p-section">
+      <div class="p-section-title">Today</div>
+      ${dueToday.length===0?`<div class="p-item">Nothing due today.</div>`:dueToday.map(itemHtml).join("")}
+    </div>
+    ${overdue.length>0?`<div class="p-section"><div class="p-section-title">Overdue</div>${overdue.map(itemHtml).join("")}</div>`:""}
+    ${openChecklist.length>0?`<div class="p-section"><div class="p-section-title">Open checklist items</div>
+      ${openChecklist.map(it=>`<div class="p-item">☐ ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
+    </div>`:""}
+  `;
+  window.print();
+}
+window.printCaseHistory = (c)=>{
+  const tasks = state.tasks.filter(t=>t.caseId===c.id).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const checklistItems = state.checklist.filter(x=>x.caseId===c.id);
+  const log = (c.noteLog||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+
+  const taskHtml = (t)=>{
+    const label = t.flag==="critical" ? "CRITICAL — " : (t.kind==="deadline" ? "Deadline — " : "");
+    return `<div class="p-item">
+      <strong>${esc(label)}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
+      ${t.notes?`<div class="p-meta">${esc(t.notes)}</div>`:""}
+      ${t.postponeReason?`<div class="p-meta">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
+    </div>`;
+  };
+
+  document.getElementById("print-area").classList.remove("rtl");
+  document.getElementById("print-area").innerHTML = `
+    ${letterheadHtml()}
+    <h1>${esc(computeCaseTitle(c))}</h1>
+    <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.authorityType==="court"&&c.chamber?(" · "+esc(c.chamber)):""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?(" · Prosecutor: "+esc(c.prosecutorInCharge)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}${c.partialNumber?(" · Partial "+esc(c.partialNumber)):""}${c.generalNumber?(" · General "+esc(c.generalNumber)):""}</div>
+
+    ${(c.parties&&c.parties.length)?`<div class="p-section">
+      <div class="p-section-title">Parties</div>
+      ${c.parties.map(p=>`<div class="p-item"><strong>${esc(p.role)}:</strong> ${esc(p.name)}${p.phone?(" · "+esc(p.phone)):""}${p.email?(" · "+esc(p.email)):""}</div>`).join("")}
+    </div>`:""}
+
+    ${c.notes?`<div class="p-section"><div class="p-section-title">Notes</div><div class="p-item">${esc(c.notes)}</div></div>`:""}
+
+    ${log.length?`<div class="p-section"><div class="p-section-title">Case Log</div>
+      ${log.map(l=>`<div class="p-item">${fmtLong(l.date)} — ${esc(l.text)}</div>`).join("")}
+    </div>`:""}
+
+    <div class="p-section"><div class="p-section-title">All Procedures & Deadlines (${tasks.length})</div>
+      ${tasks.length===0?`<div class="p-item">None recorded.</div>`:tasks.map(taskHtml).join("")}
+    </div>
+
+    ${checklistItems.length?`<div class="p-section"><div class="p-section-title">Checklist</div>
+      ${checklistItems.map(it=>`<div class="p-item">${it.done?"☑":"☐"} ${esc(it.text)}</div>`).join("")}
+    </div>`:""}
+
+    ${(c.documents&&c.documents.length)?`<div class="p-section"><div class="p-section-title">Documents</div>
+      ${c.documents.map(d=>`<div class="p-item">${esc(d.label)} — ${esc(d.url)}</div>`).join("")}
+    </div>`:""}
+
+    <div class="p-sub" style="margin-top:20px;">Exported ${fmtLong(todayKey())}</div>
+  `;
+  window.print();
+};
+
+/* ================= WEEKLY / MONTHLY ACTIVITY REPORT ================= */
+// Period math: weeks run Sunday–Saturday (matching the calendar grid, which
+// already starts on Sunday). "Any date the checkbox got tapped, or any
+// procedure whose scheduled date falls in the period" is how membership is
+// decided — see openReportModal for the exact rules.
+function startOfWeek(key){
+  const d = parseKey(key);
+  d.setDate(d.getDate() - d.getDay());
+  return dateKey(d);
+}
+function endOfWeek(key){ return addDays(startOfWeek(key), 6); }
+function startOfMonth(y,m){ return dateKey(new Date(y,m,1)); }
+function endOfMonth(y,m){ return dateKey(new Date(y,m+1,0)); }
+function dayKeyFromTimestamp(ms){ return ms ? dateKey(new Date(ms)) : null; }
+
+function buildReportData(periodStartKey, periodEndKey){
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const inPeriod = (k)=> k && k>=periodStartKey && k<=periodEndKey;
+
+  // A task belongs in the report if its scheduled date falls in the period
+  // (covers hearings/procedures that happened or were due), OR — for tasks
+  // completed outside their own scheduled date, e.g. marked done late — if
+  // completedAt falls in the period.
+  const tasksInPeriod = state.tasks.filter(t=>
+    inPeriod(t.date) || inPeriod(dayKeyFromTimestamp(t.completedAt))
+  );
+  // A checklist item belongs if it was checked off in the period (the whole
+  // reason completion-tracking was added), or — for items still open but
+  // carrying their own deadline in the period — that deadline falls inside it.
+  const checklistInPeriod = state.checklist.filter(it=>
+    inPeriod(dayKeyFromTimestamp(it.doneAt)) || (!it.done && inPeriod(it.dueDate))
+  );
+
+  const caseIdsWithActivity = new Set([
+    ...tasksInPeriod.map(t=>t.caseId).filter(Boolean),
+    ...checklistInPeriod.map(it=>it.caseId).filter(Boolean)
+  ]);
+
+  const groups = Array.from(caseIdsWithActivity).map(caseId=>{
+    const c = casesById[caseId];
+    const groupTasks = tasksInPeriod.filter(t=>t.caseId===caseId).sort((a,b)=>a.date.localeCompare(b.date));
+    return {
+      caseId, caseObj: c,
+      tasks: groupTasks,
+      checklist: checklistInPeriod.filter(it=>it.caseId===caseId),
+      // "Next hearing" always reflects the soonest still-open Hearing for
+      // this case — if a hearing in this period got postponed via Continue
+      // Session, the replacement task IS that next hearing, so this
+      // automatically shows the rescheduled date, not just the old one.
+      nextHearing: nextHearingForCase(caseId),
+      wasPostponedThisPeriod: groupTasks.some(t=>t.completed && t.postponeReason)
+    };
+  }).filter(g=>g.caseObj) // drop orphaned caseIds defensively
+    .sort((a,b)=> computeCaseTitle(a.caseObj).localeCompare(computeCaseTitle(b.caseObj)));
+
+  const generalChecklist = checklistInPeriod.filter(it=>!it.caseId);
+  const standaloneTasks = tasksInPeriod.filter(t=>!t.caseId);
+
+  return { groups, generalChecklist, standaloneTasks, totalTasks: tasksInPeriod.length, totalChecklist: checklistInPeriod.length };
+}
+
+window.openReportModal = ()=>{
+  window._reportMode = window._reportMode || "week";
+  window._reportAnchor = window._reportAnchor || todayKey();
+  window._reportLang = window._reportLang || "en";
+  renderReportModal();
+};
+function reportPeriodBounds(){
+  if(window._reportMode==="week"){
+    return { start: startOfWeek(window._reportAnchor), end: endOfWeek(window._reportAnchor) };
+  }
+  const d = parseKey(window._reportAnchor);
+  return { start: startOfMonth(d.getFullYear(), d.getMonth()), end: endOfMonth(d.getFullYear(), d.getMonth()) };
+}
+function reportPeriodLabel(lang){
+  const { start, end } = reportPeriodBounds();
+  if(window._reportMode==="week") return `${fmtLongLang(start,lang)} – ${fmtLongLang(end,lang)}`;
+  const d = parseKey(window._reportAnchor);
+  return lang==="ar" ? `${MONTHS_AR[d.getMonth()]} ${d.getFullYear()}` : `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+window.setReportMode = (mode)=>{ window._reportMode = mode; renderReportModal(); };
+window.setReportLang = (lang)=>{ window._reportLang = lang; renderReportModal(); };
+window.shiftReportPeriod = (dir)=>{
+  if(window._reportMode==="week"){
+    window._reportAnchor = addDays(window._reportAnchor, dir*7);
+  } else {
+    const d = parseKey(window._reportAnchor);
+    d.setMonth(d.getMonth()+dir, 1);
+    window._reportAnchor = dateKey(d);
+  }
+  renderReportModal();
+};
+// Shared between the on-screen preview and the printed output, parameterized
+// by language, so the two never drift out of sync with each other.
+function caseSubtitleLine(c, lang){
+  const S = REPORT_STRINGS[lang];
+  const bits = [caseTypeLabel(c.caseType,lang), statusLabel(c.status,lang)];
+  if(c.court) bits.push(`${S.court}: ${esc(c.court)}`);
+  return bits.filter(Boolean).join(" · ");
+}
+function nextHearingLine(g, lang){
+  const S = REPORT_STRINGS[lang];
+  if(g.nextHearing){
+    return `${S.nextHearing}: ${fmtLongLang(g.nextHearing.date, lang)}${g.wasPostponedThisPeriod?` (${S.continuedPrefix})`:""}`;
+  }
+  return S.noNextHearing;
+}
+function reportTaskStatus(t, lang){
+  const S = REPORT_STRINGS[lang];
+  if(t.completed) return t.postponeReason ? `${S.continuedPrefix} — ${S.reasonLabel}: ${esc(t.postponeReason)}` : S.completed;
+  return t.date < todayKey() ? S.overdue : S.scheduled;
+}
+function renderReportModal(){
+  const { start, end } = reportPeriodBounds();
+  const data = buildReportData(start, end);
+  const hasAnything = data.groups.length>0 || data.generalChecklist.length>0 || data.standaloneTasks.length>0;
+  const lang = window._reportLang || "en";
+  const S = REPORT_STRINGS[lang];
+  const rtl = lang==="ar";
+
+  const taskLine = (t)=>{
+    const status = reportTaskStatus(t, lang);
+    return `<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;">
+      <div><strong>${esc(t.title)}</strong> — ${procedureTypeLabel(t.type,lang)} — ${fmtLongLang(t.date,lang)}</div>
+      <div style="color:var(--muted);">${status}</div>
+      ${t.notes?`<div style="color:var(--muted);font-style:italic;">${esc(t.notes)}</div>`:""}
+    </div>`;
+  };
+  const checklistLine = (it)=> `<div style="padding:4px 0;font-size:13px;">${it.done?ICONS.square_check:ICONS.square} ${esc(it.text)}${it.dueDate&&!it.done?` <span style="color:var(--muted);">— ${S.due} ${fmtLongLang(it.dueDate,lang)}</span>`:""}</div>`;
+
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal wide" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Activity Report</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+
+      <div class="radio-row" style="margin-bottom:8px;">
+        <button type="button" class="radio-pill ${window._reportMode==='week'?'active':''}" onclick="setReportMode('week')">Weekly</button>
+        <button type="button" class="radio-pill ${window._reportMode==='month'?'active':''}" onclick="setReportMode('month')">Monthly</button>
+      </div>
+      <div class="radio-row" style="margin-bottom:12px;">
+        <button type="button" class="radio-pill ${lang==='en'?'active':''}" onclick="setReportLang('en')">English</button>
+        <button type="button" class="radio-pill ${lang==='ar'?'active':''}" onclick="setReportLang('ar')">العربية</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <button class="icon-btn" onclick="shiftReportPeriod(-1)">${ICONS.chevron_left}</button>
+        <span class="serif" style="font-size:15px;flex:1;text-align:center;color:var(--navy-dark);">${reportPeriodLabel(lang)}</span>
+        <button class="icon-btn" onclick="shiftReportPeriod(1)">${ICONS.chevron_right}</button>
+      </div>
+
+      ${!hasAnything ? `<div style="text-align:center;padding:30px 10px;color:var(--muted);font-size:13.5px;">${S.nothing}</div>` : `
+        <div class="${rtl?'rtl-preview':''}" dir="${rtl?'rtl':'ltr'}" style="max-height:50vh;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 12px;background:var(--surface);margin-bottom:14px;">
+          ${data.groups.map(g=>`
+            <div style="padding:10px 0;border-bottom:1px solid var(--line);">
+              <div class="serif" style="font-size:14.5px;color:var(--navy-dark);margin-bottom:2px;">${esc(computeCaseTitle(g.caseObj))}</div>
+              <div style="font-size:11.5px;color:var(--muted);margin-bottom:4px;">${caseSubtitleLine(g.caseObj,lang)}</div>
+              <div style="font-size:12.5px;color:var(--brass);font-weight:600;margin-bottom:6px;">${nextHearingLine(g,lang)}</div>
+              ${g.tasks.map(taskLine).join("")}
+              ${g.checklist.map(checklistLine).join("")}
+            </div>`).join("")}
+          ${data.standaloneTasks.length ? `<div style="padding:10px 0;border-bottom:1px solid var(--line);">
+              <div class="serif" style="font-size:14.5px;color:var(--navy-dark);margin-bottom:4px;">${S.standalone}</div>
+              ${data.standaloneTasks.map(taskLine).join("")}
+            </div>` : ""}
+          ${data.generalChecklist.length ? `<div style="padding:10px 0;">
+              <div class="serif" style="font-size:14.5px;color:var(--navy-dark);margin-bottom:4px;">${S.general}</div>
+              ${data.generalChecklist.map(checklistLine).join("")}
+            </div>` : ""}
+        </div>
+      `}
+
+      <button class="btn-primary" style="width:100%;" ${!hasAnything?'disabled':''} onclick="printActivityReport()">${ICONS.print} Print / Save as PDF</button>
+    </div>
+  </div>`;
+}
+window.printActivityReport = ()=>{
+  const { start, end } = reportPeriodBounds();
+  const data = buildReportData(start, end);
+  const lang = window._reportLang || "en";
+  const S = REPORT_STRINGS[lang];
+  const rtl = lang==="ar";
+
+  const taskHtml = (t)=>{
+    const status = reportTaskStatus(t, lang);
+    return `<div class="p-item"><strong>${esc(t.title)}</strong> — ${procedureTypeLabel(t.type,lang)} — ${fmtLongLang(t.date,lang)}
+      <div class="p-meta">${status}${t.notes?" · "+esc(t.notes):""}</div>
+    </div>`;
+  };
+  const checklistHtml = (it)=> `<div class="p-item">${it.done?"☑":"☐"} ${esc(it.text)}${it.dueDate&&!it.done?` <span class="p-meta">— ${S.due} ${fmtLongLang(it.dueDate,lang)}</span>`:""}</div>`;
+
+  const printArea = document.getElementById("print-area");
+  printArea.classList.toggle("rtl", rtl);
+  printArea.setAttribute("dir", rtl?"rtl":"ltr");
+  printArea.innerHTML = `
+    ${letterheadHtml()}
+    <h1>${S.activityReport}</h1>
+    <div class="p-sub">${(window._reportMode==="week"?S.weekOf:S.monthOf)} ${reportPeriodLabel(lang)}</div>
+    ${data.groups.length===0 && data.standaloneTasks.length===0 && data.generalChecklist.length===0 ? `<div class="p-item">${S.nothing}</div>` : `
+    ${data.groups.map(g=>`
+      <div class="p-section">
+        <div class="p-section-title">${esc(computeCaseTitle(g.caseObj))}</div>
+        <div class="p-meta" style="margin-bottom:4px;">${caseSubtitleLine(g.caseObj,lang)}</div>
+        <div class="p-item" style="font-weight:600;">${nextHearingLine(g,lang)}</div>
+        ${g.tasks.map(taskHtml).join("")}
+        ${g.checklist.map(checklistHtml).join("")}
+      </div>`).join("")}
+    ${data.standaloneTasks.length?`<div class="p-section"><div class="p-section-title">${S.standalone}</div>${data.standaloneTasks.map(taskHtml).join("")}</div>`:""}
+    ${data.generalChecklist.length?`<div class="p-section"><div class="p-section-title">${S.general}</div>${data.generalChecklist.map(checklistHtml).join("")}</div>`:""}
+    `}
+    <div class="p-sub" style="margin-top:20px;">${S.prepared} ${fmtLongLang(todayKey(),lang)}</div>
+  `;
+  window.print();
+};
+
+document.getElementById("fab-btn").onclick = ()=>{
+  if(state.view==="calendar") openTaskModal(null);
+  else if(state.view==="cases") openCaseModal(null);
+  else openChecklistModal(null);
+};
+
+/* ================= RENDER ================= */
+function render(){
+  ["calendar","cases","checklist"].forEach(v=>{
+    document.getElementById("tab-"+v).classList.toggle("active", state.view===v);
+    document.getElementById("view-"+v).classList.toggle("hidden", state.view!==v);
+  });
+
+  const tk = todayKey();
+  const upcoming = state.tasks.filter(t=>!t.completed).map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const headsUpItems = upcoming.filter(t=> t.delta>=0 && (t.delta<=state.alertDays || (t.flag==="fyi" && t.delta<=7)) && t.flag!=="critical");
+  const overdueItems = upcoming.filter(t=>t.delta<0);
+  state._headsUpItems = headsUpItems;
+  state._overdueItems = overdueItems;
+  const staleCases = state.cases.filter(c=> c.status==="Active" && !state.tasks.some(t=>t.caseId===c.id && !t.completed));
+  state._staleCases = staleCases;
+
+  const badges = document.getElementById("header-badges");
+  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" title="${overdueItems.length} overdue" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:11px 8px;min-height:36px;box-sizing:border-box;">${ICONS.triangle_exclamation}${overdueItems.length}</button>`:"") +
+                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" title="${headsUpItems.length} due soon" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:11px 8px;min-height:36px;box-sizing:border-box;">${ICONS.hourglass_half}${headsUpItems.length}</button>`:"") +
+                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" title="${staleCases.length} no upcoming dates" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:3px;padding:11px 8px;min-height:36px;box-sizing:border-box;">${ICONS.folder_open}${staleCases.length}</button>`:"");
+  renderBadgeMenu();
+
+  renderInstallBanner();
+  renderReconnectBanner();
+  if(state.view==="calendar") renderCalendar(upcoming);
+  else if(state.view==="cases") renderCases();
+  else renderChecklist();
+}
+
+let openBadgeMenu = null;
+window.toggleBadgeMenu = (which)=>{ openBadgeMenu = (openBadgeMenu===which) ? null : which; renderBadgeMenu(); };
+function renderBadgeMenu(){
+  const wrap = document.getElementById("badge-menu-wrap");
+  if(!wrap) return;
+  if(!openBadgeMenu){ wrap.innerHTML=""; return; }
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const isStale = openBadgeMenu==="stale";
+  const items = openBadgeMenu==="overdue" ? (state._overdueItems||[]) : isStale ? (state._staleCases||[]) : (state._headsUpItems||[]);
+  const title = openBadgeMenu==="overdue" ? "Overdue" : isStale ? "No upcoming dates" : "Due soon";
+  wrap.innerHTML = `<div style="position:absolute;right:16px;top:64px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:380px;width:90vw;max-height:60vh;overflow-y:auto;z-index:150;padding:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 4px;">
+      <span class="section-label" style="margin-bottom:0;">${title} (${items.length})</span>
+      <button onclick="toggleBadgeMenu('${openBadgeMenu}')" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
+    </div>
+    ${isStale
+      ? items.map(c=>`<div onclick="toggleBadgeMenu('stale');openCaseDetail('${c.id}')" style="cursor:pointer;">${caseCardHtml(c)}</div>`).join("")
+      : items.map(t=>`<div onclick="toggleBadgeMenu('${openBadgeMenu}');openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})" style="cursor:pointer;">${taskRowHtml(t, casesById[t.caseId], true)}</div>`).join("")}
+  </div>`;
+}
+function renderInstallBanner(){
+  const wrap = document.getElementById("install-banner-wrap");
+  if(state.onboardDismissed){ wrap.innerHTML=""; return; }
+  wrap.innerHTML = `<div class="install-banner">
+    <span>${ICONS.mobile_screen_button}</span>
+    <div style="flex:1;"><strong>One-tap access:</strong> your browser should offer an "Install" or "Add to Home Screen" option (address bar icon, or the ⋮ / Share menu).</div>
+    <button onclick="dismissBanner()" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
+  </div>`;
+}
+function dismissBanner(){ state.onboardDismissed = true; saveSettings(); render(); }
+window.dismissBanner = dismissBanner;
+
+function renderReconnectBanner(){
+  const wrap = document.getElementById("reconnect-banner-wrap");
+  if(state.calendarEverConnected && !state.googleConnected){
+    wrap.innerHTML = `<div class="install-banner" style="border-left-color:var(--brick);margin-top:10px;">
+      <span>${ICONS.calendar_days}</span>
+      <div style="flex:1;">Google Calendar sync needs to be reconnected (this happens periodically for security). Your dates are still safe — this only affects calendar syncing.</div>
+      <button class="btn-ghost" onclick="reconnectGoogle()">Reconnect</button>
+    </div>`;
+  } else { wrap.innerHTML = ""; }
+}
+
+/* ---- CALENDAR VIEW ---- */
+function renderCalendar(upcoming){
+  const y = state.cursorY, m = state.cursorM;
+  const tk = todayKey();
+  const tasksByDate = {};
+  state.tasks.forEach(t=>{ (tasksByDate[t.date] = tasksByDate[t.date]||[]).push(t); });
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+
+  const firstWd = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  let cells = "";
+  for(let i=0;i<firstWd;i++) cells += `<div></div>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const dt = new Date(y,m,d); const key = dateKey(dt);
+    const items = tasksByDate[key] || [];
+    const isToday = key===tk, isSel = key===state.selectedDay;
+    const hasOverdue = items.some(t=>!t.completed && daysBetween(tk,key)<0);
+    const activeItems = items.filter(t=>!t.completed);
+    const hasCritical = activeItems.some(t=>t.flag==="critical");
+    const seenTypes = new Set();
+    const uniqueDisplay = [];
+    activeItems.forEach(t=>{
+      if(!seenTypes.has(t.type) && uniqueDisplay.length<2){ seenTypes.add(t.type); uniqueDisplay.push(t); }
+    });
+    const iconsHtml = uniqueDisplay.map(t=>{
+      return `<span class="cal-icon" style="color:${colorForProcedure(t.type)};">${iconForProcedure(t.type)}</span>`;
+    }).join("");
+    const extraCount = activeItems.length - uniqueDisplay.length;
+    const moreLabel = extraCount>0 ? `<span style="font-size:8px;color:var(--muted);font-weight:700;">+${extraCount}</span>` : "";
+    const allDoneMark = (items.length>0 && activeItems.length===0) ? `<span class="cal-icon" style="color:#B9B29A;">${ICONS.check}</span>` : "";
+    cells += `<button class="cal-day ${isToday?'today':''} ${isSel?'selected':''} ${hasCritical?'has-critical':''}" onclick="selectDay('${key}')">
+      <span style="font-size:12.5px;font-weight:${isToday?700:500};color:${isToday?'var(--brass)':'var(--ink)'};">${d}</span>
+      <div style="display:flex;align-items:center;justify-content:center;gap:2px;min-height:12px;">${iconsHtml}${allDoneMark}${moreLabel}</div>
+      ${hasOverdue?'<div class="overdue-mark"></div>':''}
+    </button>`;
+  }
+
+  const dayItems = (tasksByDate[state.selectedDay]||[]).slice().sort((a,b)=>(a.completed?1:0)-(b.completed?1:0));
+  const tk2 = todayKey();
+  const criticalItems = state.tasks.filter(t=>t.flag==="critical" && !t.completed).map(t=>({...t, delta:daysBetween(tk2,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  // Keep today's hearing(s) visible for the whole day, even once checked off —
+  // this is what actually surfaces the linked prep checklist; hiding the card
+  // the instant you check the box was taking the checklist down with it.
+  const now = new Date();
+  const showTomorrow = now.getHours() >= 15; // after 3pm, look ahead instead of back
+  const courtDayKey = showTomorrow ? addDays(tk,1) : tk;
+  const courtDayHearings = state.tasks.filter(t=>t.type==="Hearing" && t.date===courtDayKey).map(t=>({...t, delta:daysBetween(tk,t.date)}));
+  const courtDayLabel = showTomorrow ? "Tomorrow in court" : "Today in court";
+
+  document.getElementById("view-calendar").innerHTML = `
+    ${courtDayHearings.length>0 ? `<div style="margin-bottom:14px;background:var(--panel);border:2px solid var(--navy);border-radius:10px;padding:12px 14px;">
+      <div class="section-label" style="color:var(--navy-dark);margin-bottom:8px;">${ICONS.gavel} ${courtDayLabel}</div>
+      ${courtDayHearings.map(t=>{
+        const caseItem = casesById[t.caseId];
+        const latestLog = (caseItem && caseItem.noteLog && caseItem.noteLog.length) ? caseItem.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date))[0] : null;
+        const chamberLine = (caseItem && caseItem.authorityType==="court" && caseItem.chamber) ? esc(caseItem.chamber) : "";
+        const prosecutorLine = (caseItem && caseItem.authorityType==="prosecution" && caseItem.prosecutorInCharge) ? `Prosecutor: ${esc(caseItem.prosecutorInCharge)}` : "";
+        const hasExtra = !!(chamberLine || prosecutorLine || (caseItem && caseItem.notes) || latestLog);
+        return `${taskRowHtml(t, caseItem, showTomorrow)}
+          ${hasExtra ? `<div style="margin:-6px 0 10px 4px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12.5px;line-height:1.5;">
+            ${chamberLine?`<div style="color:var(--muted);margin-bottom:4px;">${chamberLine}</div>`:""}
+            ${prosecutorLine?`<div style="color:var(--muted);margin-bottom:4px;">${prosecutorLine}</div>`:""}
+            ${caseItem&&caseItem.notes?`<div style="margin-bottom:${latestLog?'6px':'0'};"><strong>Case notes:</strong> ${esc(caseItem.notes)}</div>`:""}
+            ${latestLog?`<div><strong>Last log (${fmtLong(latestLog.date)}):</strong> ${esc(latestLog.text)}</div>`:""}
+          </div>` : ""}`;
+      }).join("")}
+    </div>` : ""}
+    ${criticalItems.length>0 ? `<div style="margin-bottom:14px;background:#FBEAE8;border:2px solid var(--brick);border-radius:10px;padding:12px 14px;">
+      <div class="section-label" style="color:var(--brick);margin-bottom:8px;">${ICONS.triangle_exclamation} Critical deadlines</div>
+      ${criticalItems.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+    </div>` : ""}
+    <div class="cal-card">
+      <div class="cal-header">
+        <button onclick="openMonthPicker()" style="background:none;border:none;padding:0;cursor:pointer;display:flex;align-items:center;gap:4px;" title="Jump to a month">
+          <span class="serif" style="font-size:17px;color:var(--navy-dark);">${MONTHS[m]} ${y}</span>
+          <span style="color:var(--muted);">${ICONS.chevron_down}</span>
+        </button>
+        <div style="display:flex;gap:6px;">
+          <button class="icon-btn" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;" onclick="gotoToday()">Today</button>
+          <button class="icon-btn" onclick="gotoMonth(-1)">${ICONS.chevron_left}</button>
+          <button class="icon-btn" onclick="gotoMonth(1)">${ICONS.chevron_right}</button>
+        </div>
+      </div>
+      <div id="cal-swipe-area">
+      <div class="cal-grid" style="margin-bottom:4px;">${WD.map(w=>`<div class="cal-wd">${w}</div>`).join("")}</div>
+      <div class="cal-grid">${cells}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:18px;">
+      <div class="section-label">${fmtLong(state.selectedDay)}${state.selectedDay===tk?' · Today':''}</div>
+      ${dayItems.length===0 ? `<div style="color:var(--muted);font-size:13.5px;padding:10px 2px;">Nothing scheduled this day.</div>` :
+        dayItems.map(t=>taskRowHtml(t, casesById[t.caseId], false)).join("")}
+    </div>
+    <div>
+      <div class="section-label">Upcoming</div>
+      ${upcoming.filter(t=>t.delta>=0).slice(0,8).map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+      ${upcoming.filter(t=>t.delta<0).length>0 ? `<div style="font-size:11.5px;color:#B23A32;font-weight:700;margin:6px 0;letter-spacing:.04em;text-transform:uppercase;">Overdue</div>` +
+        upcoming.filter(t=>t.delta<0).map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("") : ""}
+      ${upcoming.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">No upcoming dates. Tap + to add one.</div>` : ""}
+    </div>
+  `;
+  attachSwipeHandler();
+}
+function taskRowHtml(t, caseItem, showDate){
+  const isDeadline = t.kind==="deadline";
+  const isCritical = t.flag==="critical";
+  const isFyi = t.flag==="fyi";
+  const overdue = t.delta<0 && !t.completed;
+  const autoHeadsUp = !overdue && showDate && t.delta<=state.alertDays && t.delta>=0;
+  const fyiHeadsUp = isFyi && !overdue && typeof t.delta==="number" && t.delta<=7 && t.delta>=0;
+  const headsUp = !isCritical && (autoHeadsUp || fyiHeadsUp);
+  const baseIcon = iconForProcedure(t.type);
+  const baseColor = colorForProcedure(t.type);
+  const icon = baseIcon;
+  const color = overdue ? "var(--overdue)" : (isCritical ? "var(--critical)" : baseColor);
+  const countdownLabel = t.delta===0 ? "Today" : `${t.delta}d`;
+  let statusBadge = "";
+  if(overdue){ statusBadge = `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${isDeadline?'Missed deadline':'Overdue'}</span>`; }
+  else if(!t.completed && typeof t.delta==="number"){
+    if(isCritical) statusBadge = `<span class="badge" style="border-color:var(--critical);color:var(--critical);background:#F6E8EC;">CRITICAL · ${countdownLabel}</span>`;
+    else if(headsUp) statusBadge = `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${countdownLabel} · heads-up</span>`;
+  }
+  const isNextHearingForCase = caseItem && t.type==="Hearing" && !t.completed && nextHearingForCase(caseItem.id)?.id===t.id;
+  const prepItems = state.checklist.filter(c=> c.taskId===t.id || (isNextHearingForCase && c.followNextHearing && c.caseId===caseItem.id));
+  const prepDone = prepItems.filter(c=>c.done).length;
+  const prepHtml = prepItems.length ? `
+    <div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);">
+      <div style="font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Prep for this date — ${prepDone}/${prepItems.length}</div>
+      ${prepItems.map(it=>`
+        <div style="display:flex;align-items:center;gap:7px;padding:2px 0;" onclick="event.stopPropagation()">
+          <button class="task-check" style="width:16px;height:16px;${it.done?'border-color:var(--sage);':''}" onclick="toggleChecklistDone('${it.id}')">${it.done?ICONS.check:''}</button>
+          <span style="font-size:12.5px;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
+        </div>`).join("")}
+    </div>` : "";
+  return `<div class="task-row ${overdue?'overdue':''}" style="border-left:4px solid ${color};${isCritical?'border-width:5px;':''}">
+    <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?ICONS.check:''}</button>
+    <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="task-title-icon" style="color:${color};">${icon}</span>
+        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}${isDeadline?' <span style="font-size:11px;color:var(--muted);font-weight:500;">(deadline)</span>':''}</span>
+        ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="Open in Google Calendar" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:
+          `<a href="${esc(googleCalendarAddLink(t, caseItem))}" target="_blank" onclick="event.stopPropagation()" title="Add to Google Calendar" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>`}
+        ${statusBadge}
+      </div>
+      <div class="task-meta">${caseItem?computeCaseTitle(caseItem):"No case linked"}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${esc(caseItem.court)}`:""}${showDate?` · ${fmtLong(t.date)}`:""}</div>
+      ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
+      ${prepHtml}
+    </div>
+    <button onclick="deleteTaskDoc('${t.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
+  </div>`;
+}
+window.selectDay = (k)=>{ state.selectedDay=k; render(); };
+window.gotoMonth = (delta)=>{ let m=state.cursorM+delta, y=state.cursorY; if(m<0){m=11;y--;} if(m>11){m=0;y++;} state.cursorM=m; state.cursorY=y; render(); attachSwipeHandler(); };
+function attachSwipeHandler(){
+  const el = document.getElementById("cal-swipe-area");
+  if(!el) return;
+  let startX=0, startY=0, tracking=false;
+  el.ontouchstart = (e)=>{ startX=e.touches[0].clientX; startY=e.touches[0].clientY; tracking=true; };
+  el.ontouchend = (e)=>{
+    if(!tracking) return; tracking=false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5){ gotoMonth(dx<0?1:-1); }
+  };
+}
+window.openMonthPicker = ()=>{
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Jump to a month</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div class="field"><span class="field-label">Year</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="icon-btn" onclick="shiftPickerYear(-1)">${ICONS.chevron_left}</button>
+          <span id="picker-year" class="serif" style="font-size:18px;flex:1;text-align:center;">${state.cursorY}</span>
+          <button class="icon-btn" onclick="shiftPickerYear(1)">${ICONS.chevron_right}</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        ${MONTHS.map((mn,i)=>`<button class="btn-ghost" data-month="${i}" onclick="jumpToMonth(${i})" style="${i===state.cursorM?'background:var(--navy);color:var(--panel);border-color:var(--navy);':''}">${mn.slice(0,3)}</button>`).join("")}
+      </div>
+    </div>
+  </div>`;
+  window._pickerYear = state.cursorY;
+};
+window.shiftPickerYear = (d)=>{ window._pickerYear += d; document.getElementById("picker-year").textContent = window._pickerYear; };
+window.jumpToMonth = (m)=>{ state.cursorM=m; state.cursorY=window._pickerYear; closeModal(); render(); attachSwipeHandler(); };
+window.gotoToday = ()=>{ const d=new Date(); state.cursorY=d.getFullYear(); state.cursorM=d.getMonth(); state.selectedDay=todayKey(); render(); };
+window.toggleTaskDone = toggleTaskDone;
+window.deleteTaskDoc = deleteTaskDoc;
+
+/* ---- CASES VIEW ---- */
+function renderCases(){
+  const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
+  const courts = uniqueCourts();
+  const q = state.search.trim().toLowerCase();
+  const hideClosed = state.hideClosed!==false && !q;
+  const filtered = state.cases.filter(c=>{
+    if(hideClosed && c.status==="Closed" && state.filterStatus!=="Closed") return false;
+    if(state.filterType!=="All" && c.caseType!==state.filterType) return false;
+    if(state.filterStatus!=="All" && c.status!==state.filterStatus) return false;
+    if(state.filterCourt && state.filterCourt!=="All" && c.court!==state.filterCourt) return false;
+    if(!q) return true;
+    const title = computeCaseTitle(c).toLowerCase();
+    const partyMatch = (c.parties||[]).some(p=>p.name.toLowerCase().includes(q));
+    return title.includes(q) || (c.courtNumber||"").toLowerCase().includes(q) || (c.court||"").toLowerCase().includes(q) || (c.subject||"").toLowerCase().includes(q) || (c.partialNumber||"").toLowerCase().includes(q) || (c.generalNumber||"").toLowerCase().includes(q) || partyMatch;
+  }).sort((a,b)=> (b.priority?1:0)-(a.priority?1:0) || (b.createdAt||0)-(a.createdAt||0));
+
+  const closedCount = state.cases.filter(c=>c.status==="Closed").length;
+
+  let courtBlock = "";
+  if(state.filterCourt && state.filterCourt!=="All"){
+    const tk = todayKey();
+    const caseIdsHere = new Set(state.cases.filter(c=>c.court===state.filterCourt).map(c=>c.id));
+    const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+    const tasksHere = state.tasks.filter(t=>caseIdsHere.has(t.caseId) && !t.completed)
+      .map(t=>({...t, delta: daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+    courtBlock = `<div style="margin-bottom:18px;">
+      <div class="section-label">${ICONS.location_dot} At ${esc(state.filterCourt)} — every open procedure & deadline</div>
+      ${tasksHere.length===0 ? `<div style="color:var(--muted);font-size:13.5px;">Nothing open at this court right now.</div>` :
+        tasksHere.map(t=>taskRowHtml(t, casesById[t.caseId], true)).join("")}
+    </div>`;
+  }
+
+  document.getElementById("view-cases").innerHTML = `
+    <div class="search-wrap">
+      <span style="position:absolute;left:11px;top:11px;color:var(--muted);">${ICONS.magnifying_glass}</span>
+      <input class="input" id="search-input" placeholder="Search by name, title, court, or file number…" value="${esc(state.search)}" />
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;overflow-x:auto;">
+      <select class="input" id="filter-court" style="width:auto;font-size:12.5px;padding:7px 9px;">
+        <option value="All">All courts / prosecution offices</option>
+        ${courts.map(c=>`<option value="${esc(c)}" ${state.filterCourt===c?'selected':''}>${esc(c)}</option>`).join("")}
+      </select>
+      <select class="input" id="filter-type" style="width:auto;font-size:12.5px;padding:7px 9px;">
+        <option value="All">All case types</option>
+        ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${state.filterType===t?'selected':''}>${esc(t)}</option>`).join("")}
+      </select>
+      <select class="input" id="filter-status" style="width:auto;font-size:12.5px;padding:7px 9px;">
+        <option value="All">All statuses</option>
+        ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${state.filterStatus===s?'selected':''}>${s}</option>`).join("")}
+      </select>
+    </div>
+    ${closedCount>0 ? `<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-bottom:12px;">
+      <input type="checkbox" id="toggle-closed" ${state.hideClosed===false?'':'checked'} /> Hide closed cases (${closedCount} hidden)
+    </label>` : ""}
+    ${courtBlock}
+    ${filtered.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.scale_balanced}<br/><div style="font-size:14px;margin-top:8px;">No matters yet. Tap + to add your first case.</div></div>` :
+      `<div>${filtered.map(c=>caseCardHtml(c)).join("")}</div>`}
+  `;
+  document.getElementById("search-input").oninput = e=>{ const pos=e.target.selectionStart; state.search=e.target.value; renderCases(); const el=document.getElementById("search-input"); el.focus(); el.setSelectionRange(pos,pos); };
+  document.getElementById("filter-court").onchange = e=>{ state.filterCourt=e.target.value; render(); };
+  document.getElementById("filter-type").onchange = e=>{ state.filterType=e.target.value; render(); };
+  document.getElementById("filter-status").onchange = e=>{ state.filterStatus=e.target.value; render(); };
+  const tc = document.getElementById("toggle-closed");
+  if(tc) tc.onchange = e=>{ state.hideClosed = e.target.checked; render(); };
+}
+function daysSinceActivity(c){
+  const dates = [c.createdAt ? new Date(c.createdAt).toISOString().slice(0,10) : null];
+  (c.noteLog||[]).forEach(l => dates.push(l.date));
+  state.tasks.filter(t=>t.caseId===c.id).forEach(t => { if(t.createdAt) dates.push(new Date(t.createdAt).toISOString().slice(0,10)); });
+  state.checklist.filter(x=>x.caseId===c.id).forEach(it => { if(it.createdAt) dates.push(new Date(it.createdAt).toISOString().slice(0,10)); });
+  const valid = dates.filter(Boolean);
+  if(valid.length===0) return null;
+  const mostRecent = valid.sort().reverse()[0];
+  return daysBetween(mostRecent, todayKey());
+}
+function caseCardHtml(c){
+  const color = colorForCaseType(c.caseType);
+  const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
+  const groupSize = (c.linkedCaseIds||[]).filter(lid=>state.cases.some(x=>x.id===lid)).length;
+
+  const locationPiece = c.court
+    ? `${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="court"&&c.chamber?` (${esc(c.chamber)})`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` (${esc(c.prosecutorInCharge)})`:""}`
+    : (c.caseType==="Counsel"&&c.dateReceived) ? `${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}`
+    : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"Gen. "+esc(c.generalNumber):""}`
+    : c.courtNumber ? esc(c.courtNumber) : "";
+
+  const activityDays = c.status!=="Closed" ? daysSinceActivity(c) : null;
+
+  const metaPieces = [
+    `<span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span> ${esc(c.caseType)}`,
+    locationPiece,
+    (c.documents&&c.documents.length) ? `${ICONS.link} ${c.documents.length}` : "",
+    groupSize>0 ? `${ICONS.link} linked (${groupSize})` : "",
+    activityDays!==null ? `${activityDays}d since activity` : ""
+  ].filter(Boolean);
+
+  return `<button class="case-card" style="${c.priority?'border-color:var(--brass);border-width:1.5px;':''}" onclick="openCaseDetail('${c.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <div class="serif" style="font-size:16px;color:var(--navy-dark);min-width:0;">${c.priority?(ICONS.star+' '):''}${esc(computeCaseTitle(c))}</div>
+      <span class="badge" style="border-color:${statusColor};color:${statusColor};flex-shrink:0;">${c.status}</span>
+    </div>
+    <div style="font-size:12.5px;color:var(--muted);margin-top:5px;display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
+      ${metaPieces.map((p,i)=>i===0?p:` · ${p}`).join("")}
+    </div>
+  </button>`;
+}
+window.openCaseDetail = (id)=> openCaseDetailModal(state.cases.find(c=>c.id===id));
+
+/* ---- CHECKLIST VIEW ---- */
+function renderChecklist(){
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const tasksById = {}; state.tasks.forEach(t=>tasksById[t.id]=t);
+  const tk = todayKey();
+  const items = state.checklist.slice().sort((a,b)=> (a.done - b.done) || (b.createdAt||0)-(a.createdAt||0));
+  document.getElementById("view-checklist").innerHTML = `
+    ${items.length===0 ? `<div style="text-align:center;padding:40px 10px;color:var(--muted);">${ICONS.list_check}<br/><div style="font-size:14px;margin-top:8px;">Nothing on your checklist. Tap + to add a task.</div></div>` :
+      items.map(it=>{
+        const c = casesById[it.caseId];
+        const linkedTask = it.taskId ? tasksById[it.taskId] : null;
+        const followedHearing = (it.followNextHearing && it.caseId) ? nextHearingForCase(it.caseId) : null;
+        const effectiveTask = linkedTask || followedHearing;
+        const effectiveDate = it.dueDate || (linkedTask ? linkedTask.date : null) || (followedHearing ? followedHearing.date : null);
+        const hasOwnDeadline = !!it.dueDate;
+        const deltaDays = effectiveDate ? daysBetween(tk, effectiveDate) : null;
+        const isOverdue = effectiveDate && deltaDays<0 && !it.done;
+        const rowColor = isOverdue ? "var(--overdue)" : effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (hasOwnDeadline ? "var(--heads-up)" : (c ? colorForCaseType(c.caseType) : "var(--line)"));
+        const rowIcon = hasOwnDeadline ? ICONS.hourglass_half : (effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : ""));
+        const deadlineBadge = effectiveDate && !it.done
+          ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">Overdue</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?'Today':deltaDays+'d'}</span>`)
+          : "";
+        const metaLine = hasOwnDeadline
+          ? `Due ${fmtLong(it.dueDate)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : linkedTask
+          ? `Before: ${esc(linkedTask.title)} · ${fmtLong(linkedTask.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : followedHearing
+          ? `Before next hearing · ${fmtLong(followedHearing.date)}${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : it.followNextHearing
+          ? `Before next hearing (none scheduled yet)${c?` · ${esc(computeCaseTitle(c))}`:""}`
+          : (c ? esc(computeCaseTitle(c)) : "");
+        return `<div class="checklist-row" style="border-left:4px solid ${it.done?'var(--line)':rowColor};">
+          <button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button>
+          <div style="flex:1;min-width:0;cursor:pointer;" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              ${rowIcon&&!it.done?`<span style="color:${rowColor};flex-shrink:0;">${rowIcon}</span>`:""}
+              <span style="font-size:13.5px;font-weight:600;${it.done?'text-decoration:line-through;color:var(--muted);':''}">${esc(it.text)}</span>
+              ${deadlineBadge}
+            </div>
+            ${metaLine?`<div class="task-meta">${(linkedTask||it.followNextHearing)?`${ICONS.calendar_days} `:""}${metaLine}</div>`:""}
+          </div>
+          <button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
+        </div>`;
+      }).join("")}
+  `;
+}
+window.toggleChecklistDone = toggleChecklistDone;
+window.deleteChecklistItem = deleteChecklistItem;
+
+function openChecklistModal(existing){
+  const it = existing || {caseId:"", text:"", done:false, taskId:"", followNextHearing:false};
+  window._tempLinkMode = it.followNextHearing ? "hearing" : (it.dueDate ? "deadline" : "date");
+  const openTasksForCase = (caseId)=> state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Checklist Item</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div class="field"><span class="field-label">Task</span><input class="input" id="chk-text" value="${esc(it.text)}" placeholder="e.g. Prepare witness list" /></div>
+      <div class="field"><span class="field-label">Link to a case (optional)</span>
+        <select class="input" id="chk-case" onchange="refreshChecklistTaskOptions()">
+          <option value="">General — no case</option>
+          ${state.cases.map(c=>`<option value="${c.id}" ${it.caseId===c.id?'selected':''}>${esc(computeCaseTitle(c))}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field" id="chk-task-field" style="${it.caseId?'':'display:none;'}">
+        <span class="field-label">Link to</span>
+        <div class="radio-row" id="chk-linkmode-row" style="margin-bottom:8px;">
+          <button type="button" class="radio-pill ${window._tempLinkMode==='date'?'active':''}" data-v="date" onclick="setChecklistLinkMode('date')">A specific date</button>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='hearing'?'active':''}" data-v="hearing" onclick="setChecklistLinkMode('hearing')">Next court hearing</button>
+          <button type="button" class="radio-pill ${window._tempLinkMode==='deadline'?'active':''}" data-v="deadline" onclick="setChecklistLinkMode('deadline')">Set a deadline</button>
+        </div>
+        <div id="chk-date-picker" class="${window._tempLinkMode==='date'?'':'hidden'}">
+          <select class="input" id="chk-task">
+            <option value="">Not tied to a specific date</option>
+            ${it.caseId ? openTasksForCase(it.caseId).map(t=>`<option value="${t.id}" ${it.taskId===t.id?'selected':''}>${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("") : ""}
+          </select>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before that date. Flags it urgent as it approaches.</div>
+        </div>
+        <div id="chk-hearing-note" class="${window._tempLinkMode==='hearing'?'':'hidden'}" style="font-size:11.5px;color:var(--muted);">Means: finish this before whichever Hearing is next for this case. If it gets postponed, this moves with it — no need to re-link.</div>
+        <div id="chk-deadline-picker" class="${window._tempLinkMode==='deadline'?'':'hidden'}">
+          <input class="input" id="chk-due-date" type="date" value="${it.dueDate||''}" />
+          <div style="font-size:11.5px;color:var(--muted);margin-top:5px;">Means: finish this before this date — for when there's no hearing or existing date to tie it to.</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="submitChecklist(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add item'}</button>
+    </div>
+  </div>`;
+}
+window.setChecklistLinkMode = (v)=>{
+  window._tempLinkMode = v;
+  document.querySelectorAll("#chk-linkmode-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
+  document.getElementById("chk-date-picker").classList.toggle("hidden", v!=="date");
+  document.getElementById("chk-hearing-note").classList.toggle("hidden", v!=="hearing");
+  document.getElementById("chk-deadline-picker").classList.toggle("hidden", v!=="deadline");
+};
+window.refreshChecklistTaskOptions = ()=>{
+  const caseId = document.getElementById("chk-case").value;
+  const field = document.getElementById("chk-task-field");
+  const select = document.getElementById("chk-task");
+  if(!caseId){ field.style.display="none"; select.innerHTML = `<option value="">Not tied to a specific date</option>`; return; }
+  field.style.display = "";
+  const openTasks = state.tasks.filter(t=>t.caseId===caseId && !t.completed).sort((a,b)=>a.date.localeCompare(b.date));
+  select.innerHTML = `<option value="">Not tied to a specific date</option>` +
+    openTasks.map(t=>`<option value="${t.id}">${esc(t.title)} — ${fmtLong(t.date)}</option>`).join("");
+};
+window.openChecklistModal = openChecklistModal;
+function nextHearingForCase(caseId){
+  const tk = todayKey();
+  return state.tasks.filter(t=>t.caseId===caseId && !t.completed && t.type==="Hearing")
+    .sort((a,b)=>a.date.localeCompare(b.date))[0] || null;
+}
+window.submitChecklist = (id)=>{
+  const text = document.getElementById("chk-text").value.trim();
+  if(!text) return;
+  const existing = id ? state.checklist.find(x=>x.id===id) : null;
+  const caseId = document.getElementById("chk-case").value || null;
+  const mode = window._tempLinkMode;
+  const followNextHearing = !!(caseId && mode === "hearing");
+  const isDeadlineMode = mode === "deadline";
+  const taskSel = document.getElementById("chk-task");
+  const dueDateInput = document.getElementById("chk-due-date");
+  const data = {
+    text, caseId,
+    taskId: (mode==="date" && taskSel) ? (taskSel.value || null) : null,
+    followNextHearing,
+    dueDate: (isDeadlineMode && dueDateInput && dueDateInput.value) ? dueDateInput.value : null,
+    done: existing ? existing.done : false
+  };
+  if(id) data.id = id;
+  saveChecklistItem(data);
+  closeModal();
+};
+
+/* ================= MODALS ================= */
+function closeModal(){ document.getElementById("modal-root").innerHTML=""; }
+window.closeModal = closeModal;
+
+function openTaskModal(existing){
+  const allProcTypes = PROCEDURE_TYPES;
+  const t = existing || {caseId:"", title:"", date:state.selectedDay, type:allProcTypes[0], notes:"", completed:false, kind:"event"};
+  window._tempKind = t.kind || "event";
+  window._tempProcType = PROCEDURE_TYPES.includes(t.type) ? t.type : PROCEDURE_TYPES[0];
+  window._tempFlag = t.flag || "none";
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit':'New'} Procedure / Date</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+
+      <div class="field"><span class="field-label">This is a…</span>
+        <div class="radio-row" id="kind-row">
+          <button type="button" class="radio-pill ${window._tempKind==='event'?'active':''}" data-v="event" onclick="setTaskKind('event')">${ICONS.calendar_days} Scheduled event</button>
+          <button type="button" class="radio-pill ${window._tempKind==='deadline'?'active':''}" data-v="deadline" onclick="setTaskKind('deadline')">${ICONS.hourglass_half} Deadline</button>
+        </div>
+      </div>
+
+      ${state.cases.length===0 ? `<div style="font-size:13px;color:var(--muted);margin-bottom:14px;">No cases yet — this will be a standalone date, or add a case first from the Cases tab.</div>` : `
+      <div class="field"><span class="field-label">Case</span>
+        <select class="input" id="f-caseId">
+          <option value="">No case (standalone)</option>
+          ${state.cases.map(c=>`<option value="${c.id}" ${t.caseId===c.id?'selected':''}>${esc(computeCaseTitle(c))}${c.court?` · ${esc(c.court)}`:""}</option>`).join("")}
+        </select>
+      </div>`}
+      <div class="field"><span class="field-label" id="f-title-label">Title</span><input class="input" id="f-title" value="${esc(t.title)}" placeholder="e.g. First hearing session" /></div>
+      <div class="field"><span class="field-label" id="f-date-label">Date</span><input class="input" id="f-date" type="date" value="${t.date}" /></div>
+      <div class="field"><span class="field-label">Procedure type</span>
+        <div class="radio-row" id="proc-type-row">
+          ${allProcTypes.map(pt=>`<button type="button" class="radio-pill ${t.type===pt?'active':''}" data-v="${esc(pt)}" onclick="setProcType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Flag this date</span>
+        <div class="radio-row" id="flag-row">
+          <button type="button" class="radio-pill ${(t.flag||'none')==='none'?'active':''}" data-v="none" onclick="setTaskFlag('none')">None</button>
+          <button type="button" class="radio-pill ${t.flag==='fyi'?'active':''}" data-v="fyi" onclick="setTaskFlag('fyi')" style="${t.flag==='fyi'?'background:var(--heads-up);border-color:var(--heads-up);':''}">FYI</button>
+          <button type="button" class="radio-pill ${t.flag==='critical'?'active':''}" data-v="critical" onclick="setTaskFlag('critical')" style="${t.flag==='critical'?'background:var(--critical);border-color:var(--critical);':''}">Critical</button>
+        </div>
+        <div id="flag-hint" style="font-size:11.5px;color:var(--muted);margin-top:6px;">${(t.flag==='critical') ? "A can't-miss date — pinned to the top of your Calendar no matter how far away it is." : (t.flag==='fyi') ? "Not urgent — shows a quiet heads-up once it's within 7 days out." : "No flag — this date only shows the normal due-soon heads-up close to its date, based on your Settings."}</div>
+      </div>
+      <div class="field"><span class="field-label">Notes</span><textarea class="input" id="f-notes" style="min-height:60px;">${esc(t.notes)}</textarea></div>
+
+      ${!existing ? `
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--ink);">
+          <input type="checkbox" id="f-repeat-on" onchange="toggleRepeatFields(this.checked)" /> ${ICONS.rotate} Repeat this session
+        </label>
+        <div id="repeat-fields" class="hidden" style="margin-top:10px;display:flex;gap:8px;">
+          <select class="input" id="f-repeat-freq">
+            <option value="7">Weekly</option>
+            <option value="14" selected>Every 2 weeks</option>
+            <option value="21">Every 3 weeks</option>
+            <option value="28">Every 4 weeks</option>
+          </select>
+          <input class="input" id="f-repeat-count" type="number" min="2" max="20" value="4" style="width:90px;" title="Number of sessions" />
+        </div>
+        <div id="repeat-hint" class="hidden" style="font-size:11.5px;color:var(--muted);margin-top:6px;">Creates this many sessions total, spaced at the interval above, each individually editable afterward.</div>
+      </div>` : `
+      <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
+        <button type="button" class="btn-ghost" style="width:100%;" onclick='closeModal();openContinueModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>${ICONS.rotate} Continue — schedule the next session</button>
+      </div>`}
+
+      <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitTask(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Add to docket'}</button>
+    </div>
+  </div>`;
+  updateKindLabels();
+}
+window.openTaskModal = openTaskModal;
+window.setTaskKind = (v)=>{ window._tempKind=v; document.querySelectorAll("#kind-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); updateKindLabels(); };
+window.setProcType = (v)=>{ window._tempProcType=v; document.querySelectorAll("#proc-type-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v)); };
+window._tempFlag = window._tempFlag || "none";
+window.setTaskFlag = (v)=>{
+  window._tempFlag = v;
+  document.querySelectorAll("#flag-row .radio-pill").forEach(b=>{
+    const active = b.dataset.v===v;
+    b.classList.toggle("active", active);
+    if(v==="fyi"){ b.style.background = (b.dataset.v==="fyi") ? "var(--heads-up)" : ""; b.style.borderColor = (b.dataset.v==="fyi") ? "var(--heads-up)" : ""; }
+    else if(v==="critical"){ b.style.background = (b.dataset.v==="critical") ? "var(--critical)" : ""; b.style.borderColor = (b.dataset.v==="critical") ? "var(--critical)" : ""; }
+    else { b.style.background = ""; b.style.borderColor = ""; }
+  });
+  const hint = document.getElementById("flag-hint");
+  hint.textContent = v==="critical" ? "A can't-miss date — pinned to the top of your Calendar no matter how far away it is."
+    : v==="fyi" ? "Not urgent — shows a quiet heads-up once it's within 7 days out."
+    : "No flag — this date only shows the normal due-soon heads-up close to its date, based on your Settings.";
+};
+window.toggleRepeatFields = (checked)=>{
+  document.getElementById("repeat-fields").classList.toggle("hidden", !checked);
+  document.getElementById("repeat-hint").classList.toggle("hidden", !checked);
+};
+function updateKindLabels(){
+  const isDeadline = window._tempKind==="deadline";
+  const titleLabel = document.getElementById("f-title-label");
+  const dateLabel = document.getElementById("f-date-label");
+  if(titleLabel) titleLabel.textContent = isDeadline ? "What's due" : "Title";
+  if(dateLabel) dateLabel.textContent = isDeadline ? "Deadline date" : "Date";
+}
+window.submitTask = async (id)=>{
+  const title = document.getElementById("f-title").value.trim();
+  const date = document.getElementById("f-date").value;
+  if(!title || !date) return;
+  const caseSel = document.getElementById("f-caseId");
+  const type = window._tempProcType || PROCEDURE_TYPES[0];
+  const kind = window._tempKind||"event";
+  const existing = id ? state.tasks.find(x=>x.id===id) : null;
+  const baseData = { caseId: caseSel? (caseSel.value||null) : null, type, kind, flag: window._tempFlag||"none", notes: document.getElementById("f-notes").value.trim(), completed: existing?existing.completed:false, googleEventId: existing?existing.googleEventId:null, createdAt: existing?(existing.createdAt||Date.now()):Date.now() };
+
+  const repeatOn = document.getElementById("f-repeat-on");
+  if(!existing && repeatOn && repeatOn.checked){
+    const interval = Number(document.getElementById("f-repeat-freq").value);
+    const count = Math.max(2, Math.min(20, Number(document.getElementById("f-repeat-count").value)||2));
+    let anyFailed = false;
+    for(let i=0;i<count;i++){
+      const occDate = addDays(date, i*interval);
+      const result = await saveTask({ ...baseData, title: `${title} — Session ${i+1} of ${count}`, date: occDate });
+      if(!result) anyFailed = true;
+    }
+    if(anyFailed) return; // error already shown per-attempt; leave the form open rather than pretend it all worked
+  } else {
+    const data = { ...baseData, title, date };
+    if(id) data.id = id;
+    const newTaskId = await saveTask(data);
+    if(!newTaskId) return; // saveTask already showed the error — keep the form open with the data still filled in
+    if(!existing && type==="Hearing" && kind==="event" && state.hearingPrepDefaults.length>0){
+      state.hearingPrepDefaults.forEach(text=>{
+        saveChecklistItem({ text, caseId: data.caseId, taskId: newTaskId, followNextHearing:false, dueDate:null, done:false });
+      });
+    }
+  }
+  closeModal();
+};
+
+function followUpChipsHtml(){
+  return FOLLOWUP_CHIPS.map(f=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;${window._tempFollowUps.includes(f)?'border-color:var(--navy);color:var(--navy);font-weight:700;':''}" onclick="toggleFollowUp('${f.replace(/'/g,"&apos;")}')">${esc(f)}</button>`).join("");
+}
+function followUpSelectedHtml(){
+  if(!window._tempFollowUps.length) return `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Not every postponement needs follow-up work — leave blank if there's nothing to prep.</div>`;
+  return `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">${window._tempFollowUps.map(f=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(f)} <button onclick="removeFollowUp('${f.replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}</div>`;
+}
+window.toggleFollowUp = (f)=>{
+  const idx = window._tempFollowUps.indexOf(f);
+  if(idx>=0) window._tempFollowUps.splice(idx,1); else window._tempFollowUps.push(f);
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
+window.addCustomFollowUp = ()=>{
+  const input = document.getElementById("cont-followup-custom");
+  const v = input.value.trim();
+  if(!v) return;
+  if(!window._tempFollowUps.includes(v)) window._tempFollowUps.push(v);
+  input.value = "";
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
+window.removeFollowUp = (f)=>{
+  window._tempFollowUps = window._tempFollowUps.filter(x=>x!==f);
+  document.getElementById("followup-chips").innerHTML = followUpChipsHtml();
+  document.getElementById("followup-selected").innerHTML = followUpSelectedHtml();
+};
+function openContinueModal(t){
+  window._tempFollowUps = [];
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${ICONS.rotate} Continue Session</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">Schedules the next session for "${esc(t.title)}" on a new date.</div>
+      <div class="field"><span class="field-label">Reason for postponement (optional)</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          ${["Judge unavailable","Opposing counsel requested","Missing documents","Party absent","Court backlog"].map(r=>`<button type="button" class="btn-ghost" style="font-size:11.5px;padding:5px 9px;" onclick="fillReason('${r}')">${r}</button>`).join("")}
+        </div>
+        <input class="input" id="cont-reason" placeholder="Tap a quick option above, or type your own" />
+      </div>
+      <div class="field"><span class="field-label">Next session date</span><input class="input" id="cont-date" type="date" value="${addDays(t.date,14)}" /></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;"><input type="checkbox" id="cont-markdone" checked /> Mark the original date as completed</label></div>
+      <div class="field"><span class="field-label">Follow-up action (optional)</span>
+        <div id="followup-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">${followUpChipsHtml()}</div>
+        <div style="display:flex;gap:6px;">
+          <input class="input" id="cont-followup-custom" placeholder="Or type a custom follow-up and tap Add" />
+          <button class="btn-ghost" onclick="addCustomFollowUp()">Add</button>
+        </div>
+        <div id="followup-selected">${followUpSelectedHtml()}</div>
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="submitContinue('${t.id}')">Schedule next session</button>
+    </div>
+  </div>`;
+}
+window.fillReason = (r)=>{ document.getElementById("cont-reason").value = r; };
+window.openContinueModal = openContinueModal;
+window.submitContinue = (origId)=>{
+  const newDate = document.getElementById("cont-date").value;
+  if(!newDate) return;
+  const reason = document.getElementById("cont-reason").value.trim();
+  const orig = state.tasks.find(x=>x.id===origId);
+  if(!orig) return;
+  const followUps = (window._tempFollowUps||[]).slice();
+  saveTask({ caseId:orig.caseId, title:orig.title, date:newDate, type:orig.type, kind:orig.kind||"event", flag:orig.flag||"none", notes:orig.notes, completed:false, googleEventId:null }).then((newTaskId)=>{
+    if(!followUps.length) return;
+    const useFollowHearing = orig.type==="Hearing" && !!orig.caseId;
+    followUps.forEach(text=>{
+      saveChecklistItem({ caseId: orig.caseId||null, text, done:false, taskId: useFollowHearing?null:(newTaskId||null), followNextHearing: useFollowHearing, dueDate:null });
+    });
+  });
+  if(document.getElementById("cont-markdone").checked){
+    coll("tasks").doc(origId).set({...stripId(orig), completed:true, completedAt:Date.now(), postponeReason: reason || orig.postponeReason || null});
+  } else if(reason){
+    coll("tasks").doc(origId).set({...stripId(orig), postponeReason: reason});
+  }
+  closeModal();
+};
+
+function openCaseModal(existingRaw){
+  const existing = (existingRaw && existingRaw.id) ? existingRaw : null;
+  const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
+  const c = existingRaw || {titleSource:"opponent", subject:"", parties:[], courtNumber:"", caseType:allCaseTypes[0], status:"Active", notes:"", documents:[], linkedCaseIds:[], dateReceived: todayKey()};
+  window._tempDocs = (c.documents||[]).slice();
+  window._tempParties = (c.parties||[]).slice();
+  window._tempLinked = (c.linkedCaseIds||[]).slice();
+  window._tempTitleSource = c.titleSource || "opponent";
+  window._editingCaseId = existing ? existing.id : null;
+  window._tempNoteLog = (c.noteLog || []).slice();
+  window._tempAuthorityType = c.authorityType || "court";
+  window._stagedTasks = [];
+  window._stagedChecklist = [];
+  window._stagedTaskType = PROCEDURE_TYPES[0];
+  const isCounsel = c.caseType === "Counsel";
+  const counselClient = (c.parties||[]).find(p=>p.role==="Client");
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${existing?'Edit Case':'New Case'}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+
+      <div class="field"><span class="field-label">Case type</span>
+        <select class="input" id="c-type-select" onchange="onCaseTypeSelectChange()">
+          ${allCaseTypes.map(x=>`<option value="${esc(x)}" ${c.caseType===x?'selected':''}>${esc(x)}</option>`).join("")}
+          <option value="__other__" ${!allCaseTypes.includes(c.caseType)?'selected':''}>+ Custom type…</option>
+        </select>
+        <input class="input ${!allCaseTypes.includes(c.caseType)?'':'hidden'}" id="c-type-custom" placeholder="Type a custom case type" value="${!allCaseTypes.includes(c.caseType)?esc(c.caseType):''}" style="margin-top:6px;" oninput="onCaseTypeChange()" />
+      </div>
+
+      <div id="duplicate-warning"></div>
+
+      <div id="counsel-fields" class="${isCounsel?'':'hidden'}">
+        <div class="field"><span class="field-label">Client</span><input class="input" id="c-counsel-client" value="${esc(counselClient?counselClient.name:'')}" placeholder="Client's full name" oninput="checkDuplicateCase()" /></div>
+        <div class="field"><span class="field-label">Subject</span><input class="input" id="c-counsel-subject" value="${esc(c.subject)}" placeholder="e.g. Contract review for lease renewal" /></div>
+        <div class="field"><span class="field-label">Date received</span><input class="input" id="c-date-received" type="date" value="${c.dateReceived||todayKey()}" /></div>
+      </div>
+
+      <div id="standard-fields" class="${isCounsel?'hidden':''}">
+        <div class="field"><span class="field-label">Identify this case by</span>
+          <div class="radio-row" id="title-source-row">
+            <button type="button" class="radio-pill ${window._tempTitleSource==='opponent'?'active':''}" data-v="opponent" onclick="setTitleSource('opponent')">Opponent name</button>
+            <button type="button" class="radio-pill ${window._tempTitleSource==='client'?'active':''}" data-v="client" onclick="setTitleSource('client')">Client name</button>
+            <button type="button" class="radio-pill ${window._tempTitleSource==='subject'?'active':''}" data-v="subject" onclick="setTitleSource('subject')">Title</button>
+          </div>
+        </div>
+
+        <div class="field"><span class="field-label">Title ${window._tempTitleSource==='subject'?'(used as case name)':'(optional)'}</span><input class="input" id="c-subject" value="${esc(c.subject)}" placeholder="e.g. Breach of lease agreement" oninput="checkDuplicateCase()" /></div>
+
+        <div class="field">
+          <span class="field-label">Parties</span>
+          <div id="party-list"></div>
+          <button type="button" class="btn-ghost" onclick="addPartyRow()">+ Add party</button>
+          <div id="conflict-warning"></div>
+        </div>
+
+        <div class="field"><span class="field-label">Handling authority</span>
+          <div class="radio-row" id="authority-row">
+            <button type="button" class="radio-pill ${(c.authorityType||'court')==='court'?'active':''}" data-v="court" onclick="setAuthorityType('court')">Court</button>
+            <button type="button" class="radio-pill ${c.authorityType==='prosecution'?'active':''}" data-v="prosecution" onclick="setAuthorityType('prosecution')">Public Prosecution (investigation)</button>
+          </div>
+        </div>
+        <div class="field"><span class="field-label" id="c-courtname-label">Court</span><input class="input" id="c-courtname" list="court-list" value="${esc(c.court||'')}" placeholder="e.g. Tripoli Court of First Instance" /><datalist id="court-list">${uniqueCourts().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+        <div id="chamber-field" class="field ${(c.authorityType||'court')==='court'?'':'hidden'}"><span class="field-label">Chamber / Circuit</span><input class="input" id="c-chamber" value="${esc(c.chamber||'')}" placeholder="e.g. 3rd Circuit — الدائرة الثالثة" /></div>
+        <div id="prosecutor-field" class="field ${c.authorityType==='prosecution'?'':'hidden'}"><span class="field-label">Prosecutor in charge — وكيل النيابة المكلف</span><input class="input" id="c-prosecutor" value="${esc(c.prosecutorInCharge||'')}" placeholder="Name of the assigned deputy prosecutor" /></div>
+      </div>
+
+      <div id="generic-number-field" class="field ${c.caseType==="Criminal"?'hidden':''}"><span class="field-label">Case / file number (optional, helps searching)</span><input class="input" id="c-court" value="${esc(c.courtNumber)}" placeholder="e.g. 2026/1145" /></div>
+      <div id="criminal-number-fields" class="${c.caseType==="Criminal"?'':'hidden'}">
+        <div class="field"><span class="field-label">Partial number (with police department)</span><input class="input" id="c-partial-number" value="${esc(c.partialNumber||'')}" placeholder="e.g. 45/2026 — Central Police Station" /></div>
+        <div class="field"><span class="field-label">General number</span><input class="input" id="c-general-number" value="${esc(c.generalNumber||'')}" placeholder="e.g. 1145/2026" /></div>
+      </div>
+      <div class="field"><span class="field-label">Status</span>
+        <select class="input" id="c-status">${STATUS_OPTIONS.map(s=>`<option value="${s}" ${c.status===s?'selected':''}>${s}</option>`).join("")}</select>
+      </div>
+      <div class="field"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;"><input type="checkbox" id="c-priority" ${c.priority?'checked':''} /> ${ICONS.star} Priority case — stand out in the list</label></div>
+      <div class="field"><span class="field-label">Notes</span><textarea class="input" id="c-notes" style="min-height:60px;">${esc(c.notes)}</textarea></div>
+
+      ${!existing ? `
+      <div style="border-top:1px solid var(--line);padding-top:14px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="field-label" style="margin-bottom:0;">Dates & Procedures (optional)</div>
+          <button type="button" style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick="toggleStagedTaskForm()">+ Add</button>
+        </div>
+        <div id="staged-task-form" class="hidden" style="border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface);margin-bottom:10px;">
+          <input class="input" id="staged-task-title" placeholder="e.g. First hearing session" style="margin-bottom:8px;" />
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input class="input" id="staged-task-date" type="date" style="flex:1;" />
+          </div>
+          <div class="radio-row" id="staged-task-type-row" style="margin-bottom:10px;">
+            ${PROCEDURE_TYPES.map((pt,i)=>`<button type="button" class="radio-pill ${i===0?'active':''}" data-v="${esc(pt)}" onclick="setStagedTaskType('${esc(pt)}')">${esc(pt)}</button>`).join("")}
+          </div>
+          <button type="button" class="btn-ghost" style="width:100%;" onclick="commitStagedTask()">Add to list</button>
+        </div>
+        <div id="staged-task-list"></div>
+      </div>
+
+      <div style="border-top:1px solid var(--line);padding-top:14px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="field-label" style="margin-bottom:0;">Checklist (optional)</div>
+          <button type="button" style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick="toggleStagedChecklistForm()">+ Add</button>
+        </div>
+        <div id="staged-checklist-form" class="hidden" style="border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface);margin-bottom:10px;">
+          <input class="input" id="staged-checklist-text" placeholder="e.g. Review case file" style="margin-bottom:8px;" />
+          <button type="button" class="btn-ghost" style="width:100%;" onclick="commitStagedChecklist()">Add to list</button>
+        </div>
+        <div id="staged-checklist-list"></div>
+      </div>` : ""}
+
+      ${state.cases.filter(x=>x.id!==(existing?existing.id:null)).length>0 ? `
+      <div class="field">
+        <span class="field-label">Link to other cases or counsel matters (same client / dispute)</span>
+        <div id="link-list" style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface);"></div>
+      </div>` : ""}
+
+      <button type="button" id="advanced-toggle-btn" class="btn-ghost" style="width:100%;margin-bottom:12px;" onclick="toggleCaseAdvanced()">${window._tempDocs.length ? (ICONS.chevron_down+' Documents') : (ICONS.chevron_right+' Documents (optional)')}</button>
+      <div id="advanced-fields" class="${window._tempDocs.length?'':'hidden'}">
+      <div class="field">
+        <span class="field-label">Documents (paste a Google Drive / Dropbox link)</span>
+        <div id="doc-list"></div>
+        <div style="display:flex;gap:6px;">
+          <input class="input" id="doc-label" placeholder="Label" style="flex:0 0 40%;" />
+          <input class="input" id="doc-url" placeholder="https://drive.google.com/…" />
+          <button type="button" class="btn-ghost" onclick="addDocLink()">Add</button>
+        </div>
+      </div>
+      </div>
+
+      <button class="btn-primary" style="width:100%;margin-top:6px;" onclick="submitCase(${existing?`'${existing.id}'`:'null'})">${existing?'Save changes':'Create case'}</button>
+    </div>
+  </div>`;
+  renderPartyList(); renderDocList(); renderLinkList(existing?existing.id:null); checkConflicts(); checkDuplicateCase();
+}
+window.openCaseModal = openCaseModal;
+window.onCaseTypeSelectChange = ()=>{
+  const sel = document.getElementById("c-type-select");
+  const custom = document.getElementById("c-type-custom");
+  custom.classList.toggle("hidden", sel.value !== "__other__");
+  onCaseTypeChange();
+};
+function getCaseTypeValue(){
+  const sel = document.getElementById("c-type-select");
+  if(sel.value === "__other__") return document.getElementById("c-type-custom").value.trim();
+  return sel.value;
+}
+window.onCaseTypeChange = ()=>{
+  const val = getCaseTypeValue();
+  const isCounsel = val === "Counsel";
+  const isCriminal = val === "Criminal";
+  document.getElementById("counsel-fields").classList.toggle("hidden", !isCounsel);
+  document.getElementById("standard-fields").classList.toggle("hidden", isCounsel);
+  document.getElementById("generic-number-field").classList.toggle("hidden", isCriminal);
+  document.getElementById("criminal-number-fields").classList.toggle("hidden", !isCriminal);
+};
+window.setTitleSource = (v)=>{ window._tempTitleSource=v; document.querySelectorAll("#title-source-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v)); };
+window.toggleStagedTaskForm = ()=>{
+  const form = document.getElementById("staged-task-form");
+  form.classList.toggle("hidden");
+  if(!form.classList.contains("hidden")){
+    document.getElementById("staged-task-date").value = todayKey();
+  }
+};
+window.setStagedTaskType = (v)=>{
+  window._stagedTaskType = v;
+  document.querySelectorAll("#staged-task-type-row .radio-pill").forEach(b=>b.classList.toggle("active", b.dataset.v===v));
+};
+window.commitStagedTask = ()=>{
+  const title = document.getElementById("staged-task-title").value.trim();
+  const date = document.getElementById("staged-task-date").value;
+  if(!title || !date){ alert("Add a title and a date."); return; }
+  window._stagedTasks.push({ title, date, type: window._stagedTaskType || PROCEDURE_TYPES[0] });
+  document.getElementById("staged-task-title").value = "";
+  document.getElementById("staged-task-date").value = todayKey();
+  document.getElementById("staged-task-form").classList.add("hidden");
+  renderStagedTaskList();
+};
+window.removeStagedTask = (i)=>{ window._stagedTasks.splice(i,1); renderStagedTaskList(); };
+function renderStagedTaskList(){
+  const el = document.getElementById("staged-task-list");
+  if(!el) return;
+  el.innerHTML = window._stagedTasks.map((t,i)=>`
+    <div class="task-row">
+      <button type="button" class="task-check" style="pointer-events:none;opacity:.45;" title="Not saved yet"></button>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span class="task-title-icon" style="color:${colorForProcedure(t.type)};">${iconForProcedure(t.type)}</span>
+          <span class="task-title">${esc(t.title)}</span>
+          <a href="${esc(googleCalendarAddLink(t, null))}" target="_blank" onclick="event.stopPropagation()" title="Add to Google Calendar" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>
+        </div>
+        <div class="task-meta">${esc(t.type)} · ${fmtLong(t.date)}</div>
+      </div>
+      <button type="button" onclick="removeStagedTask(${i})" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
+    </div>`).join("");
+}
+window.toggleStagedChecklistForm = ()=>{ document.getElementById("staged-checklist-form").classList.toggle("hidden"); };
+window.commitStagedChecklist = ()=>{
+  const text = document.getElementById("staged-checklist-text").value.trim();
+  if(!text) return;
+  window._stagedChecklist.push({ text });
+  document.getElementById("staged-checklist-text").value = "";
+  document.getElementById("staged-checklist-form").classList.add("hidden");
+  renderStagedChecklistList();
+};
+window.removeStagedChecklist = (i)=>{ window._stagedChecklist.splice(i,1); renderStagedChecklistList(); };
+function renderStagedChecklistList(){
+  const el = document.getElementById("staged-checklist-list");
+  if(!el) return;
+  el.innerHTML = window._stagedChecklist.map((it,i)=>`
+    <div class="checklist-row">
+      <span style="flex:1;font-size:13.5px;">${esc(it.text)}</span>
+      <button type="button" onclick="removeStagedChecklist(${i})" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button>
+    </div>`).join("");
+}
+window.setAuthorityType = (v)=>{
+  window._tempAuthorityType = v;
+  document.querySelectorAll("#authority-row .radio-pill").forEach(b=> b.classList.toggle("active", b.dataset.v===v));
+  document.getElementById("chamber-field").classList.toggle("hidden", v!=="court");
+  document.getElementById("prosecutor-field").classList.toggle("hidden", v!=="prosecution");
+  document.getElementById("c-courtname-label").textContent = v==="prosecution" ? "Public Prosecution Office" : "Court";
+  const input = document.getElementById("c-courtname");
+  input.placeholder = v==="prosecution" ? "e.g. Tripoli Public Prosecution" : "e.g. Tripoli Court of First Instance";
+};
+window.toggleCaseAdvanced = ()=>{
+  const fields = document.getElementById("advanced-fields");
+  const btn = document.getElementById("advanced-toggle-btn");
+  const nowHidden = fields.classList.toggle("hidden");
+  btn.innerHTML = nowHidden ? (ICONS.chevron_right+" Documents (optional)") : (ICONS.chevron_down+" Documents");
+};
+
+function renderPartyList(){
+  document.getElementById("party-list").innerHTML = window._tempParties.map((p,i)=>`
+    <div style="border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:var(--surface);">
+      <div class="party-row" style="margin-bottom:6px;">
+        <select onchange="updatePartyField(${i},'role',this.value)">${PARTY_ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''}>${r}</option>`).join("")}</select>
+        <input class="input" value="${esc(p.name)}" placeholder="Full name" oninput="updatePartyField(${i},'name',this.value)" />
+        <button type="button" onclick="removePartyRow(${i})" style="background:none;border:none;color:var(--muted);flex-shrink:0;">${ICONS.xmark}</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <input class="input" style="font-size:12.5px;" value="${esc(p.phone||'')}" placeholder="Phone (optional)" oninput="updatePartyField(${i},'phone',this.value)" />
+        <input class="input" style="font-size:12.5px;" value="${esc(p.email||'')}" placeholder="Email (optional)" oninput="updatePartyField(${i},'email',this.value)" />
+      </div>
+    </div>`).join("");
+}
+window.addPartyRow = ()=>{ window._tempParties.push({id:uid(), role:"Client", name:"", phone:"", email:""}); renderPartyList(); };
+window.removePartyRow = (i)=>{ window._tempParties.splice(i,1); renderPartyList(); checkConflicts(); };
+window.updatePartyField = (i,field,v)=>{
+  window._tempParties[i][field]=v;
+  if(field==="name"||field==="role") checkConflicts();
+  if((field==="name"||field==="role") && window._tempParties[i].role==="Client") checkDuplicateCase();
+};
+function checkDuplicateCase(){
+  const el = document.getElementById("duplicate-warning");
+  if(!el) return;
+  if(window._editingCaseId){ el.innerHTML=""; return; }
+  const candidates = [];
+  const subjectEl = document.getElementById("c-subject");
+  if(subjectEl && subjectEl.value.trim()) candidates.push(subjectEl.value.trim());
+  const counselEl = document.getElementById("c-counsel-client");
+  if(counselEl && counselEl.value.trim()) candidates.push(counselEl.value.trim());
+  (window._tempParties||[]).filter(p=>p.role==="Client" && p.name && p.name.trim()).forEach(p=> candidates.push(p.name.trim()));
+
+  const matches = [];
+  candidates.forEach(cand=>{
+    const cLower = cand.toLowerCase();
+    if(cLower.length<3) return;
+    state.cases.forEach(c=>{
+      if(window._tempLinked.includes(c.id)) return;
+      if(matches.some(m=>m.id===c.id)) return;
+      const tLower = computeCaseTitle(c).toLowerCase();
+      if(tLower.includes(cLower) || cLower.includes(tLower)) matches.push(c);
+    });
+  });
+  el.innerHTML = matches.length ? matches.map(c=>`
+    <div style="margin-top:8px;background:var(--surface);border:1px solid var(--slate);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--slate);line-height:1.5;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>${ICONS.info} This looks similar to <strong>${esc(computeCaseTitle(c))}</strong> — is this the same matter?</span>
+      <button type="button" class="btn-ghost" style="font-size:11px;padding:4px 8px;flex-shrink:0;" onclick="linkDuplicateCase('${c.id}')">Link instead?</button>
+    </div>`).join("") : "";
+}
+window.linkDuplicateCase = (id)=>{
+  if(!window._tempLinked.includes(id)) window._tempLinked.push(id);
+  renderLinkList(window._editingCaseId);
+  checkDuplicateCase();
+  showToast("Linked to that case — you can unlink later from the case form.");
+};
+function checkConflicts(){
+  const el = document.getElementById("conflict-warning");
+  if(!el) return;
+  const selfId = window._editingCaseId;
+  const warnings = [];
+  window._tempParties.forEach(p=>{
+    const name = (p.name||"").trim().toLowerCase();
+    if(!name) return;
+    state.cases.forEach(c=>{
+      if(c.id===selfId) return;
+      (c.parties||[]).forEach(op=>{
+        const opName = (op.name||"").trim().toLowerCase();
+        const crossesSides = (op.role==="Opponent" && p.role!=="Opponent") || (p.role==="Opponent" && op.role!=="Opponent");
+        if(opName===name && crossesSides){
+          warnings.push(`"${esc(p.name)}" appears as ${esc(op.role)} in ${esc(computeCaseTitle(c))} — potential conflict.`);
+        }
+      });
+    });
+  });
+  el.innerHTML = warnings.length ? `<div style="margin-top:8px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:6px;padding:8px 10px;font-size:12px;color:var(--brick);line-height:1.5;">${ICONS.triangle_exclamation} ${[...new Set(warnings)].join("<br/>")}</div>` : "";
+}
+
+function renderDocList(){
+  document.getElementById("doc-list").innerHTML = window._tempDocs.map((d,i)=>`
+    <div class="doc-link-row"><span>${ICONS.link}</span><a href="${esc(d.url)}" target="_blank" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(d.label)}</a>
+    <button onclick="removeDocLink(${i})" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button></div>
+  `).join("");
+}
+window.addDocLink = ()=>{
+  const url = document.getElementById("doc-url").value.trim();
+  if(!url) return;
+  const label = document.getElementById("doc-label").value.trim() || "Document";
+  window._tempDocs.push({id: uid(), label, url});
+  document.getElementById("doc-label").value=""; document.getElementById("doc-url").value="";
+  renderDocList();
+};
+window.removeDocLink = (i)=>{ window._tempDocs.splice(i,1); renderDocList(); };
+
+function renderLinkList(selfId){
+  const el = document.getElementById("link-list");
+  if(!el) return;
+  const others = state.cases.filter(c=>c.id!==selfId);
+  el.innerHTML = others.map(c=>`
+    <label class="link-check-row">
+      <input type="checkbox" ${window._tempLinked.includes(c.id)?'checked':''} onchange="toggleLinked('${c.id}', this.checked)" />
+      <span>${esc(computeCaseTitle(c))}${c.courtNumber?` · ${esc(c.courtNumber)}`:""}</span>
+    </label>`).join("");
+}
+window.toggleLinked = (id, checked)=>{
+  if(checked){ if(!window._tempLinked.includes(id)) window._tempLinked.push(id); }
+  else{ window._tempLinked = window._tempLinked.filter(x=>x!==id); }
+};
+
+window.submitCase = (id)=>{
+  const caseType = getCaseTypeValue() || CASE_TYPES[0];
+  ensureCustomCaseType(caseType);
+  const isCounsel = caseType === "Counsel";
+  const isCriminal = caseType === "Criminal";
+
+  let data;
+  if(!caseType){ alert("Choose or type a case type."); return; }
+  if(isCounsel){
+    const clientName = document.getElementById("c-counsel-client").value.trim();
+    const subject = document.getElementById("c-counsel-subject").value.trim();
+    if(!clientName){ alert("Add the client's name so this matter can be identified."); return; }
+    data = {
+      titleSource: "client",
+      subject,
+      parties: [{ id: uid(), role: "Client", name: clientName, phone:"", email:"" }],
+      court: "", courtNumber: document.getElementById("c-court").value.trim(),
+      authorityType: null, chamber: "", prosecutorInCharge: "",
+      dateReceived: document.getElementById("c-date-received").value || todayKey(),
+      caseType, status: document.getElementById("c-status").value, priority: !!document.getElementById("c-priority").checked,
+      notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs,
+      linkedCaseIds: window._tempLinked, noteLog: window._tempNoteLog || []
+    };
+  } else {
+    const parties = window._tempParties.filter(p=>p.name.trim()).map(p=>({...p, name:p.name.trim()}));
+    data = {
+      titleSource: window._tempTitleSource, subject: document.getElementById("c-subject").value.trim(),
+      parties, court: document.getElementById("c-courtname").value.trim(),
+      courtNumber: isCriminal ? "" : document.getElementById("c-court").value.trim(),
+      partialNumber: isCriminal ? document.getElementById("c-partial-number").value.trim() : "",
+      generalNumber: isCriminal ? document.getElementById("c-general-number").value.trim() : "",
+      authorityType: window._tempAuthorityType || "court",
+      chamber: document.getElementById("c-chamber") ? document.getElementById("c-chamber").value.trim() : "",
+      prosecutorInCharge: document.getElementById("c-prosecutor") ? document.getElementById("c-prosecutor").value.trim() : "",
+      caseType, status: document.getElementById("c-status").value, priority: !!document.getElementById("c-priority").checked,
+      notes: document.getElementById("c-notes").value.trim(), documents: window._tempDocs,
+      linkedCaseIds: window._tempLinked, noteLog: window._tempNoteLog || []
+    };
+    if(data.parties.length===0 && !data.subject){ alert("Add at least one party name or a subject so this case can be identified."); return; }
+  }
+  const isNewCase = !id;
+  if(id) data.id = id; else data.createdAt = Date.now();
+
+  const finalId = id || uid();
+  saveCase(data).then((ref)=>{
+    const myId = id || finalId;
+    window._tempLinked.forEach(otherId=>{
+      const other = state.cases.find(x=>x.id===otherId);
+      if(other && !(other.linkedCaseIds||[]).includes(myId)){
+        coll("cases").doc(otherId).set({...stripId(other), linkedCaseIds:[...(other.linkedCaseIds||[]), myId]});
+      }
+    });
+    if(isNewCase){
+      const newCaseId = ref && ref.id ? ref.id : myId;
+      const template = state.checklistTemplates[caseType] || [];
+      template.forEach(text=>{
+        saveChecklistItem({ caseId: newCaseId, text, done:false, taskId:null, followNextHearing:false, dueDate:null });
+      });
+
+      // Save every staged date/procedure the same way adding one normally
+      // works (same auto hearing-prep attachment for Hearing-type items),
+      // now that we finally have a real case ID to attach them to.
+      window._stagedTasks.forEach(t=>{
+        saveTask({ caseId:newCaseId, title:t.title, date:t.date, type:t.type, kind:"event", flag:"none", notes:"", completed:false, googleEventId:null, createdAt:Date.now() }).then(newTaskId=>{
+          if(t.type==="Hearing" && state.hearingPrepDefaults.length>0){
+            state.hearingPrepDefaults.forEach(text=>{
+              saveChecklistItem({ text, caseId:newCaseId, taskId:newTaskId, followNextHearing:false, dueDate:null, done:false });
+            });
+          }
+        });
+      });
+      window._stagedChecklist.forEach(it=>{
+        saveChecklistItem({ caseId:newCaseId, text:it.text, done:false, taskId:null, followNextHearing:false, dueDate:null });
+      });
+    }
+  }).catch(()=>{}); // failure already reported via toast inside saveCase() itself
+  closeModal();
+};
+
+function openCaseDetailModal(c){
+  const tk = todayKey();
+  const tasks = state.tasks.filter(t=>t.caseId===c.id).map(t=>({...t, delta:daysBetween(tk,t.date)})).sort((a,b)=>a.date.localeCompare(b.date));
+  const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
+  const linked = (c.linkedCaseIds||[]).map(id=>state.cases.find(x=>x.id===id)).filter(Boolean);
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal wide" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Case File</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div><div class="serif" style="font-size:21px;color:var(--navy-dark);">${esc(computeCaseTitle(c))}</div>
+        ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">${ICONS.location_dot} ${esc(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-left:4px;">Investigation</span>`:""}</div>`:""}
+        ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.chamber)}</div>`:""}
+        ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Prosecutor: ${esc(c.prosecutorInCharge)}</div>`:""}
+        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} Received ${fmtLong(c.dateReceived)}</div>`:""}
+        ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${c.partialNumber?"Partial: "+esc(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?"General: "+esc(c.generalNumber):""}</div>`:""}
+        ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${esc(c.courtNumber)}</div>`:""}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="icon-btn" title="Export full case history as PDF" onclick='printCaseHistory(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.file_pdf}</button>
+          <button class="icon-btn" title="Duplicate this case" onclick='duplicateCase(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.clone}</button>
+          <button class="icon-btn" onclick='closeModal();openCaseModal(${JSON.stringify(c).replace(/'/g,"&apos;")})'>${ICONS.pen}</button>
+          <button class="icon-btn" style="color:#B23A32;" onclick="confirmDeleteCase('${c.id}')">${ICONS.trash}</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin:10px 0 16px;flex-wrap:wrap;">
+        <span class="badge" style="border-color:${colorForCaseType(c.caseType)};color:${colorForCaseType(c.caseType)};">${iconForCaseType(c.caseType)} ${esc(c.caseType)}</span>
+        <span class="badge" style="border-color:${statusColor};color:${statusColor};">${c.status}</span>
+      </div>
+
+      ${(c.parties&&c.parties.length) ? `<div style="margin-bottom:16px;"><div class="section-label" style="font-size:11px;">Parties</div>
+        ${c.parties.map(p=>`<div style="font-size:13.5px;margin-bottom:6px;">
+          <div><strong>${esc(p.role)}:</strong> ${esc(p.name)}</div>
+          ${(p.phone||p.email) ? `<div style="font-size:12px;color:var(--slate);display:flex;gap:12px;flex-wrap:wrap;margin-top:2px;align-items:center;">
+            ${p.phone?`<a href="tel:${esc(p.phone)}">${ICONS.phone} ${esc(p.phone)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','call')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log call</button>`:""}
+            ${p.email?`<a href="mailto:${esc(p.email)}">${ICONS.envelope} ${esc(p.email)}</a> <button onclick="logPartyContact('${c.id}','${esc(p.name).replace(/'/g,"&apos;")}','email')" class="btn-ghost" style="font-size:10.5px;padding:2px 7px;">${ICONS.list_check} Log email</button>`:""}
+          </div>` : ""}
+        </div>`).join("")}</div>` : ""}
+
+      ${c.notes?`<div style="font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px;line-height:1.5;">${esc(c.notes)}</div>`:""}
+
+      <div style="margin-bottom:18px;">
+        <div class="section-label">Case Log</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <input class="input" id="log-entry-input" placeholder="Add a dated note (e.g. client called about settlement)…" />
+          <button class="btn-ghost" onclick="addLogEntry('${c.id}')">Add</button>
+        </div>
+        ${(c.noteLog&&c.noteLog.length) ? `<div>${c.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>`
+          <div style="font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div><span class="mono" style="color:var(--muted);font-size:11px;">${fmtLong(l.date)}</span> — <span id="log-text-${l.id}">${esc(l.text)}</span></div>
+            <div style="display:flex;gap:4px;flex-shrink:0;">
+              <button onclick="editLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;">${ICONS.pen}</button>
+              <button onclick="deleteLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;">${ICONS.trash}</button>
+            </div>
+          </div>`).join("")}</div>` : `<div style="color:var(--muted);font-size:12.5px;">No log entries yet.</div>`}
+      </div>
+
+      ${c.documents&&c.documents.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Documents</div>
+        ${c.documents.map(d=>`<div style="margin-bottom:5px;"><a href="${esc(d.url)}" target="_blank">${ICONS.link} ${esc(d.label)}</a></div>`).join("")}</div>` : ""}
+
+      ${linked.length? `<div style="margin-bottom:18px;"><div class="section-label" style="font-size:11px;">Linked cases</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${linked.map(lc=>`<button class="group-badge" style="cursor:pointer;" onclick='closeModal();openCaseDetail("${lc.id}")'>${ICONS.link} ${esc(computeCaseTitle(lc))}</button>`).join("")}</div></div>` : ""}
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="section-label" style="margin-bottom:0;">Dates & Procedures</div>
+        <button style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick='closeModal();openTaskModal({caseId:"${c.id}",title:"",date:"${state.selectedDay}",type:"${PROCEDURE_TYPES[0]}",notes:"",completed:false})'>+ Add</button>
+      </div>
+      ${tasks.length===0? `<div style="color:var(--muted);font-size:13px;">No dates yet for this case.</div>` :
+        tasks.map(t=>taskRowHtml(t, c, true)).join("")}
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;">
+        <div class="section-label" style="margin-bottom:0;">Checklist</div>
+        <button style="background:none;border:none;color:var(--navy);font-weight:700;font-size:12.5px;" onclick='closeModal();openChecklistModal({caseId:"${c.id}",text:"",done:false})'>+ Add</button>
+      </div>
+      ${state.checklist.filter(x=>x.caseId===c.id).length===0 ? `<div style="color:var(--muted);font-size:13px;">No checklist items for this case.</div>` :
+        state.checklist.filter(x=>x.caseId===c.id).map(it=>`<div class="checklist-row"><button class="task-check" onclick="toggleChecklistDone('${it.id}')" style="${it.done?'border-color:var(--sage);':''}">${it.done?ICONS.check:''}</button><div style="flex:1;font-size:13.5px;cursor:pointer;${it.done?'text-decoration:line-through;color:var(--muted);':''}" onclick='openChecklistModal(${JSON.stringify(it).replace(/'/g,"&apos;")})'>${esc(it.text)}</div><button onclick="deleteChecklistItem('${it.id}')" style="background:none;border:none;color:var(--muted);">${ICONS.trash}</button></div>`).join("")}
+
+      <div id="delete-confirm-${c.id}"></div>
+    </div>
+  </div>`;
+}
+window.openCaseDetail = (id)=> openCaseDetailModal(state.cases.find(c=>c.id===id));
+window.addLogEntry = (caseId)=>{
+  const input = document.getElementById("log-entry-input");
+  const text = input.value.trim();
+  if(!text) return;
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text }];
+  coll("cases").doc(caseId).set({...stripId(c), noteLog: newLog}).then(()=>{
+    openCaseDetailModal({...c, noteLog: newLog});
+  });
+};
+window.editLogEntry = (caseId, logId)=>{
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const entry = (c.noteLog||[]).find(l=>l.id===logId);
+  if(!entry) return;
+  const newText = prompt("Edit log entry:", entry.text);
+  if(newText===null || !newText.trim()) return;
+  const newLog = (c.noteLog||[]).map(l=> l.id===logId ? {...l, text:newText.trim()} : l);
+  coll("cases").doc(caseId).set({...stripId(c), noteLog:newLog}).then(()=>{
+    openCaseDetailModal({...c, noteLog:newLog});
+  });
+};
+window.deleteLogEntry = (caseId, logId)=>{
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const newLog = (c.noteLog||[]).filter(l=>l.id!==logId);
+  coll("cases").doc(caseId).set({...stripId(c), noteLog:newLog}).then(()=>{
+    openCaseDetailModal({...c, noteLog:newLog});
+  });
+};
+window.logPartyContact = (caseId, partyName, kind)=>{
+  const c = state.cases.find(x=>x.id===caseId);
+  if(!c) return;
+  const text = kind==="call" ? `Called ${partyName}` : `Emailed ${partyName}`;
+  const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text }];
+  coll("cases").doc(caseId).set({...stripId(c), noteLog: newLog}).then(()=>{
+    showToast("Logged to Case Log");
+    openCaseDetailModal({...c, noteLog: newLog});
+  });
+};
+window.duplicateCase = (c)=>{
+  closeModal();
+  const copy = { ...c, id:null, createdAt:null, courtNumber:"", linkedCaseIds:[c.id], documents:[] };
+  openCaseModal(copy);
+};
+window.confirmDeleteCase = (id)=>{
+  document.getElementById(`delete-confirm-${id}`).innerHTML = `
+  <div style="margin-top:18px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:12px;">
+    <div style="font-size:13px;margin-bottom:10px;">${ICONS.triangle_exclamation} Delete this case, all its dates and checklist items? This can't be undone.</div>
+    <div style="display:flex;gap:8px;">
+      <button style="background:#B23A32;color:#fff;border:none;border-radius:6px;padding:7px 14px;font-weight:600;font-size:13px;" onclick="deleteCaseDoc('${id}');closeModal();">Delete</button>
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>`;
+};
+window.deleteCaseDoc = deleteCaseDoc;
+
+function openSettingsModal(){
+  const allCaseTypes = [...CASE_TYPES, ...state.customCaseTypes];
+  if(!window._tempTemplateType || !allCaseTypes.includes(window._tempTemplateType)) window._tempTemplateType = allCaseTypes[0];
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">Settings</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <button class="btn-ghost" style="width:100%;margin-bottom:16px;" onclick="closeModal();openQuickReference(false)">${ICONS.info} Quick reference</button>
+      <button class="btn-ghost" style="width:100%;margin-bottom:16px;" onclick="closeModal();openReportModal()">${ICONS.file_lines} Weekly / monthly activity report</button>
+
+      <div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Report header</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Shown at the top of every printed report — your name, firm, address, phone, whatever belongs on the letterhead. One line per line.</div>
+        <textarea class="input" id="s-report-header" rows="3" placeholder="e.g.&#10;Ahmed Al-Sharif — Attorney at Law&#10;Tripoli, Libya" style="resize:vertical;">${esc(state.reportHeader||"")}</textarea>
+        <button class="btn-ghost" style="margin-top:6px;" onclick="saveReportHeader()">Save header</button>
+      </div>
+
+      <div class="field"><span class="field-label">Flag dates as "due soon" within</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input class="input" id="s-alertdays" type="number" min="1" max="60" value="${state.alertDays}" style="width:80px;" />
+          <span style="font-size:13.5px;color:var(--muted);">days</span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveAlertDays()">Save</button>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Google Calendar</div>
+        ${state.googleConnected
+          ? (()=>{
+              const unsynced = state.tasks.filter(t=>!t.completed && !t.googleEventId).length;
+              return `<div style="font-size:13px;color:var(--sage);font-weight:600;">${ICONS.check} Connected — new dates sync automatically, with reminders (1 day + 1 hour before; 3 days too for Critical) handled by Google Calendar itself.</div>
+              ${unsynced>0 ? `<button class="btn-ghost" style="margin-top:10px;" onclick="syncAllUnsynced()">${ICONS.rotate} Sync ${unsynced} unsynced date${unsynced===1?'':'s'} now</button>
+              <div style="font-size:11px;color:var(--muted);margin-top:5px;">These were likely added while disconnected, so they never made it to Google Calendar. This catches them up.</div>` : ''}`;
+            })()
+          : `<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Not connected. Dates added while disconnected won't sync automatically — you can still add any of them to Google Calendar manually with one tap (look for the calendar icon next to any date), or reconnect and use "Sync unsynced dates" below.</div>
+             <button class="btn-ghost" onclick="connectGoogleCalendar()">Connect Google Calendar</button>`}
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Backup</div>
+        <button class="btn-ghost" onclick="exportData()">${ICONS.download} Download a full backup (.json)</button>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">A plain copy of every case, date, and checklist item — worth doing occasionally as a safety net.</div>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Custom case types you've added</div>
+        ${state.customCaseTypes.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">None yet — custom case types you type into the case form will appear here, removable if added by mistake. (Procedure type is fixed to Hearing/Procedure.)</div>` : `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${state.customCaseTypes.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeCustomType('case','${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
+        </div>
+        `}
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Removing a type only hides it from future suggestions — cases already using it are unaffected.</div>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Starting checklist by case type</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new case of a type below starts with these checklist items already added — one per line.</div>
+        <select class="input" id="tmpl-type-select" onchange="onTemplateTypeChange()">
+          ${allCaseTypes.map(t=>`<option value="${esc(t)}" ${window._tempTemplateType===t?'selected':''}>${esc(t)}</option>`).join("")}
+        </select>
+        <textarea class="input" id="tmpl-items" rows="4" placeholder="e.g.&#10;Review case file&#10;Confirm client contact" style="margin-top:6px;resize:vertical;">${esc((state.checklistTemplates[window._tempTemplateType]||[]).join("\n"))}</textarea>
+        <button class="btn-ghost" style="margin-top:6px;" onclick="saveChecklistTemplate()">Save template for this type</button>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+        <div class="field-label" style="margin-bottom:8px;">Default hearing-prep checklist</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px;">Every new Hearing you schedule automatically gets these checklist items attached.</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <input class="input" id="hearing-prep-input" placeholder="e.g. Confirm client will attend" />
+          <button class="btn-ghost" onclick="addHearingPrepDefault()">Add</button>
+        </div>
+        ${state.hearingPrepDefaults.length===0 ? `<div style="font-size:12.5px;color:var(--muted);">None yet — add a standard prep step above and it'll be attached to every new Hearing automatically.</div>` : `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${state.hearingPrepDefaults.map(t=>`<span class="badge" style="border-color:var(--line);color:var(--ink);display:inline-flex;align-items:center;gap:5px;">${esc(t)} <button onclick="removeHearingPrepDefault('${esc(t).replace(/'/g,"&apos;")}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;">${ICONS.xmark}</button></span>`).join("")}
+        </div>
+        `}
+      </div>
+
+      <div style="font-size:12.5px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px;">
+        ${state.cases.length} case${state.cases.length===1?"":"s"} · ${state.tasks.length} date${state.tasks.length===1?"":"s"} · ${state.checklist.length} checklist item${state.checklist.length===1?"":"s"}.<br/><br/>
+        Signed in as ${esc(state.user.email)}. Your data is private to this account and syncs automatically across every device you sign in on.
+      </div>
+    </div>
+  </div>`;
+}
+window.saveAlertDays = ()=>{ state.alertDays = Math.max(1, Number(document.getElementById("s-alertdays").value)||1); saveSettings(); closeModal(); };
+window.saveReportHeader = ()=>{ state.reportHeader = document.getElementById("s-report-header").value; saveSettings(); showToast("Report header saved."); };
+window.openQuickReference = (isFirstTime)=>{
+  const legendTypes = [...PROCEDURE_TYPES];
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal wide" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${isFirstTime?'Welcome to Docket':'Quick Reference'}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Calendar icons</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+          ${legendTypes.map(t=>`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 8px;"><span style="color:${colorForProcedure(t)};">${iconForProcedure(t)}</span> ${esc(t)}</span>`).join("")}
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Flags</div>
+        <div style="font-size:13px;line-height:1.7;">
+          <div><span class="badge" style="border-color:var(--critical);color:var(--critical);">CRITICAL</span> — a can't-miss date. Pinned to the top of Calendar no matter how far away.</div>
+          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">Heads-up</span> — a gentle nudge. Shows automatically as any date approaches (based on your Settings), or force it earlier with the FYI flag.</div>
+          <div style="margin-top:6px;"><span class="badge" style="border-color:var(--overdue);color:var(--overdue);">Overdue</span> — passed and not yet marked done.</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Cases</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Link related cases to each other from the case form. Counsel and Criminal case types get their own simplified fields. Filter by court to see everything open at a specific courthouse.
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Checklist</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Link a checklist item to a specific date, or to "Next court hearing" so it automatically follows whichever hearing is soonest — even through postponements.
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="section-label">Reports</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Tap the report icon in the header to generate a printable weekly or monthly summary of everything you handled — for whoever you need to report to.
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;background:#FBEAE8;border:1px solid #E5A39B;border-radius:8px;padding:10px 12px;">
+        <div class="section-label" style="color:var(--brick);">${ICONS.triangle_exclamation} Google Calendar — important</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Anything you add while <strong>not</strong> connected won't sync to Google Calendar automatically — Docket has no way to reach it until you reconnect. The connection can quietly lapse (usually within about an hour), so it's worth checking the Calendar tab occasionally for the "Reconnect" banner.<br/><br/>
+          Already added something while disconnected? Reconnect, then either open that date and tap Save (even with no changes) to sync just that one, or use <strong>Settings → Sync unsynced dates</strong> to catch up everything at once.
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <div class="section-label">Calendar navigation</div>
+        <div style="font-size:13px;line-height:1.7;color:var(--ink);">
+          Swipe left/right to change months, or tap the month name to jump straight to any month.
+        </div>
+      </div>
+
+      ${isFirstTime ? `<button class="btn-primary" style="width:100%;margin-top:10px;" onclick="closeModal()">Get started</button>` : ""}
+    </div>
+  </div>`;
+};
+window.removeCustomType = (kind, value)=>{
+  if(kind==="case"){ state.customCaseTypes = state.customCaseTypes.filter(t=>t!==value); }
+  else { state.customProcedureTypes = state.customProcedureTypes.filter(t=>t!==value); }
+  saveSettings();
+  openSettingsModal();
+};
+window.onTemplateTypeChange = ()=>{
+  window._tempTemplateType = document.getElementById("tmpl-type-select").value;
+  openSettingsModal();
+};
+window.saveChecklistTemplate = ()=>{
+  const type = window._tempTemplateType;
+  const lines = document.getElementById("tmpl-items").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  if(lines.length){ state.checklistTemplates = {...state.checklistTemplates, [type]: lines}; }
+  else { const {[type]:_, ...rest} = state.checklistTemplates; state.checklistTemplates = rest; }
+  saveSettings();
+  showToast(`Template saved for ${type}`);
+  openSettingsModal();
+};
+window.addHearingPrepDefault = ()=>{
+  const input = document.getElementById("hearing-prep-input");
+  const v = input.value.trim();
+  if(!v) return;
+  if(!state.hearingPrepDefaults.includes(v)) state.hearingPrepDefaults.push(v);
+  saveSettings();
+  openSettingsModal();
+};
+window.removeHearingPrepDefault = (value)=>{
+  state.hearingPrepDefaults = state.hearingPrepDefaults.filter(t=>t!==value);
+  saveSettings();
+  openSettingsModal();
+};
+window.exportData = ()=>{
+  const payload = { exportedAt: new Date().toISOString(), cases: state.cases, tasks: state.tasks, checklist: state.checklist };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `docket-backup-${todayKey()}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+if("serviceWorker" in navigator){ window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{})); }
+</script>
+</body>
+</html>
+tent="black-translucent" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 
