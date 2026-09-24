@@ -54,19 +54,6 @@
   html[lang="ar"] body{font-family:'IBM Plex Sans Arabic',sans-serif;}
   html[lang="ar"] .serif{font-family:'Amiri',serif;}
   html[lang="ar"] .mono{font-family:'IBM Plex Sans Arabic',monospace;}
-  /* Arabic: letter-spacing and a Latin-only monospace font pull Arabic letters apart */
-  html[lang="ar"] .badge{font-family:'IBM Plex Sans Arabic',sans-serif;letter-spacing:0;font-size:11.5px;}
-  html[lang="ar"] .section-label, html[lang="ar"] .field-label, html[lang="ar"] .cal-wd{letter-spacing:0;}
-  html[lang="ar"] [style*="letter-spacing"]{letter-spacing:0 !important;}
-  /* Keep the page from being wider than the screen (RTL overflow shows as a strip on the left) */
-  html,body{overflow-x:hidden;}
-  @supports (overflow-x:clip){ html,body{overflow-x:clip;} }
-  /* Dates never split across lines */
-  .nowrap{white-space:nowrap;}
-  /* Title icon stays beside the title; long titles wrap next to it */
-  .task-title-line{display:flex;align-items:flex-start;gap:6px;flex:0 1 auto;min-width:0;}
-  .task-title-line .task-title-icon{flex-shrink:0;line-height:1.4;}
-  .task-title-line .task-title{min-width:0;overflow-wrap:anywhere;}
   ::-webkit-scrollbar{width:8px;height:8px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
   button{font-family:inherit; cursor:pointer;}
   input,select,textarea{font-family:inherit; outline:none;}
@@ -362,7 +349,7 @@ function procTypeLabel(v){ return (PROCEDURE_TYPE_LABELS[state.lang]&&PROCEDURE_
 const TRANSLATIONS = {
   // App chrome
   tab_calendar:{en:"Calendar",ar:"التقويم"}, tab_cases:{en:"Cases",ar:"القضايا"}, tab_checklist:{en:"Checklist",ar:"قائمة المهام"},
-  badge_overdue:{en:"{n} overdue",ar:"{n} متأخرة"}, badge_due_soon:{en:"{n} due soon",ar:"{n} قريبًا"}, badge_no_upcoming:{en:"{n} no upcoming dates",ar:"{n} بلا مواعيد قادمة"},
+  badge_overdue:{en:"{n} overdue",ar:"{n} متأخر"}, badge_due_soon:{en:"{n} due soon",ar:"{n} قريبًا"}, badge_no_upcoming:{en:"{n} no upcoming dates",ar:"{n} بلا مواعيد قادمة"},
   // Calendar tab
   today_in_court:{en:"Today in court",ar:"اليوم في المحكمة"}, tomorrow_in_court:{en:"Tomorrow in court",ar:"غدًا في المحكمة"},
   nothing_in_court_today:{en:"Nothing in court today — relax.",ar:"لا جلسات اليوم — استرح."},
@@ -379,11 +366,6 @@ const TRANSLATIONS = {
   overdue_badge:{en:"Overdue",ar:"متأخر"}, missed_deadline:{en:"Missed deadline",ar:"موعد فائت"},
   critical_badge:{en:"CRITICAL",ar:"مهم"}, headsup_badge:{en:"heads-up",ar:"للعلم"},
   day_abbrev:{en:"d",ar:"ي"},
-  signout_short:{en:"Out",ar:"خروج"}, signout_title:{en:"Sign out",ar:"تسجيل الخروج"},
-  install_banner_strong:{en:"One-tap access:",ar:"وصول بنقرة واحدة:"},
-  install_banner_body:{en:'your browser should offer an "Install" or "Add to Home Screen" option (address bar icon, or the ⋮ / Share menu).',ar:'يُفترض أن يعرض متصفحك خيار «تثبيت» أو «إضافة إلى الشاشة الرئيسية» (من أيقونة شريط العنوان، أو من قائمة ⋮ / مشاركة).'},
-  reconnect_banner_body:{en:"Google Calendar sync needs to be reconnected (this happens periodically for security). Your dates are still safe — this only affects calendar syncing.",ar:"يجب إعادة ربط مزامنة تقويم Google (يحدث هذا دوريًا لأسباب أمنية). مواعيدك محفوظة — يؤثر هذا على المزامنة مع التقويم فقط."},
-  reconnect_btn:{en:"Reconnect",ar:"إعادة الربط"},
   open_gcal_title:{en:"Open in Google Calendar",ar:"فتح في تقويم غوغل"}, add_gcal_title:{en:"Add to Google Calendar",ar:"إضافة إلى تقويم غوغل"},
   deadline_suffix:{en:"(deadline)",ar:"(موعد نهائي)"}, postponed_prefix:{en:"Postponed:",ar:"أُجِّلت:"},
   no_case_linked:{en:"No case linked",ar:"لا توجد قضية مرتبطة"},
@@ -664,20 +646,7 @@ function googleCalendarAddLink(task, caseItem){
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 function daysBetween(a,b){ return Math.round((parseKey(b)-parseKey(a))/86400000); }
-function fmtLong(k){
-  const d=parseKey(k);
-  return state.lang==="ar"
-    ? `${d.getDate()} ${MONTHS_AR[d.getMonth()]} ${d.getFullYear()}`
-    : `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
-// Days-left label: "5d" in English; proper Arabic plural forms in Arabic.
-function countdownText(n){
-  if(state.lang!=="ar") return `${n}${tr('day_abbrev')}`;
-  if(n===1) return "يوم";
-  if(n===2) return "يومان";
-  if(n>=3 && n<=10) return `${n} أيام`;
-  return `${n} يومًا`;
-}
+function fmtLong(k){ const d=parseKey(k); return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
 function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36); }
 function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 // Wraps embedded dynamic text (case/court/party names, dates) in a bidi isolate.
@@ -687,8 +656,6 @@ function esc(s){ return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",
 // glyphs even though the underlying character is a plain Western "0". <bdi> gives
 // each piece its own resolved direction without affecting anything around it.
 function bdi(s){ return `<bdi>${esc(s)}</bdi>`; }
-// Same as bdi(), but the date is kept on one line.
-function bdiDate(k){ return `<bdi class="nowrap">${esc(fmtLong(k))}</bdi>`; }
 
 function uniqueCourts(){
   const set = new Set();
@@ -1164,9 +1131,6 @@ function syncStaticChrome(){
   document.getElementById("tab-cases-label").textContent = tr("tab_cases");
   document.getElementById("tab-checklist-label").textContent = tr("tab_checklist");
   document.getElementById("lang-toggle-btn").textContent = state.lang==="ar" ? "EN" : "AR";
-  const outBtn = document.getElementById("signout-btn");
-  outBtn.textContent = tr("signout_short");
-  outBtn.title = tr("signout_title");
 }
 function render(){
   syncStaticChrome();
@@ -1186,9 +1150,9 @@ function render(){
   state._staleCases = staleCases;
 
   const badges = document.getElementById("header-badges");
-  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;">${tr('badge_overdue',{n:overdueItems.length})}</button>`:"") +
-                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${tr('badge_due_soon',{n:headsUpItems.length})}</button>`:"") +
-                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;">${tr('badge_no_upcoming',{n:staleCases.length})}</button>`:"");
+  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;">${overdueItems.length} overdue</button>`:"") +
+                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${headsUpItems.length} due soon</button>`:"") +
+                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;">${staleCases.length} no upcoming dates</button>`:"");
   renderBadgeMenu();
 
   renderInstallBanner();
@@ -1210,14 +1174,14 @@ function badgeMenuRowHtml(t, caseItem){
   const color = t.flag==="critical" ? "var(--critical)" : (isOverdue ? "var(--overdue)" : colorForProcedure(t.type));
   const badge = isOverdue
     ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>`
-    : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${delta===0?tr('today_word'):countdownText(delta)} · ${tr('headsup_badge')}</span>`;
+    : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${delta===0?tr('today_word'):delta+tr('day_abbrev')} · ${tr('headsup_badge')}</span>`;
   return `<div class="task-row" style="border-inline-start:4px solid ${color};">
     <div style="flex:1;min-width:0;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         <span class="serif" style="font-size:14.5px;font-weight:600;color:var(--navy-dark);">${caseItem?bdi(computeCaseTitle(caseItem)):tr('no_case_linked')}</span>
         ${badge}
       </div>
-      <div class="task-meta">${iconForProcedure(t.type)} ${bdi(t.title)}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${bdi(caseItem.court)}`:""} · ${bdiDate(t.date)}</div>
+      <div class="task-meta">${iconForProcedure(t.type)} ${bdi(t.title)}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${bdi(caseItem.court)}`:""} · ${bdi(fmtLong(t.date))}</div>
     </div>
   </div>`;
 }
@@ -1249,7 +1213,7 @@ function renderInstallBanner(){
   if(state.onboardDismissed){ wrap.innerHTML=""; return; }
   wrap.innerHTML = `<div class="install-banner">
     <span>${ICONS.mobile_screen_button}</span>
-    <div style="flex:1;"><strong>${tr('install_banner_strong')}</strong> ${tr('install_banner_body')}</div>
+    <div style="flex:1;"><strong>One-tap access:</strong> your browser should offer an "Install" or "Add to Home Screen" option (address bar icon, or the ⋮ / Share menu).</div>
     <button onclick="dismissBanner()" style="background:none;border:none;color:var(--muted);">${ICONS.xmark}</button>
   </div>`;
 }
@@ -1261,8 +1225,8 @@ function renderReconnectBanner(){
   if(state.calendarEverConnected && !state.googleConnected){
     wrap.innerHTML = `<div class="install-banner" style="border-inline-start-color:var(--brick);margin-top:10px;">
       <span>${ICONS.calendar_days}</span>
-      <div style="flex:1;">${tr('reconnect_banner_body')}</div>
-      <button class="btn-ghost" onclick="reconnectGoogle()">${tr('reconnect_btn')}</button>
+      <div style="flex:1;">Google Calendar sync needs to be reconnected (this happens periodically for security). Your dates are still safe — this only affects calendar syncing.</div>
+      <button class="btn-ghost" onclick="reconnectGoogle()">Reconnect</button>
     </div>`;
   } else { wrap.innerHTML = ""; }
 }
@@ -1443,7 +1407,7 @@ function taskRowHtml(t, caseItem, showDate){
   const baseColor = colorForProcedure(t.type);
   const icon = baseIcon;
   const color = overdue ? "var(--overdue)" : (isCritical ? "var(--critical)" : baseColor);
-  const countdownLabel = t.delta===0 ? tr('today_word') : countdownText(t.delta);
+  const countdownLabel = t.delta===0 ? tr('today_word') : `${t.delta}${tr('day_abbrev')}`;
   let statusBadge = "";
   if(overdue){ statusBadge = `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${isDeadline?tr('missed_deadline'):tr('overdue_badge')}</span>`; }
   else if(!t.completed && typeof t.delta==="number"){
@@ -1466,13 +1430,13 @@ function taskRowHtml(t, caseItem, showDate){
     <button class="task-check" onclick="toggleTaskDone('${t.id}')">${t.completed?ICONS.check:''}</button>
     <div style="flex:1;min-width:0;cursor:pointer;" onclick='openTaskModal(${JSON.stringify(t).replace(/'/g,"&apos;")})'>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span class="task-title-line"><span class="task-title-icon" style="color:${color};">${icon}</span>
-        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${bdi(t.title)}${isDeadline?` <span style="font-size:11px;color:var(--muted);font-weight:500;">${tr('deadline_suffix')}</span>`:''}</span></span>
+        <span class="task-title-icon" style="color:${color};">${icon}</span>
+        <span class="task-title" style="${t.completed?'text-decoration:line-through;color:var(--muted);':''}">${bdi(t.title)}${isDeadline?` <span style="font-size:11px;color:var(--muted);font-weight:500;">${tr('deadline_suffix')}</span>`:''}</span>
         ${t.googleEventId?`<a href="${esc(t.googleEventLink||('https://calendar.google.com/calendar/r/search?q='+encodeURIComponent(t.title)))}" target="_blank" onclick="event.stopPropagation()" title="${esc(tr('open_gcal_title'))}" style="color:var(--slate);display:inline-flex;">${ICONS.calendar_check}</a>`:
           `<a href="${esc(googleCalendarAddLink(t, caseItem))}" target="_blank" onclick="event.stopPropagation()" title="${esc(tr('add_gcal_title'))}" style="color:var(--muted);display:inline-flex;">${ICONS.calendar_days}</a>`}
         ${statusBadge}
       </div>
-      <div class="task-meta">${caseItem?bdi(computeCaseTitle(caseItem)):tr('no_case_linked')}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${bdi(caseItem.court)}`:""}${showDate?` · ${bdiDate(t.date)}`:""}</div>
+      <div class="task-meta">${caseItem?bdi(computeCaseTitle(caseItem)):tr('no_case_linked')}${caseItem&&caseItem.court?` · ${ICONS.location_dot} ${bdi(caseItem.court)}`:""}${showDate?` · ${bdi(fmtLong(t.date))}`:""}</div>
       ${t.postponeReason?`<div class="task-meta" style="color:var(--brass);margin-top:2px;">↳ ${tr('postponed_prefix')} ${bdi(t.postponeReason)}</div>`:""}
       ${prepHtml}
     </div>
@@ -1601,7 +1565,7 @@ function caseCardHtml(c){
 
   const locationPiece = c.court
     ? `${ICONS.location_dot} ${bdi(c.court)}${c.authorityType==="court"&&c.chamber?` (${bdi(c.chamber)})`:""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?` (${bdi(c.prosecutorInCharge)})`:""}`
-    : (c.caseType==="Counsel"&&c.dateReceived) ? `${ICONS.calendar_days} ${tr('received_word')} ${bdiDate(c.dateReceived)}`
+    : (c.caseType==="Counsel"&&c.dateReceived) ? `${ICONS.calendar_days} ${tr('received_word')} ${bdi(fmtLong(c.dateReceived))}`
     : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?bdi(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?tr('gen_abbrev')+" "+bdi(c.generalNumber):""}`
     : c.courtNumber ? bdi(c.courtNumber) : "";
 
@@ -1612,7 +1576,7 @@ function caseCardHtml(c){
   const metaPieces = [
     `<span class="case-type-icon" style="color:${color};">${iconForCaseType(c.caseType)}</span> ${esc(caseTypeLabel(c.caseType))}`,
     locationPiece,
-    nextHearing ? `${ICONS.gavel} ${tr('next_hearing_label',{date:bdiDate(nextHearing.date)})}` : "",
+    nextHearing ? `${ICONS.gavel} ${tr('next_hearing_label',{date:bdi(fmtLong(nextHearing.date))})}` : "",
     (c.documents&&c.documents.length) ? `${ICONS.link} ${c.documents.length}` : "",
     groupSize>0 ? `${ICONS.link} ${tr('linked_count',{n:groupSize})}` : "",
     activityDays!==null ? tr('days_since_activity',{n:activityDays}) : ""
@@ -1652,14 +1616,14 @@ function checklistItemRowHtml(it, casesById, tasksById){
   const rowColor = isOverdue ? "var(--overdue)" : effectiveTask ? (effectiveTask.flag==="critical" ? "var(--critical)" : colorForProcedure(effectiveTask.type)) : (hasOwnDeadline ? "var(--heads-up)" : (c ? colorForCaseType(c.caseType) : "var(--line)"));
   const rowIcon = hasOwnDeadline ? ICONS.hourglass_half : (effectiveTask ? iconForProcedure(effectiveTask.type) : (c ? iconForCaseType(c.caseType) : ""));
   const deadlineBadge = effectiveDate && !it.done
-    ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?tr('today_word'):countdownText(deltaDays)}</span>`)
+    ? (isOverdue ? `<span class="badge" style="border-color:var(--overdue);color:var(--overdue);">${tr('overdue_badge')}</span>` : `<span class="badge" style="border-color:var(--heads-up);color:var(--heads-up);">${deltaDays===0?tr('today_word'):deltaDays+tr('day_abbrev')}</span>`)
     : "";
   const metaLine = hasOwnDeadline
-    ? `${tr('due_prefix',{date:bdiDate(it.dueDate)})}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+    ? `${tr('due_prefix',{date:bdi(fmtLong(it.dueDate))})}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
     : linkedTask
-    ? `${tr('before_task_prefix',{title:bdi(linkedTask.title)})} · ${bdiDate(linkedTask.date)}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+    ? `${tr('before_task_prefix',{title:bdi(linkedTask.title)})} · ${bdi(fmtLong(linkedTask.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
     : followedHearing
-    ? `${tr('before_next_hearing')} · ${bdiDate(followedHearing.date)}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
+    ? `${tr('before_next_hearing')} · ${bdi(fmtLong(followedHearing.date))}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
     : it.followNextHearing
     ? `${tr('before_next_hearing')} ${tr('none_scheduled_yet')}${c?` · ${bdi(computeCaseTitle(c))}`:""}`
     : (c ? bdi(computeCaseTitle(c)) : "");
@@ -2402,7 +2366,7 @@ function openCaseDetailModal(c){
         ${c.court?`<div style="font-size:13px;color:var(--slate);font-weight:600;margin-top:2px;">${ICONS.location_dot} ${bdi(c.court)}${c.authorityType==="prosecution"?` <span class="badge" style="border-color:var(--slate);color:var(--slate);margin-inline-start:4px;">Investigation</span>`:""}</div>`:""}
         ${c.authorityType==="court"&&c.chamber?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${bdi(c.chamber)}</div>`:""}
         ${c.authorityType==="prosecution"&&c.prosecutorInCharge?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${tr('prosecutor_prefix')} ${bdi(c.prosecutorInCharge)}</div>`:""}
-        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} ${tr('received_word')} ${bdiDate(c.dateReceived)}</div>`:""}
+        ${c.caseType==="Counsel"&&c.dateReceived?`<div style="font-size:12.5px;color:var(--muted);margin-top:2px;">${ICONS.calendar_days} ${tr('received_word')} ${bdi(fmtLong(c.dateReceived))}</div>`:""}
         ${c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${c.partialNumber?tr('partial_prefix')+" "+bdi(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?tr('general_prefix')+" "+bdi(c.generalNumber):""}</div>`:""}
         ${c.courtNumber?`<div class="mono" style="font-size:12.5px;color:var(--muted);margin-top:2px;">${bdi(c.courtNumber)}</div>`:""}</div>
         <div style="display:flex;gap:6px;">
@@ -2436,7 +2400,7 @@ function openCaseDetailModal(c){
         </div>
         ${(c.noteLog&&c.noteLog.length) ? `<div>${c.noteLog.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(l=>`
           <div style="font-size:13px;padding:7px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-            <div><span class="mono" style="color:var(--muted);font-size:11px;">${bdiDate(l.date)}</span> — <span id="log-text-${l.id}">${bdi(l.text)}</span></div>
+            <div><span class="mono" style="color:var(--muted);font-size:11px;">${bdi(fmtLong(l.date))}</span> — <span id="log-text-${l.id}">${bdi(l.text)}</span></div>
             <div style="display:flex;gap:4px;flex-shrink:0;">
               <button onclick="editLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;">${ICONS.pen}</button>
               <button onclick="deleteLogEntry('${c.id}','${l.id}')" style="background:none;border:none;color:var(--muted);padding:2px;">${ICONS.trash}</button>
@@ -2823,7 +2787,7 @@ window.computeDeadline = ()=>{
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600;margin-bottom:4px;">Last day to act</div>
       <div class="serif" style="font-size:19px;color:var(--navy-dark);">${fmtLong(calc.date)}</div>
       <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;">
-        ${days} day${days===1?'':'s'}${distanceDays?` + ${distanceDays} distance day${distanceDays===1?'':'s'}`:''} from ${bdiDate(start)} — start date excluded from the count.
+        ${days} day${days===1?'':'s'}${distanceDays?` + ${distanceDays} distance day${distanceDays===1?'':'s'}`:''} from ${fmtLong(start)} — start date excluded from the count.
         ${calc.pushedForHoliday ? `<br/>Falls on the weekend — extended to the next working day (Sunday) per Article 19.` : ''}
       </div>
     </div>
