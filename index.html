@@ -349,6 +349,32 @@ function procTypeLabel(v){ return (PROCEDURE_TYPE_LABELS[state.lang]&&PROCEDURE_
 const TRANSLATIONS = {
   // App chrome
   tab_calendar:{en:"Calendar",ar:"التقويم"}, tab_cases:{en:"Cases",ar:"القضايا"}, tab_checklist:{en:"Checklist",ar:"قائمة المهام"},
+  print_chooser_title:{en:"Print",ar:"طباعة"},
+  print_today_option:{en:"Today's docket",ar:"دفتر اليوم"},
+  print_week_option:{en:"This week's report",ar:"تقرير هذا الأسبوع"},
+  print_month_option:{en:"This month's report",ar:"تقرير هذا الشهر"},
+  print_footer:{en:"Printed from Docket — {date}",ar:"طُبع من Docket — {date}"},
+  print_docket_today_title:{en:"Docket — Today",ar:"دفتر اليوم"},
+  print_nothing_due_today:{en:"Nothing due today.",ar:"لا شيء مستحق اليوم."},
+  print_open_checklist_section:{en:"Open checklist items",ar:"عناصر قائمة المهام المفتوحة"},
+  print_weekly_report_title:{en:"Weekly Report",ar:"تقرير أسبوعي"},
+  print_monthly_report_title:{en:"Monthly Report",ar:"تقرير شهري"},
+  print_hearings_procedures_section:{en:"Hearings & Procedures ({n})",ar:"الجلسات والإجراءات ({n})"},
+  print_none_in_period:{en:"None in this period.",ar:"لا شيء في هذه الفترة."},
+  print_checklist_completed_section:{en:"Checklist items completed ({n})",ar:"عناصر أُنجزت من القائمة ({n})"},
+  print_none_completed_period:{en:"None completed in this period.",ar:"لم يُنجز شيء خلال هذه الفترة."},
+  print_completed_suffix:{en:"(completed)",ar:"(مكتمل)"},
+  print_open_suffix:{en:"(open)",ar:"(مفتوح)"},
+  print_parties_section:{en:"Parties",ar:"الأطراف"},
+  print_notes_section:{en:"Notes",ar:"ملاحظات"},
+  print_case_log_section:{en:"Case Log",ar:"سجل القضية"},
+  print_all_procedures_section:{en:"All Procedures & Deadlines ({n})",ar:"جميع الإجراءات والمواعيد ({n})"},
+  print_none_recorded:{en:"None recorded.",ar:"لا يوجد شيء مسجل."},
+  print_documents_section:{en:"Documents",ar:"المستندات"},
+  print_file_label:{en:"File {n}",ar:"ملف {n}"},
+  print_partial_label:{en:"Partial {n}",ar:"جزئي {n}"},
+  print_general_label:{en:"General {n}",ar:"عام {n}"},
+  print_deadline_prefix:{en:"Deadline",ar:"موعد نهائي"},
   badge_overdue:{en:"{n} overdue",ar:"{n} متأخر"}, badge_due_soon:{en:"{n} due soon",ar:"{n} قريبًا"}, badge_no_upcoming:{en:"{n} no upcoming dates",ar:"{n} بلا مواعيد قادمة"},
   // Calendar tab
   today_in_court:{en:"Today in court",ar:"اليوم في المحكمة"}, tomorrow_in_court:{en:"Tomorrow in court",ar:"غدًا في المحكمة"},
@@ -866,7 +892,8 @@ function deleteTaskDoc(id){
 }
 function toggleTaskDone(id){
   const t = state.tasks.find(x=>x.id===id);
-  coll("tasks").doc(id).set({...stripId(t), completed: !t.completed});
+  const completed = !t.completed;
+  coll("tasks").doc(id).set({...stripId(t), completed, completedAt: completed ? Date.now() : null});
 }
 function ensureCustomCaseType(t){ if(t && !CASE_TYPES.includes(t) && !state.customCaseTypes.includes(t)){ state.customCaseTypes.push(t); saveSettings(); } }
 function ensureCustomProcedureType(t){ if(t && !PROCEDURE_TYPES.includes(t) && !state.customProcedureTypes.includes(t)){ state.customProcedureTypes.push(t); saveSettings(); } }
@@ -876,7 +903,7 @@ function saveChecklistItem(data){
   const {id, ...rest}=data; return coll("checklist").add({...rest, createdAt: Date.now()});
 }
 function deleteChecklistItem(id){ coll("checklist").doc(id).delete(); }
-function toggleChecklistDone(id){ const c = state.checklist.find(x=>x.id===id); coll("checklist").doc(id).set({...stripId(c), done: !c.done}); }
+function toggleChecklistDone(id){ const c = state.checklist.find(x=>x.id===id); const done = !c.done; coll("checklist").doc(id).set({...stripId(c), done, completedAt: done ? Date.now() : null}); }
 
 /* ================= GOOGLE CALENDAR ================= */
 async function pushToGoogleCalendar(task, caseItem){
@@ -1011,7 +1038,19 @@ document.getElementById("tab-calendar").onclick = ()=>{ state.view="calendar"; r
 document.getElementById("tab-cases").onclick = ()=>{ state.view="cases"; render(); };
 document.getElementById("tab-checklist").onclick = ()=>{ state.view="checklist"; render(); };
 document.getElementById("settings-btn").onclick = ()=> openSettingsModal();
-document.getElementById("print-btn").onclick = ()=> printTodaysDocket();
+document.getElementById("print-btn").onclick = ()=> openPrintChooser();
+function openPrintChooser(){
+  document.getElementById("modal-root").innerHTML = `
+  <div class="modal-bg" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-head"><h2 class="serif" style="font-size:20px;color:var(--navy-dark);margin:0;">${tr('print_chooser_title')}</h2><button class="icon-btn" onclick="closeModal()">${ICONS.xmark}</button></div>
+      <button class="btn-ghost" style="width:100%;margin-bottom:8px;text-align:start;" onclick="closeModal();printTodaysDocket();">${ICONS.calendar_days} ${tr('print_today_option')}</button>
+      <button class="btn-ghost" style="width:100%;margin-bottom:8px;text-align:start;" onclick="closeModal();printPeriodReport('week');">${ICONS.calendar_days} ${tr('print_week_option')}</button>
+      <button class="btn-ghost" style="width:100%;text-align:start;" onclick="closeModal();printPeriodReport('month');">${ICONS.calendar_days} ${tr('print_month_option')}</button>
+    </div>
+  </div>`;
+}
+window.printPeriodReport = printPeriodReport;
 function printLetterheadHtml(){
   const lh = state.letterhead || {};
   if(!lh.name && !lh.subtitle && !lh.contact) return "";
@@ -1022,7 +1061,7 @@ function printLetterheadHtml(){
   </div>`;
 }
 function printFooterHtml(){
-  return `<div class="print-footer">Printed from Docket — ${fmtLong(todayKey())}</div>`;
+  return `<div class="print-footer">${tr('print_footer',{date:fmtLong(todayKey())})}</div>`;
 }
 function printTodaysDocket(){
   const tk = todayKey();
@@ -1030,20 +1069,56 @@ function printTodaysDocket(){
   const dueToday = state.tasks.filter(t=>!t.completed && t.date===tk).sort((a,b)=>(a.kind==="deadline")-(b.kind==="deadline"));
   const overdue = state.tasks.filter(t=>!t.completed && t.date<tk).sort((a,b)=>a.date.localeCompare(b.date));
   const openChecklist = state.checklist.filter(x=>!x.done);
-  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?ICONS.hourglass_half:ICONS.calendar_days} ${esc(t.title)}</strong> — ${esc(t.type)}
-    <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):"No case linked"}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}${t.date!==tk?` · ${fmtLong(t.date)}`:""}</div></div>`;
+  const itemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?ICONS.hourglass_half:ICONS.calendar_days} ${esc(t.title)}</strong> — ${esc(procTypeLabel(t.type))}
+    <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):tr('no_case_linked')}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}${t.date!==tk?` · ${fmtLong(t.date)}`:""}</div></div>`;
   document.getElementById("print-area").innerHTML = `
     ${printLetterheadHtml()}
-    <h1>${ICONS.scale_balanced} Docket — Today</h1>
+    <h1>${ICONS.scale_balanced} ${tr('print_docket_today_title')}</h1>
     <div class="p-sub">${fmtLong(tk)}</div>
     <div class="p-section">
-      <div class="p-section-title">Today</div>
-      ${dueToday.length===0?`<div class="p-item">Nothing due today.</div>`:dueToday.map(itemHtml).join("")}
+      <div class="p-section-title">${tr('today_word')}</div>
+      ${dueToday.length===0?`<div class="p-item">${tr('print_nothing_due_today')}</div>`:dueToday.map(itemHtml).join("")}
     </div>
-    ${overdue.length>0?`<div class="p-section"><div class="p-section-title">Overdue</div>${overdue.map(itemHtml).join("")}</div>`:""}
-    ${openChecklist.length>0?`<div class="p-section"><div class="p-section-title">Open checklist items</div>
+    ${overdue.length>0?`<div class="p-section"><div class="p-section-title">${tr('overdue_word')}</div>${overdue.map(itemHtml).join("")}</div>`:""}
+    ${openChecklist.length>0?`<div class="p-section"><div class="p-section-title">${tr('print_open_checklist_section')}</div>
       ${openChecklist.map(it=>`<div class="p-item">${ICONS.square} ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
     </div>`:""}
+    ${printFooterHtml()}
+  `;
+  window.print();
+}
+function printPeriodReport(rangeType){
+  const tk = todayKey();
+  const todayDate = parseKey(tk);
+  let startKey, endKey, rangeLabel;
+  if(rangeType==="week"){
+    const dow = todayDate.getDay();
+    startKey = addDays(tk, -dow);
+    endKey = addDays(tk, 6-dow);
+    rangeLabel = `${fmtLong(startKey)} – ${fmtLong(endKey)}`;
+  } else {
+    const y = todayDate.getFullYear(), m = todayDate.getMonth();
+    startKey = dateKey(new Date(y,m,1));
+    endKey = dateKey(new Date(y,m+1,0));
+    rangeLabel = `${monthName(m)} ${y}`;
+  }
+  const casesById = {}; state.cases.forEach(c=>casesById[c.id]=c);
+  const periodTasks = state.tasks.filter(t=> t.date>=startKey && t.date<=endKey).sort((a,b)=>a.date.localeCompare(b.date));
+  const periodChecklist = state.checklist.filter(x=> x.completedAt && dateKey(new Date(x.completedAt))>=startKey && dateKey(new Date(x.completedAt))<=endKey).sort((a,b)=>a.completedAt-b.completedAt);
+  const taskItemHtml = (t)=>`<div class="p-item"><strong>${t.kind==="deadline"?ICONS.hourglass_half:iconForProcedure(t.type)} ${esc(t.title)}</strong> — ${esc(procTypeLabel(t.type))} — ${fmtLong(t.date)} ${t.completed?tr('print_completed_suffix'):tr('print_open_suffix')}
+    <div class="p-meta">${casesById[t.caseId]?esc(computeCaseTitle(casesById[t.caseId])):tr('no_case_linked')}${casesById[t.caseId]&&casesById[t.caseId].court?` · ${esc(casesById[t.caseId].court)}`:""}</div></div>`;
+  document.getElementById("print-area").innerHTML = `
+    ${printLetterheadHtml()}
+    <h1>${ICONS.scale_balanced} ${rangeType==="week"?tr('print_weekly_report_title'):tr('print_monthly_report_title')}</h1>
+    <div class="p-sub">${rangeLabel}</div>
+    <div class="p-section">
+      <div class="p-section-title">${tr('print_hearings_procedures_section',{n:periodTasks.length})}</div>
+      ${periodTasks.length===0?`<div class="p-item">${tr('print_none_in_period')}</div>`:periodTasks.map(taskItemHtml).join("")}
+    </div>
+    <div class="p-section">
+      <div class="p-section-title">${tr('print_checklist_completed_section',{n:periodChecklist.length})}</div>
+      ${periodChecklist.length===0?`<div class="p-item">${tr('print_none_completed_period')}</div>`:periodChecklist.map(it=>`<div class="p-item">${ICONS.square_check} ${esc(it.text)}${it.caseId&&casesById[it.caseId]?` <span class="p-meta">— ${esc(computeCaseTitle(casesById[it.caseId]))}</span>`:""}</div>`).join("")}
+    </div>
     ${printFooterHtml()}
   `;
   window.print();
@@ -1054,39 +1129,39 @@ window.printCaseHistory = (c)=>{
   const log = (c.noteLog||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
 
   const taskHtml = (t)=>{
-    const label = t.flag==="critical" ? "CRITICAL — " : (t.kind==="deadline" ? "Deadline — " : "");
+    const label = t.flag==="critical" ? `${tr('critical_badge')} — ` : (t.kind==="deadline" ? `${tr('print_deadline_prefix')} — ` : "");
     return `<div class="p-item">
-      <strong>${esc(label)}${esc(t.title)}</strong> — ${esc(t.type)} — ${fmtLong(t.date)} ${t.completed?"(completed)":""}
+      <strong>${esc(label)}${esc(t.title)}</strong> — ${esc(procTypeLabel(t.type))} — ${fmtLong(t.date)} ${t.completed?tr('print_completed_suffix'):""}
       ${t.notes?`<div class="p-meta">${esc(t.notes)}</div>`:""}
-      ${t.postponeReason?`<div class="p-meta">↳ Postponed: ${esc(t.postponeReason)}</div>`:""}
+      ${t.postponeReason?`<div class="p-meta">↳ ${tr('postponed_prefix')} ${esc(t.postponeReason)}</div>`:""}
     </div>`;
   };
 
   document.getElementById("print-area").innerHTML = `
     ${printLetterheadHtml()}
     <h1>${esc(computeCaseTitle(c))}</h1>
-    <div class="p-sub">${esc(c.caseType)} · ${c.status}${c.court?(" · "+esc(c.court)):""}${c.authorityType==="court"&&c.chamber?(" · "+esc(c.chamber)):""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?(" · Prosecutor: "+esc(c.prosecutorInCharge)):""}${c.courtNumber?(" · File "+esc(c.courtNumber)):""}${c.partialNumber?(" · Partial "+esc(c.partialNumber)):""}${c.generalNumber?(" · General "+esc(c.generalNumber)):""}</div>
+    <div class="p-sub">${esc(caseTypeLabel(c.caseType))} · ${esc(statusLabel(c.status))}${c.court?(" · "+esc(c.court)):""}${c.authorityType==="court"&&c.chamber?(" · "+esc(c.chamber)):""}${c.authorityType==="prosecution"&&c.prosecutorInCharge?(" · "+tr('prosecutor_line',{name:esc(c.prosecutorInCharge)})):""}${c.courtNumber?(" · "+tr('print_file_label',{n:esc(c.courtNumber)})):""}${c.partialNumber?(" · "+tr('print_partial_label',{n:esc(c.partialNumber)})):""}${c.generalNumber?(" · "+tr('print_general_label',{n:esc(c.generalNumber)})):""}</div>
 
     ${(c.parties&&c.parties.length)?`<div class="p-section">
-      <div class="p-section-title">Parties</div>
-      ${c.parties.map(p=>`<div class="p-item"><strong>${esc(p.role)}:</strong> ${esc(p.name)}${p.phone?(" · "+esc(p.phone)):""}${p.email?(" · "+esc(p.email)):""}</div>`).join("")}
+      <div class="p-section-title">${tr('print_parties_section')}</div>
+      ${c.parties.map(p=>`<div class="p-item"><strong>${esc(partyRoleLabel(p.role))}:</strong> ${esc(p.name)}${p.phone?(" · "+esc(p.phone)):""}${p.email?(" · "+esc(p.email)):""}</div>`).join("")}
     </div>`:""}
 
-    ${c.notes?`<div class="p-section"><div class="p-section-title">Notes</div><div class="p-item">${esc(c.notes)}</div></div>`:""}
+    ${c.notes?`<div class="p-section"><div class="p-section-title">${tr('print_notes_section')}</div><div class="p-item">${esc(c.notes)}</div></div>`:""}
 
-    ${log.length?`<div class="p-section"><div class="p-section-title">Case Log</div>
+    ${log.length?`<div class="p-section"><div class="p-section-title">${tr('print_case_log_section')}</div>
       ${log.map(l=>`<div class="p-item">${fmtLong(l.date)} — ${esc(l.text)}</div>`).join("")}
     </div>`:""}
 
-    <div class="p-section"><div class="p-section-title">All Procedures & Deadlines (${tasks.length})</div>
-      ${tasks.length===0?`<div class="p-item">None recorded.</div>`:tasks.map(taskHtml).join("")}
+    <div class="p-section"><div class="p-section-title">${tr('print_all_procedures_section',{n:tasks.length})}</div>
+      ${tasks.length===0?`<div class="p-item">${tr('print_none_recorded')}</div>`:tasks.map(taskHtml).join("")}
     </div>
 
-    ${checklistItems.length?`<div class="p-section"><div class="p-section-title">Checklist</div>
+    ${checklistItems.length?`<div class="p-section"><div class="p-section-title">${tr('tab_checklist')}</div>
       ${checklistItems.map(it=>`<div class="p-item">${it.done?ICONS.square_check:ICONS.square} ${esc(it.text)}</div>`).join("")}
     </div>`:""}
 
-    ${(c.documents&&c.documents.length)?`<div class="p-section"><div class="p-section-title">Documents</div>
+    ${(c.documents&&c.documents.length)?`<div class="p-section"><div class="p-section-title">${tr('print_documents_section')}</div>
       ${c.documents.map(d=>`<div class="p-item">${esc(d.label)} — ${esc(d.url)}</div>`).join("")}
     </div>`:""}
 
@@ -1150,9 +1225,9 @@ function render(){
   state._staleCases = staleCases;
 
   const badges = document.getElementById("header-badges");
-  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;">${overdueItems.length} overdue</button>`:"") +
-                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${headsUpItems.length} due soon</button>`:"") +
-                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;">${staleCases.length} no upcoming dates</button>`:"");
+  badges.innerHTML = (overdueItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('overdue')" title="${esc(tr('badge_overdue',{n:overdueItems.length}))}" style="border-color:#E5A39B;color:#E5A39B;background:none;cursor:pointer;">${ICONS.triangle_exclamation} ${overdueItems.length}</button>`:"") +
+                      (headsUpItems.length>0?`<button class="badge" onclick="toggleBadgeMenu('headsup')" title="${esc(tr('badge_due_soon',{n:headsUpItems.length}))}" style="border-color:var(--brass);color:var(--brass);background:none;cursor:pointer;">${ICONS.hourglass_half} ${headsUpItems.length}</button>`:"") +
+                      (staleCases.length>0?`<button class="badge" onclick="toggleBadgeMenu('stale')" title="${esc(tr('badge_no_upcoming',{n:staleCases.length}))}" style="border-color:var(--slate);color:var(--slate);background:none;cursor:pointer;">${ICONS.calendar_days} ${staleCases.length}</button>`:"");
   renderBadgeMenu();
 
   renderInstallBanner();
@@ -1548,16 +1623,6 @@ function renderCases(){
   const tc = document.getElementById("toggle-closed");
   if(tc) tc.onchange = e=>{ state.hideClosed = e.target.checked; render(); };
 }
-function daysSinceActivity(c){
-  const dates = [c.createdAt ? new Date(c.createdAt).toISOString().slice(0,10) : null];
-  (c.noteLog||[]).forEach(l => dates.push(l.date));
-  state.tasks.filter(t=>t.caseId===c.id).forEach(t => { if(t.createdAt) dates.push(new Date(t.createdAt).toISOString().slice(0,10)); });
-  state.checklist.filter(x=>x.caseId===c.id).forEach(it => { if(it.createdAt) dates.push(new Date(it.createdAt).toISOString().slice(0,10)); });
-  const valid = dates.filter(Boolean);
-  if(valid.length===0) return null;
-  const mostRecent = valid.sort().reverse()[0];
-  return daysBetween(mostRecent, todayKey());
-}
 function caseCardHtml(c){
   const color = colorForCaseType(c.caseType);
   const statusColor = c.status==="Closed" ? "var(--muted)" : c.status==="Active" ? "var(--sage)" : "var(--brass)";
@@ -1569,7 +1634,6 @@ function caseCardHtml(c){
     : (c.caseType==="Criminal"&&(c.partialNumber||c.generalNumber)) ? `${c.partialNumber?bdi(c.partialNumber):""}${c.partialNumber&&c.generalNumber?" · ":""}${c.generalNumber?tr('gen_abbrev')+" "+bdi(c.generalNumber):""}`
     : c.courtNumber ? bdi(c.courtNumber) : "";
 
-  const activityDays = c.status!=="Closed" ? daysSinceActivity(c) : null;
   const nextHearing = nextHearingForCase(c.id);
   const hasCriticalOpen = state.tasks.some(t=>t.caseId===c.id && !t.completed && t.flag==="critical");
 
@@ -1578,8 +1642,7 @@ function caseCardHtml(c){
     locationPiece,
     nextHearing ? `${ICONS.gavel} ${tr('next_hearing_label',{date:bdi(fmtLong(nextHearing.date))})}` : "",
     (c.documents&&c.documents.length) ? `${ICONS.link} ${c.documents.length}` : "",
-    groupSize>0 ? `${ICONS.link} ${tr('linked_count',{n:groupSize})}` : "",
-    activityDays!==null ? tr('days_since_activity',{n:activityDays}) : ""
+    groupSize>0 ? `${ICONS.link} ${tr('linked_count',{n:groupSize})}` : ""
   ].filter(Boolean);
 
   const cardStyle = hasCriticalOpen
@@ -1971,7 +2034,7 @@ window.submitContinue = (origId)=>{
   const staleReminders = state.checklist.filter(x=>x.caseId===orig.caseId && x.text.indexOf("Get the next hearing date")===0 && !x.done);
   staleReminders.forEach(x=> coll("checklist").doc(x.id).set({...stripId(x), done:true}));
   if(document.getElementById("cont-markdone").checked){
-    coll("tasks").doc(origId).set({...stripId(orig), completed:true, postponeReason: reason || orig.postponeReason || null});
+    coll("tasks").doc(origId).set({...stripId(orig), completed:true, completedAt: Date.now(), postponeReason: reason || orig.postponeReason || null});
   } else if(reason){
     coll("tasks").doc(origId).set({...stripId(orig), postponeReason: reason});
   }
@@ -1990,7 +2053,7 @@ window.markRulingIssued = (t)=>{
     </div>`;
 };
 window.confirmRulingIssued = (t)=>{
-  coll("tasks").doc(t.id).set({...stripId(t), completed:true});
+  coll("tasks").doc(t.id).set({...stripId(t), completed:true, completedAt: Date.now()});
   const c = state.cases.find(x=>x.id===t.caseId);
   if(c){
     const newLog = [...(c.noteLog||[]), { id: uid(), date: todayKey(), text: tr('ruling_issued_log_text',{title:t.title}) }];
